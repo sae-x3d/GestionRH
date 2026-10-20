@@ -1,4 +1,3 @@
--- BLOC 1
 CREATE TABLE role (
     id_role SERIAL PRIMARY KEY,
     nom_role VARCHAR(100)
@@ -12,11 +11,9 @@ CREATE TABLE departement (
 CREATE TABLE poste (
     id_poste SERIAL PRIMARY KEY,
     nom_poste VARCHAR(100),
-    id_role INT,
+    id_role INT REFERENCES role(id_role),
     salaire_max INT,
-    salaire_min INT,
-    CONSTRAINT fk_id_role
-        FOREIGN KEY (id_role) REFERENCES role(id_role)
+    salaire_min INT
 );
 
 CREATE TABLE motif (
@@ -24,23 +21,20 @@ CREATE TABLE motif (
     libelle VARCHAR(100)
 );
 
+CREATE TABLE status (
+    id_status SERIAL PRIMARY KEY,
+    libelle_status VARCHAR(50)
+);
+
 CREATE TABLE demande (
     id_demande SERIAL PRIMARY KEY,
-    id_poste INT,
-    id_dept INT,
+    id_poste INT REFERENCES poste(id_poste),
+    id_dept INT REFERENCES departement(id_dept),
     date_creation TIMESTAMP,
-    id_motif INT,
+    id_motif INT REFERENCES motif(id_motif),
     budget INT,
     date_souhaite TIMESTAMP,
-
-    CONSTRAINT fk_id_poste
-        FOREIGN KEY (id_poste) REFERENCES poste(id_poste),
-
-    CONSTRAINT fk_id_dept
-        FOREIGN KEY (id_dept) REFERENCES departement(id_dept),
-
-    CONSTRAINT fk_id_motif
-        FOREIGN KEY (id_motif) REFERENCES motif(id_motif)
+    id_status INT REFERENCES status(id_status)
 );
 
 CREATE TABLE provenance (
@@ -53,41 +47,22 @@ CREATE TABLE emp (
     nom_emp VARCHAR(255),
     date_embauche TIMESTAMP,
     date_depart TIMESTAMP,
-    id_poste INT,
-    id_dept INT,
+    id_poste INT REFERENCES poste(id_poste),
+    id_dept INT REFERENCES departement(id_dept),
     salaire_emp INT,
-    id_provenance INT,
-
-    CONSTRAINT fk_id_poste
-        FOREIGN KEY (id_poste) REFERENCES poste(id_poste),
-
-    CONSTRAINT fk_id_dept
-        FOREIGN KEY (id_dept) REFERENCES departement(id_dept),
-
-    CONSTRAINT fk_id_provenance
-        FOREIGN KEY (id_provenance)
-        REFERENCES provenance(id_provenance)
+    id_provenance INT REFERENCES provenance(id_provenance)
 );
 
-CREATE TABLE "user" (
+CREATE TABLE utilisateur (
     id_user SERIAL PRIMARY KEY,
-    id_emp INT,
+    id_emp INT REFERENCES emp(id_emp),
     username VARCHAR(100),
-    password_hash VARCHAR(255),
-
-    CONSTRAINT fk_id_emp
-        FOREIGN KEY (id_emp) REFERENCES emp(id_emp)
+    password_hash VARCHAR(255)
 );
 
 CREATE TABLE poste_par_dept (
     id SERIAL PRIMARY KEY,
-    id_dept INT,
-    id_poste INT,
-    nb_poste INT,
-
-    CONSTRAINT fk_id_dept
-        FOREIGN KEY (id_dept) REFERENCES departement(id_dept),
-
-    CONSTRAINT fk_id_poste
-        FOREIGN KEY (id_poste) REFERENCES poste(id_poste)
+    id_dept INT REFERENCES departement(id_dept),
+    id_poste INT REFERENCES poste(id_poste),
+    nb_poste INT
 );
