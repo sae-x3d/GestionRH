@@ -21,8 +21,8 @@ CREATE TABLE motif (
     libelle VARCHAR(100)
 );
 
-CREATE TABLE status (
-    id_status SERIAL PRIMARY KEY,
+CREATE TABLE demande_status (
+    id_demande_status SERIAL PRIMARY KEY,
     libelle_status VARCHAR(50)
 );
 
@@ -34,7 +34,7 @@ CREATE TABLE demande (
     id_motif INT REFERENCES motif(id_motif),
     budget INT,
     date_souhaite TIMESTAMP,
-    id_status INT REFERENCES status(id_status),
+    id_demande_status INT REFERENCES status(id_status),
     date_reponse TIMESTAMP
 );
 
