@@ -34,7 +34,7 @@ CREATE TABLE demande (
     id_motif INT REFERENCES motif(id_motif),
     budget INT,
     date_souhaite TIMESTAMP,
-    id_demande_status INT REFERENCES status(id_status),
+    id_demande_status INT REFERENCES demande_status(id_demande_status),
     date_reponse TIMESTAMP
 );
 
