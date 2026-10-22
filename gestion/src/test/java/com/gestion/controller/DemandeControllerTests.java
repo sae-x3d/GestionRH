@@ -98,7 +98,7 @@ class DemandeControllerTests {
                         .param("budget", "-1"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Le poste est obligatoire")))
-                .andExpect(content().string(containsString("Le budget ne peut pas être négatif")));
+                .andExpect(content().string(containsString("Le budget ne peut pas etre negatif")));
 
         assertThat(demandeRepository.count()).isEqualTo(nombreDemandesAvant);
     }
@@ -126,8 +126,7 @@ class DemandeControllerTests {
         assertThat(resultat.getResponse().getRedirectedUrl())
                 .isEqualTo("/demandes/" + demande.getIdDemande());
         assertThat(demande.getDemandeur().getIdUser()).isEqualTo(3);
-        assertThat(demande.getDemandeStatus().getLibelleStatus())
-                .isEqualTo(DemandeStatusService.EN_ATTENTE_VALIDATION_RH);
+        assertThat(demande.getDemandeStatus().getLibelleStatus()).isEqualTo("EN_ATTENTE_VALIDATION_RH");
         assertThat(demande.getPoste().getIdPoste()).isEqualTo(1);
         assertThat(demande.getDepartement().getIdDept()).isEqualTo(1);
         assertThat(demande.getMotif().getIdMotif()).isEqualTo(3);

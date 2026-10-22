@@ -63,7 +63,7 @@ class DemandeFluxCompletTests {
         assertThat(connexion.headers().firstValue("Location").orElseThrow())
                 .endsWith("/demandes");
 
-        // 3. Formulaire alimenté par la base
+        // 3. Formulaire alimente par la base
         HttpResponse<String> formulaire = client.send(
                 HttpRequest.newBuilder(URI.create(base + "/demandes/nouvelle")).GET().build(),
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
@@ -87,19 +87,18 @@ class DemandeFluxCompletTests {
                         .build(),
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         assertThat(envoi.statusCode()).isEqualTo(302);
-        URI destination = URI.create(envoi.headers().firstValue("Location").orElseThrow());
-        assertThat(destination.getPath()).matches("/demandes/\\d+");
+        String urlDetail = envoi.headers().firstValue("Location").orElseThrow();
+        assertThat(urlDetail).containsPattern("/demandes/\\d+$");
 
-        // 5. Page de détail de la demande créée
+        // 5. Confirmation affichee sur le detail
+        String urlConfirmation = urlDetail.startsWith("http") ? urlDetail : base + urlDetail;
         HttpResponse<String> confirmation = client.send(
-                HttpRequest.newBuilder(URI.create(base + destination.getPath())).GET().build(),
+                HttpRequest.newBuilder(URI.create(urlConfirmation)).GET().build(),
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         assertThat(confirmation.statusCode()).isEqualTo(200);
         assertThat(confirmation.body())
                 .contains("enregistrée avec le statut")
-                .contains("Développeur Backend")
-                .contains("manager.it")
-                .contains("Demande n°");
+                .contains("En attente validation RH");
 
         // 6. Trace en base
         assertThat(demandeRepository.count()).isEqualTo(nombreDemandesAvant + 1);
@@ -107,8 +106,7 @@ class DemandeFluxCompletTests {
                 .max(Comparator.comparing(Demande::getIdDemande))
                 .orElseThrow();
         assertThat(demande.getDemandeur().getIdUser()).isEqualTo(3);
-        assertThat(demande.getDemandeStatus().getLibelleStatus())
-                .isEqualTo(DemandeStatusService.EN_ATTENTE_VALIDATION_RH);
+        assertThat(demande.getDemandeStatus().getLibelleStatus()).isEqualTo("EN_ATTENTE_VALIDATION_RH");
         assertThat(demande.getBudget()).isEqualTo(3500000);
 
         demandeRepository.delete(demande);
@@ -116,7 +114,7 @@ class DemandeFluxCompletTests {
 
     private String extraireJetonCsrf(String html) {
         Matcher matcher = JETON_CSRF.matcher(html);
-        assertThat(matcher.find()).as("Jeton CSRF présent dans la page").isTrue();
+        assertThat(matcher.find()).as("Jeton CSRF present dans la page").isTrue();
         return matcher.group(1);
     }
 

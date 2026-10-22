@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title th:text="${pageTitle}">Validation des demandes</title>
+    <link rel="stylesheet" th:href="@{/css/offre.css}">
+    <link rel="stylesheet" th:href="@{/css/demande.css}">
+</head>
+
+<body>
+<div layout:fragment="content">
+
+    <div class="page-header">
+        <h2 th:text="${titre}">Validation des demandes</h2>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Decision enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <p class="empty-state" th:if="${#lists.isEmpty(demandes)}">
+        Aucune demande en attente de validation.
+    </p>
+
+    <div class="table-wrapper" th:unless="${#lists.isEmpty(demandes)}">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Demande</th>
+                <th>Poste</th>
+                <th>Departement</th>
+                <th>Demandeur</th>
+                <th>Motif</th>
+                <th>Budget</th>
+                <th>Date souhaitee</th>
+                <th>Creee le</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="demande : ${demandes}">
+                <td th:text="${'#' + demande.idDemande}">#1</td>
+                <td th:text="${demande.poste != null ? demande.poste.nomPoste : '-'}">Poste</td>
+                <td th:text="${demande.departement != null ? demande.departement.nomDept : '-'}">Departement</td>
+                <td th:text="${demande.demandeur != null ? demande.demandeur.username : '-'}">Demandeur</td>
+                <td th:text="${demande.motif != null ? demande.motif.libelle : '-'}">Motif</td>
+                <td th:text="${demande.budget != null ? #numbers.formatInteger(demande.budget, 1, 'POINT') + ' Ar' : '-'}">-</td>
+                <td th:text="${demande.dateSouhaite != null ? #temporals.format(demande.dateSouhaite, 'dd/MM/yyyy') : '-'}">-</td>
+                <td th:text="${demande.dateCreation != null ? #temporals.format(demande.dateCreation, 'dd/MM/yyyy') : '-'}">-</td>
+                <td class="actions">
+                    <form th:action="@{/demandes/{id}/validation/{etape}/accepter(id=${demande.idDemande}, etape=${etape})}"
+                          method="post" class="inline-form">
+                        <button type="submit" class="btn btn-primary btn-small">Accepter</button>
+                    </form>
+                    <form th:action="@{/demandes/{id}/validation/{etape}/refuser(id=${demande.idDemande}, etape=${etape})}"
+                          method="post" class="inline-form">
+                        <button type="submit" class="btn btn-outline btn-small">Refuser</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+</body>
+
+</html>

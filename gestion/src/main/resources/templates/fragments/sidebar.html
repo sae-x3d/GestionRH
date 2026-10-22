@@ -1,5 +1,4 @@
-<div class="sidebar" th:fragment="sidebar"
-     xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<div class="sidebar" th:fragment="sidebar" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     <div class="logo">
         <h2>GESTIONRH</h2>
     </div>
@@ -10,16 +9,25 @@
            th:href="@{/demandes/validation-rh}">Validation RH</a>
         <a sec:authorize="hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMINISTRATEUR')"
            th:href="@{/demandes/nouvelle}">Nouvelle demande</a>
+        <a th:href="@{/offres}">Offres d'emploi</a>
+        <a sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')" th:href="@{/offres/gestion}">Gerer les offres</a>
+        <a th:href="@{/candidatures}">Mes candidatures</a>
+        <a sec:authorize="hasAnyRole('UTILISATEUR', 'EMPLOYE', 'MANAGER')" th:href="@{/candidatures/postuler}">Postuler</a>
+        <a sec:authorize="hasAnyRole('ADMINISTRATEUR', 'MANAGER')" th:href="@{/demandes/nouvelle}">Nouvelle demande</a>
+
+        <a th:if="${estRh or estAdministrateur}" th:href="@{/demandes/validation/rh}">Validation RH</a>
+        <a th:if="${estFinance or estAdministrateur}" th:href="@{/demandes/validation/finance}">Validation Finance</a>
+        <a th:if="${estAdministrateur}" th:href="@{/demandes/validation/direction}">Validation Direction</a>
+        <a th:if="${estRh or estAdministrateur}" th:href="@{/candidatures/rh}">Candidatures RH</a>
     </nav>
 
     <div class="info-user" th:if="${#authentication != null and #authentication.name != 'anonymousUser'}">
         <div class="user-info">
-            <span th:text="${#authentication.name}">utilisateur</span>
-            <span class="badge" th:if="${#authentication.principal.utilisateur.role != null}"
-                  th:text="${#authentication.principal.utilisateur.role.nomRole}">rôle</span>
+            <span th:text="${demandeur.username}">utilisateur</span>
+            <span class="badge" th:if="${demandeur.role != null}" th:text="${demandeur.role.nomRole}">role</span>
         </div>
         <form th:action="@{/logout}" method="post" class="logout-form">
-            <button type="submit">Se déconnecter</button>
+            <button type="submit">Se deconnecter</button>
         </form>
     </div>
 </div>

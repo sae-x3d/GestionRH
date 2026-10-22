@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title th:text="${offre.titre}">Offre d'emploi</title>
+    <link rel="stylesheet" th:href="@{/css/offre.css}">
+</head>
+
+<body>
+<div layout:fragment="content">
+
+    <div class="page-header">
+        <h2 th:text="${offre.titre}">Titre de l'offre</h2>
+        <a th:href="@{/offres}" class="btn btn-outline">Retour au fil</a>
+    </div>
+
+    <div class="card card-info">
+        <p><strong>Statut :</strong> <span th:text="${offre.statut.libelle}">Publiee</span></p>
+        <p th:if="${offre.demande != null and offre.demande.poste != null}">
+            <strong>Poste :</strong> <span th:text="${offre.demande.poste.nomPoste}">Poste</span>
+        </p>
+        <p th:if="${offre.demande != null and offre.demande.departement != null}">
+            <strong>Departement :</strong> <span th:text="${offre.demande.departement.nomDept}">Departement</span>
+        </p>
+        <p th:if="${offre.lieu}"><strong>Lieu :</strong> <span th:text="${offre.lieu}">Lieu</span></p>
+        <p th:if="${offre.typeContrat}"><strong>Type de contrat :</strong> <span th:text="${offre.typeContrat}">CDI</span></p>
+        <p th:if="${offre.salaire != null}">
+            <strong>Salaire propose :</strong>
+            <span th:text="${#numbers.formatInteger(offre.salaire, 1, 'POINT')} + ' Ar'">3 500 000 Ar</span>
+        </p>
+        <p th:if="${offre.datePublication}">
+            <strong>Publiee le :</strong>
+            <span th:text="${#temporals.format(offre.datePublication, 'dd/MM/yyyy')}">01/01/2026</span>
+        </p>
+        <p th:if="${offre.dateCloture}">
+            <strong>Date de cloture :</strong>
+            <span th:text="${#temporals.format(offre.dateCloture, 'dd/MM/yyyy')}">01/01/2026</span>
+        </p>
+    </div>
+
+    <section class="card offre-description">
+        <h3>Description du poste</h3>
+        <p th:text="${offre.description}">Description</p>
+    </section>
+
+    <div class="form-actions">
+        <a th:if="${offre.statut.name() == 'PUBLIEE'}"
+           th:href="@{/candidatures/postuler(offreId=${offre.idOffre})}" class="btn btn-primary">
+            Postuler a cette offre
+        </a>
+        <a sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')"
+           th:href="@{/offres/{id}/modifier(id=${offre.idOffre})}" class="btn btn-outline">
+            Modifier l'offre
+        </a>
+        <form sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')"
+              th:if="${offre.statut.name() == 'BROUILLON'}"
+              th:action="@{/offres/{id}/publier(id=${offre.idOffre})}" method="post">
+            <button type="submit" class="btn btn-primary">Publier l'offre</button>
+        </form>
+    </div>
+
+</div>
+</body>
+
+</html>

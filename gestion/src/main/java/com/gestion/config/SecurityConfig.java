@@ -18,16 +18,35 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/connexion", "/css/**", "/error").permitAll()
+
+                        .requestMatchers("/offres/gestion", "/offres/nouvelle")
+                        .hasAnyAuthority("ROLE_ADMINISTRATEUR", "ROLE_RH")
+                        .requestMatchers(HttpMethod.GET, "/offres/*/modifier")
+                        .hasAnyAuthority("ROLE_ADMINISTRATEUR", "ROLE_RH")
+                        .requestMatchers("/offres/*/questions", "/offres/*/questions/**")
+                        .hasAnyAuthority("ROLE_ADMINISTRATEUR", "ROLE_RH")
+                        .requestMatchers(HttpMethod.POST, "/offres", "/offres/*", "/offres/*/publier")
+                        .hasAnyAuthority("ROLE_ADMINISTRATEUR", "ROLE_RH")
+
                         .requestMatchers(HttpMethod.GET, "/demandes/nouvelle")
                         .hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMINISTRATEUR")
                         .requestMatchers(HttpMethod.POST, "/demandes")
                         .hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMINISTRATEUR")
-                        .requestMatchers(HttpMethod.GET, "/demandes/validation-rh")
-                        .hasAuthority("ROLE_RH")
-                        .requestMatchers(HttpMethod.POST,
-                                "/demandes/*/validation-rh/accepter",
-                                "/demandes/*/validation-rh/refuser")
-                        .hasAuthority("ROLE_RH")
+
+                        .requestMatchers("/demandes/validation/rh", "/demandes/*/validation/rh/**")
+                        .hasAnyAuthority("ROLE_ADMINISTRATEUR", "ROLE_RH")
+                        .requestMatchers("/demandes/validation/finance", "/demandes/*/validation/finance/**")
+                        .authenticated()
+                        .requestMatchers("/demandes/validation/direction", "/demandes/*/validation/direction/**")
+                        .hasAuthority("ROLE_ADMINISTRATEUR")
+
+                        .requestMatchers("/candidatures/rh", "/candidatures/rh/**")
+                        .hasAnyAuthority("ROLE_ADMINISTRATEUR", "ROLE_RH")
+                        .requestMatchers("/candidatures/postuler")
+                        .hasAnyAuthority("ROLE_UTILISATEUR", "ROLE_EMPLOYE", "ROLE_MANAGER")
+                        .requestMatchers(HttpMethod.POST, "/candidatures")
+                        .hasAnyAuthority("ROLE_UTILISATEUR", "ROLE_EMPLOYE", "ROLE_MANAGER")
+
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/connexion")

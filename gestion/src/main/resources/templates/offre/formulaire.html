@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title th:text="${pageTitle}">Offre d'emploi</title>
+    <link rel="stylesheet" th:href="@{/css/offre.css}">
+</head>
+
+<body>
+<div layout:fragment="content">
+
+    <div class="page-header">
+        <h2 th:text="${offre != null ? 'Modifier l''offre' : 'Nouvelle offre d''emploi'}">Offre d'emploi</h2>
+        <a th:href="@{/offres/gestion}" class="btn btn-outline">Annuler</a>
+    </div>
+
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Message d'erreur</div>
+
+    <div class="card card-info" th:if="${offre != null}">
+        <p>
+            <strong>Demande liee :</strong>
+            <span th:text="${'#' + offre.demande.idDemande}">#1</span>
+            <span th:if="${offre.demande.poste != null}" th:text="${' - ' + offre.demande.poste.nomPoste}"></span>
+            <em>(non modifiable)</em>
+        </p>
+        <p>
+            <strong>Statut :</strong>
+            <span th:text="${offre.statut.libelle}">Brouillon</span>
+        </p>
+    </div>
+
+    <form class="card card-form"
+          th:action="${offre != null} ? @{/offres/{id}(id=${offre.idOffre})} : @{/offres}"
+          th:object="${offreForm}" method="post" novalidate>
+
+        <input type="hidden" th:if="${offre != null}" th:field="*{demandeId}">
+
+        <div class="form-group" th:if="${offre == null}">
+            <label for="demandeId">Demande validee <span class="required">*</span></label>
+            <select id="demandeId" class="form-select" th:field="*{demandeId}" th:errorclass="is-invalid">
+                <option value="">-- Selectionnez une demande validee --</option>
+                <option th:each="demande : ${demandesEligibles}" th:value="${demande.idDemande}"
+                        th:text="${'#' + demande.idDemande + ' - ' + (demande.poste != null ? demande.poste.nomPoste : '')
+                                + ' / ' + (demande.departement != null ? demande.departement.nomDept : '')}">
+                    Demande
+                </option>
+            </select>
+            <span class="field-error" th:if="${#fields.hasErrors('demandeId')}" th:errors="*{demandeId}"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="titre">Titre de l'offre <span class="required">*</span></label>
+            <input type="text" id="titre" class="form-control" th:field="*{titre}" maxlength="150"
+                   th:errorclass="is-invalid">
+            <span class="field-error" th:if="${#fields.hasErrors('titre')}" th:errors="*{titre}"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description <span class="required">*</span></label>
+            <textarea id="description" class="form-control" rows="7" th:field="*{description}"
+                      th:errorclass="is-invalid"></textarea>
+            <span class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></span>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="lieu">Lieu</label>
+                <input type="text" id="lieu" class="form-control" th:field="*{lieu}" maxlength="150"
+                       th:errorclass="is-invalid">
+                <span class="field-error" th:if="${#fields.hasErrors('lieu')}" th:errors="*{lieu}"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="typeContrat">Type de contrat <span class="required">*</span></label>
+                <select id="typeContrat" class="form-select" th:field="*{typeContrat}" th:errorclass="is-invalid">
+                    <option value="CDI">CDI</option>
+                    <option value="CDD">CDD</option>
+                    <option value="Stage">Stage</option>
+                    <option value="Alternance">Alternance</option>
+                    <option value="Freelance">Freelance</option>
+                </select>
+                <span class="field-error" th:if="${#fields.hasErrors('typeContrat')}" th:errors="*{typeContrat}"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="salaire">Salaire propose (Ar)</label>
+            <input type="number" id="salaire" class="form-control" th:field="*{salaire}" min="0"
+                   step="1000" th:errorclass="is-invalid">
+            <span class="help-text">Pre-rempli avec le budget valide par la finance dans la demande.</span>
+            <span class="field-error" th:if="${#fields.hasErrors('salaire')}" th:errors="*{salaire}"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="dateCloture">Date de cloture</label>
+            <input type="datetime-local" id="dateCloture" class="form-control" th:field="*{dateCloture}"
+                   th:errorclass="is-invalid">
+            <span class="field-error" th:if="${#fields.hasErrors('dateCloture')}" th:errors="*{dateCloture}"></span>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" th:text="${offre != null ? 'Enregistrer' : 'Creer le brouillon'}">
+                Enregistrer
+            </button>
+            <a th:href="@{/offres/gestion}" class="btn btn-outline">Annuler</a>
+        </div>
+    </form>
+
+</div>
+</body>
+
+</html>

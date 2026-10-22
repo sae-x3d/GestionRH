@@ -14,10 +14,10 @@
 <body class="login-page">
 <main class="login-card">
     <h1 class="login-title">GestionRH</h1>
-    <p class="login-subtitle">Connexion à l'application</p>
+    <p class="login-subtitle">Connexion a l'application</p>
 
     <div class="alert-error" th:if="${param.error}">Identifiants invalides.</div>
-    <div class="alert-info" th:if="${param.deconnexion}">Vous avez été déconnecté.</div>
+    <div class="alert-info" th:if="${param.deconnexion}">Vous avez ete deconnecte.</div>
 
     <form th:action="@{/connexion}" method="post" novalidate>
         <div class="form-group">

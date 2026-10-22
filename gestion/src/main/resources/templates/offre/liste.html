@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Offres d'emploi</title>
+    <link rel="stylesheet" th:href="@{/css/offre.css}">
+</head>
+
+<body>
+<div layout:fragment="content">
+
+    <div class="page-header">
+        <h2>Fil d'actualite</h2>
+        <a sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')" th:href="@{/offres/gestion}" class="btn btn-outline">
+            Gerer les offres
+        </a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Offre publiee</div>
+
+    <div class="alert-info" th:if="${#lists.isEmpty(offres)}">
+        Aucune offre d'emploi n'est publiee pour le moment.
+    </div>
+
+    <div class="offre-list" th:unless="${#lists.isEmpty(offres)}">
+        <article class="offre-card" th:each="offre : ${offres}">
+            <div class="offre-card-header">
+                <h3 th:text="${offre.titre}">Titre de l'offre</h3>
+                <span class="offre-type" th:if="${offre.typeContrat}" th:text="${offre.typeContrat}">CDI</span>
+            </div>
+
+            <p class="offre-meta">
+                <span th:if="${offre.demande != null and offre.demande.poste != null}"
+                      th:text="${offre.demande.poste.nomPoste}">Poste</span>
+                <span th:if="${offre.demande != null and offre.demande.departement != null}"
+                      th:text="${offre.demande.departement.nomDept}">Departement</span>
+                <span th:if="${offre.lieu}" th:text="${offre.lieu}">Lieu</span>
+                <span th:if="${offre.datePublication}"
+                      th:text="'Publiee le ' + ${#temporals.format(offre.datePublication, 'dd/MM/yyyy')}">
+                    Publiee le 01/01/2026
+                </span>
+            </p>
+
+            <p class="offre-excerpt" th:text="${offre.description}">Description de l'offre</p>
+
+            <div class="offre-card-footer">
+                <span class="offre-salaire" th:if="${offre.salaire != null}"
+                      th:text="${#numbers.formatInteger(offre.salaire, 1, 'POINT')} + ' Ar'">Salaire</span>
+                <a th:href="@{/offres/{id}(id=${offre.idOffre})}" class="btn btn-primary">Voir l'offre</a>
+            </div>
+        </article>
+    </div>
+
+</div>
+</body>
+
+</html>

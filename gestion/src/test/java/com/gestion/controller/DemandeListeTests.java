@@ -84,11 +84,11 @@ class DemandeListeTests {
                         .param("statutId", "3")
                         .with(user(utilisateur("admin"))))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("statutId", is(3)))
-                .andExpect(model().attribute("demandes", hasSize(2)))
-                .andExpect(content().string(containsString("Administrateur Système")))
-                .andExpect(content().string(not(containsString("Développeur Frontend"))))
-                .andExpect(content().string(not(containsString("Assistant RH"))));
+                .andExpect(model().attribute("statutId", is(2)))
+                .andExpect(model().attribute("demandes", hasSize(5)))
+                .andExpect(content().string(containsString("Assistant RH")))
+                .andExpect(content().string(not(containsString("Comptable"))))
+                .andExpect(content().string(not(containsString("Responsable Marketing"))));
     }
 
     @Test

@@ -8,7 +8,7 @@ INSERT INTO role (id_role, nom_role) VALUES
 (1, 'Administrateur'),
 (2, 'RH'),
 (3, 'Manager'),
-(4, 'Employé');
+(4, 'Employe');
 
 
 -- ==========================================
@@ -30,9 +30,9 @@ INSERT INTO departement (id_dept, nom_dept) VALUES
 INSERT INTO poste
 (id_poste, nom_poste, id_role, salaire_min, salaire_max)
 VALUES
-(1, 'Développeur Backend', 4, 2000000, 4500000),
-(2, 'Développeur Frontend', 4, 1800000, 4000000),
-(3, 'Administrateur Système', 4, 2500000, 5000000),
+(1, 'Developpeur Backend', 4, 2000000, 4500000),
+(2, 'Developpeur Frontend', 4, 1800000, 4000000),
+(3, 'Administrateur Systeme', 4, 2500000, 5000000),
 (4, 'Responsable Informatique', 3, 4000000, 7000000),
 (5, 'Responsable RH', 2, 3500000, 6000000),
 (6, 'Assistant RH', 2, 1500000, 3000000),
@@ -47,11 +47,11 @@ VALUES
 -- ==========================================
 
 INSERT INTO motif (id_motif, libelle) VALUES
-(1, 'Création de poste'),
+(1, 'Creation de poste'),
 (2, 'Remplacement'),
 (3, 'Augmentation des effectifs'),
-(4, 'Départ à la retraite'),
-(5, 'Démission');
+(4, 'Depart a la retraite'),
+(5, 'Demission');
 
 
 -- ==========================================
@@ -61,10 +61,12 @@ INSERT INTO motif (id_motif, libelle) VALUES
 INSERT INTO demande_status
 (id_demande_status, libelle_status)
 VALUES
+
 (1, 'EN_ATTENTE_VALIDATION_RH'),
 (2, 'APPROUVE'),
 (3, 'REFUSE'),
 (4, 'EN_ATTENTE_VALIDATION_BUDGET');
+
 
 
 -- ==========================================
@@ -118,7 +120,7 @@ VALUES
 -- Marketing
 (13, 'Laura Randriam', '2020-06-10', NULL, 10, 5, 5000000, 1),
 
--- Employés partis
+-- Employes partis
 (14, 'David Rakoto', '2021-01-01', '2025-06-30', 1, 1, 3000000, 1),
 (15, 'Anna Rasolo', '2022-02-01', '2025-08-15', 6, 2, 2000000, 1);
 
@@ -128,10 +130,10 @@ VALUES
 -- ==========================================
 
 -- IMPORTANT :
--- Mot de passe commun à tous les comptes de démonstration : MotDePasse2026
--- Le hash ci-dessous est un bcrypt (10 tours) généré par Spring Security
+-- Mot de passe commun a tous les comptes de demonstration : MotDePasse2026
+-- Le hash ci-dessous est un bcrypt (10 tours) genere par Spring Security
 -- (BCryptPasswordEncoder). Le remplacer par de vrais hash bcrypt ou Argon2
--- générés par l'application avant toute mise en production.
+-- generes par l'application avant toute mise en production.
 
 INSERT INTO utilisateur
 (id_user, id_emp, id_role, username, password_hash)
@@ -396,7 +398,7 @@ VALUES
 -- 11. REINITIALISATION DES SEQUENCES
 -- ==========================================
 
--- Important car les IDs ont été insérés manuellement.
+-- Important car les IDs ont ete inseres manuellement.
 
 SELECT setval(
     pg_get_serial_sequence('role', 'id_role'),

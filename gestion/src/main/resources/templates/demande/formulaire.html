@@ -15,7 +15,7 @@
         </div>
 
         <div class="alert-success" th:if="${succes}" th:text="${succes}">
-            Demande enregistrée
+            Demande enregistree
         </div>
 
         <div class="alert-error" th:if="${erreur}" th:text="${erreur}">
@@ -26,20 +26,20 @@
             <p>
                 <strong>Demandeur :</strong>
                 <span th:text="${demandeur != null ? demandeur.username : ''}">utilisateur</span>
-                <em>(identifié automatiquement)</em>
+                <em>(identifie automatiquement)</em>
             </p>
             <p>
                 <strong>Statut initial :</strong>
-                <span th:text="${statutInitial != null ? @demandeStatusService.libelleAffichage(statutInitial.libelleStatus) : ''}">En attente validation RH</span>
-                <em>(défini automatiquement)</em>
+                <span th:text="${statutInitial != null ? @demandeStatusService.libelleAffichage(statutInitial.libelleStatus) : ''}">En attente</span>
+                <em>(defini automatiquement)</em>
             </p>
         </div>
 
         <form class="card card-form" th:action="@{/demandes}" th:object="${demandeForm}" method="post" novalidate>
             <div class="form-group">
-                <label for="posteId">Poste demandé <span class="required">*</span></label>
+                <label for="posteId">Poste demande <span class="required">*</span></label>
                 <select id="posteId" class="form-select" th:field="*{posteId}" th:errorclass="is-invalid">
-                    <option value="">-- Sélectionnez un poste --</option>
+                    <option value="">-- Selectionnez un poste --</option>
                     <option th:each="poste : ${postes}" th:value="${poste.idPoste}"
                             th:text="${poste.nomPoste }">
                         Poste
@@ -49,12 +49,12 @@
             </div>
 
             <div class="form-group">
-                <label for="departementId">Département <span class="required">*</span></label>
+                <label for="departementId">Departement <span class="required">*</span></label>
                 <select id="departementId" class="form-select" th:field="*{departementId}" th:errorclass="is-invalid">
-                    <option value="">-- Sélectionnez un département --</option>
+                    <option value="">-- Selectionnez un departement --</option>
                     <option th:each="departement : ${departements}" th:value="${departement.idDept}"
                             th:text="${departement.nomDept}">
-                        Département
+                        Departement
                     </option>
                 </select>
                 <span class="field-error" th:if="${#fields.hasErrors('departementId')}" th:errors="*{departementId}"></span>
@@ -63,7 +63,7 @@
             <div class="form-group">
                 <label for="motifId">Motif <span class="required">*</span></label>
                 <select id="motifId" class="form-select" th:field="*{motifId}" th:errorclass="is-invalid">
-                    <option value="">-- Sélectionnez un motif --</option>
+                    <option value="">-- Selectionnez un motif --</option>
                     <option th:each="motif : ${motifs}" th:value="${motif.idMotif}" th:text="${motif.libelle}">
                         Motif
                     </option>
@@ -72,11 +72,11 @@
             </div>
 
             <div class="form-group">
-                <label for="empRemplaceId">Employé remplacé</label>
+                <label for="empRemplaceId">Employe remplace</label>
                 <select id="empRemplaceId" class="form-select" th:field="*{empRemplaceId}" th:errorclass="is-invalid">
-                    <option value="">-- Aucun (création de poste) --</option>
+                    <option value="">-- Aucun (creation de poste) --</option>
                     <option th:each="employe : ${employes}" th:value="${employe.idEmp}" th:text="${employe.nomEmp}">
-                        Employé
+                        Employe
                     </option>
                 </select>
                 <span class="field-error" th:if="${#fields.hasErrors('empRemplaceId')}" th:errors="*{empRemplaceId}"></span>
@@ -89,7 +89,7 @@
             </div>
 
             <div class="form-group">
-                <label for="dateSouhaite">Date souhaitée de recrutement</label>
+                <label for="dateSouhaite">Date souhaitee de recrutement</label>
                 <input type="datetime-local" id="dateSouhaite" class="form-control" th:field="*{dateSouhaite}" th:errorclass="is-invalid">
                 <span class="field-error" th:if="${#fields.hasErrors('dateSouhaite')}" th:errors="*{dateSouhaite}"></span>
             </div>

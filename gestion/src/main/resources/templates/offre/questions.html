@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title th:text="${pageTitle}">Questionnaire</title>
+    <link rel="stylesheet" th:href="@{/css/offre.css}">
+</head>
+
+<body>
+<div layout:fragment="content">
+
+    <div class="page-header">
+        <h2 th:text="${'Questionnaire - ' + offre.titre}">Questionnaire</h2>
+        <a th:href="@{/offres/gestion}" class="btn btn-outline">Retour a la gestion</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Question enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <section class="card gestion-section">
+        <h3>Questions du questionnaire</h3>
+        <p class="help-text">
+            Ces questions seront posees aux candidats qui postulent a cette offre.
+        </p>
+
+        <p class="empty-state" th:if="${#lists.isEmpty(questions)}">
+            Aucune question pour le moment.
+        </p>
+
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(questions)}">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Ordre</th>
+                    <th>Question</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="question : ${questions}">
+                    <td th:text="${question.ordre}">1</td>
+                    <td th:text="${question.libelle}">Question</td>
+                    <td>
+                        <form th:action="@{/offres/{id}/questions/{idQuestion}/supprimer(id=${offre.idOffre}, idQuestion=${question.idQuestion})}"
+                              method="post" class="inline-form">
+                            <button type="submit" class="btn btn-outline btn-small">Supprimer</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card gestion-section">
+        <h3>Ajouter une question</h3>
+        <form th:action="@{/offres/{id}/questions(id=${offre.idOffre})}" method="post" class="card-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="libelle">Question <span class="required">*</span></label>
+                    <input type="text" id="libelle" name="libelle" class="form-control" maxlength="255" required>
+                </div>
+                <div class="form-group">
+                    <label for="ordre">Ordre</label>
+                    <input type="number" id="ordre" name="ordre" class="form-control" min="1" value="1">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Ajouter</button>
+            </div>
+        </form>
+    </section>
+
+</div>
+</body>
+
+</html>

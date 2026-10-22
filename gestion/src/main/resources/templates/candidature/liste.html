@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Mes candidatures</title>
+    <link rel="stylesheet" th:href="@{/css/offre.css}">
+</head>
+
+<body>
+<div layout:fragment="content">
+
+    <div class="page-header">
+        <h2>Mes candidatures</h2>
+        <a th:href="@{/candidatures/postuler}" class="btn btn-primary">Nouvelle candidature</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Candidature enregistree</div>
+
+    <p class="empty-state" th:if="${#lists.isEmpty(candidatures)}">
+        Vous n'avez encore postule a aucune offre.
+    </p>
+
+    <div class="table-wrapper" th:unless="${#lists.isEmpty(candidatures)}">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Offre</th>
+                <th>Date</th>
+                <th>Statut</th>
+                <th>CV</th>
+                <th>Parcours</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="candidature : ${candidatures}">
+                <td th:text="${candidature.offre.titre}">Titre</td>
+                <td th:text="${#temporals.format(candidature.dateCandidature, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                <td>
+                    <span class="statut" th:text="${candidature.statut.libelle}">RECUE</span>
+                </td>
+                <td th:text="${candidature.cvNum}">CV</td>
+                <td>
+                    <ul class="parcours-liste">
+                        <li th:each="info : ${candidature.parcours}"
+                            th:text="${info.parcours.type + ' - ' + info.niveau.libelle
+                                    + (info.domaine != null ? ' (' + info.domaine + ')' : '')}">
+                            Etude - Bacc+3
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+</body>
+
+</html>

@@ -16,12 +16,14 @@ public class DemandeStatusService {
 
     public static final String EN_ATTENTE_VALIDATION_RH = "EN_ATTENTE_VALIDATION_RH";
     public static final String EN_ATTENTE_VALIDATION_BUDGET = "EN_ATTENTE_VALIDATION_BUDGET";
+    public static final String EN_ATTENTE_VALIDATION_DIRECTION = "EN_ATTENTE_VALIDATION_DIRECTION";
     public static final String APPROUVE = "APPROUVE";
     public static final String REFUSE = "REFUSE";
 
     private static final List<String> ORDRE_STATUTS = List.of(
             EN_ATTENTE_VALIDATION_RH,
             EN_ATTENTE_VALIDATION_BUDGET,
+            EN_ATTENTE_VALIDATION_DIRECTION,
             APPROUVE,
             REFUSE);
 
@@ -50,8 +52,8 @@ public class DemandeStatusService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<DemandeStatus> trouverParLibelle(String libelleStatus) {
-        return demandeStatusRepository.findByLibelleStatusIgnoreCase(libelleStatus);
+    public Optional<DemandeStatus> trouverParLibelle(String libelle) {
+        return demandeStatusRepository.findByLibelleStatusIgnoreCase(libelle);
     }
 
     public String getLibelleStatutInitial() {
@@ -62,9 +64,10 @@ public class DemandeStatusService {
         if (libelleStatus == null) {
             return "";
         }
-        return switch (libelleStatus.toUpperCase(Locale.ROOT)) {
+        return switch (libelleStatus) {
             case EN_ATTENTE_VALIDATION_RH -> "En attente validation RH";
             case EN_ATTENTE_VALIDATION_BUDGET -> "En attente validation budget";
+            case EN_ATTENTE_VALIDATION_DIRECTION -> "En attente validation direction";
             case APPROUVE -> "Approuvée";
             case REFUSE -> "Refusée";
             default -> libelleStatus;
@@ -76,10 +79,11 @@ public class DemandeStatusService {
             return "status-neutral";
         }
         return switch (libelleStatus.toLowerCase(Locale.ROOT)) {
-            case "en_attente_validation_rh", "en attente" -> "status-pending";
-            case "en_attente_validation_budget", "en cours" -> "status-progress";
-            case "approuve", "approuvée", "approuvee" -> "status-approved";
-            case "refuse", "refusée", "refusee" -> "status-refused";
+            case "en attente", "en_attente_validation_rh", "en_attente_validation_budget",
+                    "en_attente_validation_direction" -> "status-pending";
+            case "approuvée", "approuvee", "approuve" -> "status-approved";
+            case "refusée", "refusee", "refuse" -> "status-refused";
+            case "en cours" -> "status-progress";
             case "terminée", "terminee" -> "status-done";
             default -> "status-neutral";
         };

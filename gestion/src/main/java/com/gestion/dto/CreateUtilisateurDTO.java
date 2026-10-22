@@ -9,20 +9,20 @@ import jakarta.validation.constraints.Size;
 public class CreateUtilisateurDTO {
 
     @NotBlank(message = "Le nom d'utilisateur est obligatoire")
-    @Size(min = 3, max = 100, message = "Le nom d'utilisateur doit contenir entre 3 et 100 caractères")
+    @Size(min = 3, max = 100, message = "Le nom d'utilisateur doit contenir entre 3 et 100 caracteres")
     @Pattern(regexp = "^[a-zA-Z0-9._-]+$", message = "Le nom d'utilisateur ne peut contenir que des lettres, chiffres, points, tirets et underscores")
     private String username;
 
     @NotBlank(message = "Le mot de passe est obligatoire")
-    @Size(min = 8, max = 72, message = "Le mot de passe doit contenir entre 8 et 72 caractères")
+    @Size(min = 8, max = 72, message = "Le mot de passe doit contenir entre 8 et 72 caracteres")
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d).+$", message = "Le mot de passe doit contenir au moins une lettre et un chiffre")
     private String password;
 
-    @NotNull(message = "Le rôle est obligatoire")
-    @Positive(message = "L'identifiant du rôle doit être positif")
+    @NotNull(message = "Le role est obligatoire")
+    @Positive(message = "L'identifiant du role doit etre positif")
     private Integer roleId;
 
-    @Positive(message = "L'identifiant de l'employé doit être positif")
+    @Positive(message = "L'identifiant de l'employe doit etre positif")
     private Integer employeId;
 
     public CreateUtilisateurDTO() {

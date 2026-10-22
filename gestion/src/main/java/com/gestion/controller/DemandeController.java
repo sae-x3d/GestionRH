@@ -17,6 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -135,6 +136,7 @@ public class DemandeController {
 
     @GetMapping("/nouvelle")
     public String formulaireCreation(Model model, Authentication authentication) {
+        verifierCreationDemande(authentication);
         CreateDemandeDTO demandeForm = new CreateDemandeDTO();
         demandeForm.setDepartementId(demandeService.idDepartementUtilisateur(utilisateurCourant(authentication)));
         model.addAttribute("demandeForm", demandeForm);
@@ -148,6 +150,7 @@ public class DemandeController {
                         Authentication authentication,
                         Model model,
                         RedirectAttributes redirectAttributes) {
+        verifierCreationDemande(authentication);
         Utilisateur utilisateur = utilisateurCourant(authentication);
         if (demandeForm.getDepartementId() != null
                 && !demandeService.departementAutorise(demandeForm.getDepartementId(), utilisateur)) {
@@ -174,7 +177,10 @@ public class DemandeController {
                 .orElse("");
         redirectAttributes.addFlashAttribute("succes",
                 "Demande n° " + demande.getIdDemande() + " enregistrée avec le statut « "
-                        + libelleStatut + " ».");
+                        + demandeStatusService.trouverStatutInitial()
+                                .map(statut -> demandeStatusService.libelleAffichage(statut.getLibelleStatus()))
+                                .orElse("")
+                        + " ».");
         return "redirect:/demandes/" + demande.getIdDemande();
     }
 
@@ -207,6 +213,20 @@ public class DemandeController {
         if (authentication != null && authentication.getPrincipal() instanceof UtilisateurDetails details) {
             return details.getUtilisateur();
         }
-        throw new IllegalStateException("Aucun utilisateur authentifié");
+        throw new IllegalStateException("Aucun utilisateur authentifie");
+    }
+
+    private void verifierCreationDemande(Authentication authentication) {
+        if (authentication == null) {
+            throw new AccessDeniedException("Utilisateur non authentifie.");
+        }
+        boolean autorise = authentication.getAuthorities().stream()
+                .anyMatch(authority -> {
+                    String a = authority.getAuthority();
+                    return "ROLE_ADMINISTRATEUR".equals(a) || "ROLE_MANAGER".equals(a);
+                });
+        if (!autorise) {
+            throw new AccessDeniedException("Seuls les managers et l'administration peuvent creer une demande de recrutement.");
+        }
     }
 }

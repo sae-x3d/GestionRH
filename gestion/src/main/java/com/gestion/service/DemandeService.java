@@ -6,13 +6,8 @@ import com.gestion.exception.DecisionRhImpossibleException;
 import com.gestion.exception.RessourceIntrouvableException;
 import com.gestion.model.Demande;
 import com.gestion.model.DemandeStatus;
-import com.gestion.model.Departement;
-import com.gestion.model.Employe;
-import com.gestion.model.Motif;
-import com.gestion.model.Poste;
 import com.gestion.model.Utilisateur;
 import com.gestion.repository.DemandeRepository;
-import com.gestion.repository.DemandeStatusRepository;
 import com.gestion.repository.DepartementRepository;
 import com.gestion.repository.EmployeRepository;
 import com.gestion.repository.MotifRepository;
@@ -29,6 +24,12 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class DemandeService {
+
+    public static final String STATUT_ATTENTE_RH = "EN_ATTENTE_VALIDATION_RH";
+    public static final String STATUT_ATTENTE_BUDGET = "EN_ATTENTE_VALIDATION_BUDGET";
+    public static final String STATUT_ATTENTE_DIRECTION = "EN_ATTENTE_VALIDATION_DIRECTION";
+    public static final String STATUT_APPROUVE = "APPROUVE";
+    public static final String STATUT_REFUSE = "REFUSE";
 
     private final DemandeRepository demandeRepository;
     private final PosteRepository posteRepository;
@@ -58,6 +59,11 @@ public class DemandeService {
     }
 
     @Transactional(readOnly = true)
+    public List<Demande> listerParStatut(String libelleStatut) {
+        return demandeRepository.findByDemandeStatusLibelleStatusOrderByDateCreationAsc(libelleStatut);
+    }
+
+    @Transactional(readOnly = true)
     public List<Demande> listerPour(Utilisateur utilisateur) {
         if (estAdminOuRh(utilisateur)) {
             return demandeRepository.findAllByOrderByDateCreationDesc();
@@ -68,7 +74,10 @@ public class DemandeService {
                 return demandeRepository.findByDepartementIdDeptOrderByDateCreationDesc(idDepartement);
             }
         }
-        return demandeRepository.findByDemandeurIdUserOrderByDateCreationDesc(utilisateur.getIdUser());
+        if (utilisateur != null) {
+            return demandeRepository.findByDemandeurIdUserOrderByDateCreationDesc(utilisateur.getIdUser());
+        }
+        return List.of();
     }
 
     public boolean peutCreer(Utilisateur utilisateur) {
@@ -169,6 +178,58 @@ public class DemandeService {
         return utilisateur != null
                 && utilisateur.getRole() != null
                 && nomRole.equalsIgnoreCase(utilisateur.getRole().getNomRole());
+    }
+
+    @Transactional
+    public Demande validerRh(Integer idDemande) {
+        return transitionner(idDemande, STATUT_ATTENTE_RH, STATUT_ATTENTE_BUDGET);
+    }
+
+    @Transactional
+    public Demande refuserRh(Integer idDemande) {
+        return transitionner(idDemande, STATUT_ATTENTE_RH, STATUT_REFUSE);
+    }
+
+    @Transactional
+    public Demande validerFinance(Integer idDemande) {
+        return transitionner(idDemande, STATUT_ATTENTE_BUDGET, STATUT_ATTENTE_DIRECTION);
+    }
+
+    @Transactional
+    public Demande refuserFinance(Integer idDemande) {
+        return transitionner(idDemande, STATUT_ATTENTE_BUDGET, STATUT_REFUSE);
+    }
+
+    @Transactional
+    public Demande validerDirection(Integer idDemande) {
+        return transitionner(idDemande, STATUT_ATTENTE_DIRECTION, STATUT_APPROUVE);
+    }
+
+    @Transactional
+    public Demande refuserDirection(Integer idDemande) {
+        return transitionner(idDemande, STATUT_ATTENTE_DIRECTION, STATUT_REFUSE);
+    }
+
+    private Demande transitionner(Integer idDemande, String statutAttendu, String statutCible) {
+        Demande demande = demandeRepository.findById(idDemande)
+                .orElseThrow(() -> new RessourceIntrouvableException("Demande introuvable : " + idDemande));
+
+        String statutActuel = demande.getDemandeStatus() == null
+                ? ""
+                : demande.getDemandeStatus().getLibelleStatus();
+
+        if (statutActuel == null || !statutAttendu.equalsIgnoreCase(statutActuel)) {
+            throw new IllegalStateException("La demande n'est pas au statut attendu : \""
+                    + statutAttendu + "\" (statut actuel : \"" + statutActuel + "\").");
+        }
+
+        DemandeStatus cible = demandeStatusService.trouverParLibelle(statutCible)
+                .orElseThrow(() -> new RessourceIntrouvableException(
+                        "Statut de demande introuvable : \"" + statutCible + "\""));
+
+        demande.setDemandeStatus(cible);
+        demande.setDateReponse(LocalDateTime.now());
+        return demandeRepository.save(demande);
     }
 
     private DemandeStatus trouverStatutInitial() {
