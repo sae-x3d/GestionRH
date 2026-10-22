@@ -2,6 +2,7 @@ package com.gestion.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Positive;
 
 import java.time.LocalDateTime;
 
@@ -12,14 +13,16 @@ import java.time.LocalDateTime;
  * et l'identifiant sont fixés par le serveur.
  */
 public record DemandeCreateRequestDTO(
-
         @NotNull(message = "Le poste est obligatoire.")
+        @Positive(message = "L'identifiant du poste doit être positif.")
         Integer idPoste,
 
         @NotNull(message = "Le département est obligatoire.")
+        @Positive(message = "L'identifiant du département doit être positif.")
         Integer idDept,
 
         @NotNull(message = "Le motif est obligatoire.")
+        @Positive(message = "L'identifiant du motif doit être positif.")
         Integer idMotif,
 
         @NotNull(message = "Le budget est obligatoire.")
@@ -28,5 +31,6 @@ public record DemandeCreateRequestDTO(
 
         @NotNull(message = "La date souhaitée est obligatoire.")
         LocalDateTime dateSouhaite
-) {
+) 
+{
 }

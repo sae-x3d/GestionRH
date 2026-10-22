@@ -6,6 +6,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import jakarta.validation.ConstraintViolationException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -45,5 +46,25 @@ public class ApiExceptionHandler {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         return ResponseEntity.status(status)
                 .body(new ApiError(status.value(), status.getReasonPhrase(), messages));
+    }
+
+    @ExceptionHandler(RessourceIntrouvableException.class)
+    public ResponseEntity<ApiError> handleNotFound(RessourceIntrouvableException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiError(404, ex.getMessage(), Map.of()));
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiError> handleConstraintViolation(ConstraintViolationException ex) {
+        Map<String, String> erreurs = new LinkedHashMap<>();
+
+        ex.getConstraintViolations().forEach(violation ->
+                erreurs.putIfAbsent(
+                        violation.getPropertyPath().toString(),
+                        violation.getMessage()
+                )
+        );
+
+        return badRequest(erreurs);
     }
 }
