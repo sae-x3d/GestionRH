@@ -2,6 +2,7 @@ package com.gestion.controller;
 
 import com.gestion.model.Demande;
 import com.gestion.repository.DemandeRepository;
+import com.gestion.service.DemandeStatusService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -72,7 +73,7 @@ class DemandeFluxCompletTests {
                 .contains("Développeur Backend")
                 .contains("Informatique")
                 .contains("Création de poste")
-                .contains("En attente");
+                .contains("En attente validation RH");
 
         // 4. Envoi du formulaire
         long nombreDemandesAvant = demandeRepository.count();
@@ -106,7 +107,8 @@ class DemandeFluxCompletTests {
                 .max(Comparator.comparing(Demande::getIdDemande))
                 .orElseThrow();
         assertThat(demande.getDemandeur().getIdUser()).isEqualTo(3);
-        assertThat(demande.getDemandeStatus().getLibelleStatus()).isEqualTo("En attente");
+        assertThat(demande.getDemandeStatus().getLibelleStatus())
+                .isEqualTo(DemandeStatusService.EN_ATTENTE_VALIDATION_RH);
         assertThat(demande.getBudget()).isEqualTo(3500000);
 
         demandeRepository.delete(demande);

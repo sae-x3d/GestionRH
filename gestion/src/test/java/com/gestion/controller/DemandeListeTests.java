@@ -81,14 +81,14 @@ class DemandeListeTests {
     @Test
     void filtreParStatut() throws Exception {
         mockMvc.perform(get("/demandes")
-                        .param("statutId", "2")
+                        .param("statutId", "3")
                         .with(user(utilisateur("admin"))))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("statutId", is(2)))
-                .andExpect(model().attribute("demandes", hasSize(3)))
-                .andExpect(content().string(containsString("Assistant RH")))
+                .andExpect(model().attribute("statutId", is(3)))
+                .andExpect(model().attribute("demandes", hasSize(2)))
+                .andExpect(content().string(containsString("Administrateur Système")))
                 .andExpect(content().string(not(containsString("Développeur Frontend"))))
-                .andExpect(content().string(not(containsString("Administrateur Système"))));
+                .andExpect(content().string(not(containsString("Assistant RH"))));
     }
 
     @Test
@@ -110,8 +110,9 @@ class DemandeListeTests {
                         .param("departementId", "1")
                         .with(user(utilisateur("admin"))))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("demandes", hasSize(1)))
-                .andExpect(content().string(containsString("Développeur Backend")));
+                .andExpect(model().attribute("demandes", hasSize(2)))
+                .andExpect(content().string(containsString("Développeur Backend")))
+                .andExpect(content().string(containsString("Développeur Frontend")));
     }
 
     @Test

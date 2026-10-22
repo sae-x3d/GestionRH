@@ -61,11 +61,10 @@ INSERT INTO motif (id_motif, libelle) VALUES
 INSERT INTO demande_status
 (id_demande_status, libelle_status)
 VALUES
-(1, 'En attente'),
-(2, 'Approuvée'),
-(3, 'Refusée'),
-(4, 'En cours'),
-(5, 'Terminée');
+(1, 'EN_ATTENTE_VALIDATION_RH'),
+(2, 'APPROUVE'),
+(3, 'REFUSE'),
+(4, 'EN_ATTENTE_VALIDATION_BUDGET');
 
 
 -- ==========================================
@@ -205,7 +204,7 @@ INSERT INTO demande
 VALUES
 
 -- ==========================================
--- DEMANDES EN ATTENTE
+-- DEMANDES EN ATTENTE DE VALIDATION RH
 -- ==========================================
 
 (
@@ -329,7 +328,7 @@ VALUES
 ),
 
 -- ==========================================
--- DEMANDES EN COURS
+-- DEMANDES EN ATTENTE DE VALIDATION BUDGET
 -- ==========================================
 
 (
@@ -361,7 +360,7 @@ VALUES
 ),
 
 -- ==========================================
--- DEMANDES TERMINEES
+-- DEMANDES APPROUVEES (HISTORIQUE)
 -- ==========================================
 
 (
@@ -374,7 +373,7 @@ VALUES
     3,
     2800000,
     '2026-05-01',
-    5,
+    2,
     '2026-03-05'
 ),
 
@@ -388,7 +387,7 @@ VALUES
     1,
     2500000,
     '2026-04-01',
-    5,
+    2,
     '2026-02-05'
 );
 

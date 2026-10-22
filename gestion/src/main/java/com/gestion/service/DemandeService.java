@@ -1,6 +1,8 @@
 package com.gestion.service;
 
 import com.gestion.dto.CreateDemandeDTO;
+import com.gestion.exception.AccesRefuseException;
+import com.gestion.exception.DecisionRhImpossibleException;
 import com.gestion.exception.RessourceIntrouvableException;
 import com.gestion.model.Demande;
 import com.gestion.model.DemandeStatus;
@@ -85,6 +87,37 @@ public class DemandeService {
             throw new RessourceIntrouvableException("Demande introuvable : " + id);
         }
         return demande;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Demande> listerEnAttenteValidationRh() {
+        DemandeStatus statut = demandeStatusService.trouverParLibelle(DemandeStatusService.EN_ATTENTE_VALIDATION_RH)
+                .orElseThrow(() -> new RessourceIntrouvableException(
+                        "Statut introuvable : « " + DemandeStatusService.EN_ATTENTE_VALIDATION_RH + " »"));
+        return demandeRepository.findByDemandeStatusIdDemandeStatusOrderByDateCreationAsc(statut.getIdDemandeStatus());
+    }
+
+    @Transactional
+    public Demande deciderRh(Integer id, Utilisateur utilisateur, boolean accepter) {
+        if (!estRole(utilisateur, "RH")) {
+            throw new AccesRefuseException("Seule la RH peut valider une demande.");
+        }
+        Demande demande = demandeRepository.findById(id)
+                .orElseThrow(() -> new RessourceIntrouvableException("Demande introuvable : " + id));
+        if (demande.getDemandeStatus() == null
+                || !DemandeStatusService.EN_ATTENTE_VALIDATION_RH.equalsIgnoreCase(
+                        demande.getDemandeStatus().getLibelleStatus())) {
+            throw new DecisionRhImpossibleException(
+                    "La demande n° " + id + " n'est pas en attente de validation RH.");
+        }
+        String codeStatut = accepter
+                ? DemandeStatusService.EN_ATTENTE_VALIDATION_BUDGET
+                : DemandeStatusService.REFUSE;
+        DemandeStatus statut = demandeStatusService.trouverParLibelle(codeStatut)
+                .orElseThrow(() -> new RessourceIntrouvableException("Statut introuvable : « " + codeStatut + " »"));
+        demande.setDemandeStatus(statut);
+        demande.setDateReponse(LocalDateTime.now());
+        return demandeRepository.save(demande);
     }
 
     private boolean peutConsulter(Demande demande, Utilisateur utilisateur) {

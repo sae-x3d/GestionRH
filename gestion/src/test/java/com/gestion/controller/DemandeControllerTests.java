@@ -2,6 +2,7 @@ package com.gestion.controller;
 
 import com.gestion.model.Demande;
 import com.gestion.repository.DemandeRepository;
+import com.gestion.service.DemandeStatusService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -79,7 +80,7 @@ class DemandeControllerTests {
                 .andExpect(content().string(containsString("Développeur Backend")))
                 .andExpect(content().string(containsString("Informatique")))
                 .andExpect(content().string(containsString("Création de poste")))
-                .andExpect(content().string(containsString("En attente")))
+                .andExpect(content().string(containsString("En attente validation RH")))
                 .andExpect(content().string(containsString("Ressources Humaines")))
                 .andExpect(content().string(containsString("name=\"_csrf\"")));
     }
@@ -125,7 +126,8 @@ class DemandeControllerTests {
         assertThat(resultat.getResponse().getRedirectedUrl())
                 .isEqualTo("/demandes/" + demande.getIdDemande());
         assertThat(demande.getDemandeur().getIdUser()).isEqualTo(3);
-        assertThat(demande.getDemandeStatus().getLibelleStatus()).isEqualTo("En attente");
+        assertThat(demande.getDemandeStatus().getLibelleStatus())
+                .isEqualTo(DemandeStatusService.EN_ATTENTE_VALIDATION_RH);
         assertThat(demande.getPoste().getIdPoste()).isEqualTo(1);
         assertThat(demande.getDepartement().getIdDept()).isEqualTo(1);
         assertThat(demande.getMotif().getIdMotif()).isEqualTo(3);
@@ -238,7 +240,7 @@ class DemandeControllerTests {
         mockMvc.perform(get("/demandes/nouvelle").session(session))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("manager.it")))
-                .andExpect(content().string(containsString("En attente")));
+                .andExpect(content().string(containsString("En attente validation RH")));
     }
 
     private UserDetails utilisateur(String username) {

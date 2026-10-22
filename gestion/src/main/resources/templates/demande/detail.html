@@ -16,7 +16,7 @@
                 <h2 th:text="'Demande n° ' + ${demande.idDemande}">Demande n° 1</h2>
                 <span class="status-badge"
                       th:classappend="${@demandeStatusService.classeStatut(demande.demandeStatus != null ? demande.demandeStatus.libelleStatus : null)}"
-                      th:text="${demande.demandeStatus != null ? demande.demandeStatus.libelleStatus : '—'}">Statut</span>
+                      th:text="${demande.demandeStatus != null ? @demandeStatusService.libelleAffichage(demande.demandeStatus.libelleStatus) : '—'}">Statut</span>
             </div>
             <a th:href="@{/demandes}" class="btn btn-outline">Retour à la liste</a>
         </div>

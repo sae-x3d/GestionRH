@@ -3,12 +3,14 @@ package com.gestion.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
@@ -20,6 +22,12 @@ public class SecurityConfig {
                         .hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMINISTRATEUR")
                         .requestMatchers(HttpMethod.POST, "/demandes")
                         .hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMINISTRATEUR")
+                        .requestMatchers(HttpMethod.GET, "/demandes/validation-rh")
+                        .hasAuthority("ROLE_RH")
+                        .requestMatchers(HttpMethod.POST,
+                                "/demandes/*/validation-rh/accepter",
+                                "/demandes/*/validation-rh/refuser")
+                        .hasAuthority("ROLE_RH")
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/connexion")

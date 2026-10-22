@@ -14,8 +14,12 @@
 
         <div class="page-header">
             <h2>Liste des demandes</h2>
-            <a sec:authorize="hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMINISTRATEUR')"
-               th:href="@{/demandes/nouvelle}" class="btn btn-primary">Nouvelle demande</a>
+            <div class="page-actions">
+                <a sec:authorize="hasAuthority('ROLE_RH')"
+                   th:href="@{/demandes/validation-rh}" class="btn btn-outline">Validation RH</a>
+                <a sec:authorize="hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMINISTRATEUR')"
+                   th:href="@{/demandes/nouvelle}" class="btn btn-primary">Nouvelle demande</a>
+            </div>
         </div>
 
         <div class="alert-success" th:if="${succes}" th:text="${succes}">
@@ -33,7 +37,7 @@
                     <option value="">Tous les statuts</option>
                     <option th:each="statut : ${statuts}"
                             th:value="${statut.idDemandeStatus}"
-                            th:text="${statut.libelleStatus}"
+                            th:text="${@demandeStatusService.libelleAffichage(statut.libelleStatus)}"
                             th:selected="${statutId != null and statutId == statut.idDemandeStatus}">
                         Statut
                     </option>
@@ -72,7 +76,7 @@
                             <th>Motif</th>
                             <th>Budget</th>
                             <th>Statut</th>
-                            <th>Action</th>
+                            <th class="col-actions">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -87,9 +91,9 @@
                             <td>
                                 <span class="status-badge"
                                       th:classappend="${@demandeStatusService.classeStatut(demande.demandeStatus != null ? demande.demandeStatus.libelleStatus : null)}"
-                                      th:text="${demande.demandeStatus != null ? demande.demandeStatus.libelleStatus : '—'}">Statut</span>
+                                      th:text="${demande.demandeStatus != null ? @demandeStatusService.libelleAffichage(demande.demandeStatus.libelleStatus) : '—'}">Statut</span>
                             </td>
-                            <td>
+                            <td class="col-actions">
                                 <a th:href="@{/demandes/{id}(id=${demande.idDemande})}"
                                    class="btn btn-outline btn-sm">Voir</a>
                             </td>

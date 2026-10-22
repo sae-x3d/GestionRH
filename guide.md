@@ -96,6 +96,9 @@ Les comptes de démonstration créés par le script de seed partagent le mot de 
 > En production, remplacer ces hash par des mots de passe réels et supprimer
 > les comptes de démonstration.
 
+La **validation RH** (file d'attente et décisions accepter/refuser) est réservée
+aux comptes ayant le rôle **RH**. Les autres rôles reçoivent une erreur 403.
+
 ## 5. Structure du code et conventions
 
 Le code suit les conventions du projet de référence **EggLand** (`com.app.eggland`).
@@ -152,8 +155,9 @@ La page **http://localhost:8080/demandes/nouvelle** permet de saisir une demande
 - Le **demandeur** est déterminé automatiquement : il s'agit de l'utilisateur
   connecté, il n'y a pas de champ pour le saisir.
 - Le **statut initial** est déterminé automatiquement à partir de la propriété
-  `app.demande.statut-initial` (valeur par défaut : `En attente`), il n'y a pas
-  de champ pour le saisir non plus.
+  `app.demande.statut-initial` (valeur par défaut : `EN_ATTENTE_VALIDATION_RH`),
+  il n'y a pas de champ pour le saisir non plus. Toute demande créée entre donc
+  directement dans la file de validation RH.
 - Les erreurs de saisie sont affichées champ par champ sous chaque input.
 
 ## 7. Pages du Bloc 1
@@ -163,6 +167,7 @@ La page **http://localhost:8080/demandes/nouvelle** permet de saisir une demande
 | `/demandes` | Tous les utilisateurs connectés | Liste filtrée selon le rôle, filtres statut/département et pagination |
 | `/demandes/nouvelle` | Manager et Administrateur | Formulaire de création d'une demande |
 | `/demandes/{id}` | Selon le périmètre de visibilité | Détail complet d'une demande |
+| `/demandes/validation-rh` | RH uniquement | File des demandes en attente de validation RH |
 
 Règles de visibilité appliquées à la liste **et** au détail :
 
@@ -177,7 +182,34 @@ est redirigé vers la page de détail de la demande avec un message de confirmat
 Une demande inaccessible est traitée comme introuvable : redirection vers `/demandes`
 avec un message d'erreur.
 
-## 8. Dépannage
+## 8. Validation RH
+
+Le workflow utilise quatre statuts :
+
+| Code en base | Libellé affiché | Signification |
+|--------------|-----------------|---------------|
+| `EN_ATTENTE_VALIDATION_RH` | En attente validation RH | Demande créée, en file RH |
+| `EN_ATTENTE_VALIDATION_BUDGET` | En attente validation budget | Acceptée par la RH |
+| `APPROUVE` | Approuvée | Validation budgétaire terminée (hors Bloc 1) |
+| `REFUSE` | Refusée | Refusée par la RH |
+
+Transitions :
+
+- Création → `EN_ATTENTE_VALIDATION_RH`.
+- La RH accepte → `EN_ATTENTE_VALIDATION_BUDGET`.
+- La RH refuse → `REFUSE`.
+- Dans les deux cas, `date_reponse` est renseignée avec la date et l'heure de la décision.
+
+La page **http://localhost:8080/demandes/validation-rh** liste les demandes au statut
+`EN_ATTENTE_VALIDATION_RH`, triées de la plus ancienne à la plus récente. Chaque ligne
+propose « Voir », « Accepter » et « Refuser ». Les actions sont des POST protégés par
+CSRF ; la page et les deux actions sont réservées au rôle RH (règle URL +
+`@PreAuthorize`), et le service vérifie à nouveau le rôle et le statut avant toute
+modification. Une demande déjà traitée ne peut pas être décidée une seconde fois.
+
+La base existante se migre avec `DB/script-23-10-26-migration-validation-rh.sql`.
+
+## 9. Dépannage
 
 | Problème | Solution |
 |----------|----------|

@@ -30,7 +30,7 @@
             </p>
             <p>
                 <strong>Statut initial :</strong>
-                <span th:text="${statutInitial != null ? statutInitial.libelleStatus : ''}">En attente</span>
+                <span th:text="${statutInitial != null ? @demandeStatusService.libelleAffichage(statutInitial.libelleStatus) : ''}">En attente validation RH</span>
                 <em>(défini automatiquement)</em>
             </p>
         </div>

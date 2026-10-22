@@ -14,4 +14,6 @@ public interface DemandeRepository extends JpaRepository<Demande, Integer> {
     List<Demande> findByDepartementIdDeptOrderByDateCreationDesc(Integer idDept);
 
     List<Demande> findByDemandeurIdUserOrderByDateCreationDesc(Integer idUser);
+
+    List<Demande> findByDemandeStatusIdDemandeStatusOrderByDateCreationAsc(Integer idDemandeStatus);
 }

@@ -48,6 +48,17 @@
     gap: 0.8rem;
 }
 
+.action-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.action-group form {
+    margin: 0;
+}
+
 .detail-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
