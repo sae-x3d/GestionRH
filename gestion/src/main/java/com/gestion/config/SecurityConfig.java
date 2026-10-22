@@ -2,6 +2,7 @@ package com.gestion.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,10 +16,14 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/connexion", "/css/**", "/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/demandes/nouvelle")
+                        .hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMINISTRATEUR")
+                        .requestMatchers(HttpMethod.POST, "/demandes")
+                        .hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMINISTRATEUR")
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/connexion")
-                        .defaultSuccessUrl("/demandes/nouvelle", true)
+                        .defaultSuccessUrl("/demandes")
                         .permitAll())
                 .logout(logout -> logout
                         .logoutSuccessUrl("/connexion?deconnexion")

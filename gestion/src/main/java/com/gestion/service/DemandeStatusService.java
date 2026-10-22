@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @Service
@@ -33,5 +34,19 @@ public class DemandeStatusService {
 
     public String getLibelleStatutInitial() {
         return libelleStatutInitial;
+    }
+
+    public String classeStatut(String libelleStatus) {
+        if (libelleStatus == null) {
+            return "status-neutral";
+        }
+        return switch (libelleStatus.toLowerCase(Locale.ROOT)) {
+            case "en attente" -> "status-pending";
+            case "approuvée", "approuvee" -> "status-approved";
+            case "refusée", "refusee" -> "status-refused";
+            case "en cours" -> "status-progress";
+            case "terminée", "terminee" -> "status-done";
+            default -> "status-neutral";
+        };
     }
 }

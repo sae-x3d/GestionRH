@@ -9,5 +9,9 @@ import java.util.List;
 @Repository
 public interface DemandeRepository extends JpaRepository<Demande, Integer> {
 
+    List<Demande> findAllByOrderByDateCreationDesc();
+
+    List<Demande> findByDepartementIdDeptOrderByDateCreationDesc(Integer idDept);
+
     List<Demande> findByDemandeurIdUserOrderByDateCreationDesc(Integer idUser);
 }

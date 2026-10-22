@@ -17,11 +17,14 @@ import java.util.Comparator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -49,13 +52,13 @@ class DemandeControllerTests {
     }
 
     @Test
-    void connexionAvecUnIdentifiantValide_redirigeVersLeFormulaire() throws Exception {
+    void connexionAvecUnIdentifiantValide_redirigeVersLaListe() throws Exception {
         mockMvc.perform(post("/connexion")
                         .with(csrf())
                         .param("username", "manager.it")
                         .param("password", MOT_DE_PASSE))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/demandes/nouvelle"));
+                .andExpect(redirectedUrl("/demandes"));
     }
 
     @Test
@@ -103,7 +106,7 @@ class DemandeControllerTests {
     void soumissionValide_creeLaDemandeAvecLeDemandeurEtLeStatutInitial() throws Exception {
         long nombreDemandesAvant = demandeRepository.count();
 
-        mockMvc.perform(post("/demandes")
+        MvcResult resultat = mockMvc.perform(post("/demandes")
                         .with(user(utilisateur("manager.it")))
                         .with(csrf())
                         .param("posteId", "1")
@@ -112,13 +115,15 @@ class DemandeControllerTests {
                         .param("budget", "3500000")
                         .param("dateSouhaite", "2030-11-01T09:00"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/demandes/nouvelle"));
+                .andReturn();
 
         assertThat(demandeRepository.count()).isEqualTo(nombreDemandesAvant + 1);
 
         Demande demande = demandeRepository.findAll().stream()
                 .max(Comparator.comparing(Demande::getIdDemande))
                 .orElseThrow();
+        assertThat(resultat.getResponse().getRedirectedUrl())
+                .isEqualTo("/demandes/" + demande.getIdDemande());
         assertThat(demande.getDemandeur().getIdUser()).isEqualTo(3);
         assertThat(demande.getDemandeStatus().getLibelleStatus()).isEqualTo("En attente");
         assertThat(demande.getPoste().getIdPoste()).isEqualTo(1);
@@ -142,6 +147,82 @@ class DemandeControllerTests {
                 .andExpect(content().string(containsString("Référence introuvable : poste")));
 
         assertThat(demandeRepository.count()).isEqualTo(nombreDemandesAvant);
+    }
+
+    @Test
+    void unAdministrateurPeutOuvrirLeFormulaire() throws Exception {
+        mockMvc.perform(get("/demandes/nouvelle").with(user(utilisateur("admin"))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void unAdministrateurPeutCreerUneDemandePourNImporteQuelDepartement() throws Exception {
+        long nombreDemandesAvant = demandeRepository.count();
+
+        MvcResult resultat = mockMvc.perform(post("/demandes")
+                        .with(user(utilisateur("admin")))
+                        .with(csrf())
+                        .param("posteId", "1")
+                        .param("departementId", "3")
+                        .param("motifId", "1")
+                        .param("budget", "2500000"))
+                .andExpect(status().is3xxRedirection())
+                .andReturn();
+
+        assertThat(demandeRepository.count()).isEqualTo(nombreDemandesAvant + 1);
+
+        Demande demande = demandeRepository.findAll().stream()
+                .max(Comparator.comparing(Demande::getIdDemande))
+                .orElseThrow();
+        assertThat(resultat.getResponse().getRedirectedUrl())
+                .isEqualTo("/demandes/" + demande.getIdDemande());
+        assertThat(demande.getDemandeur().getIdUser()).isEqualTo(1);
+        assertThat(demande.getDepartement().getIdDept()).isEqualTo(3);
+    }
+
+    @Test
+    void unEmployeNePeutPasOuvrirLeFormulaire() throws Exception {
+        mockMvc.perform(get("/demandes/nouvelle").with(user(utilisateur("paul.rabe"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void unEmployeNePeutPasSoumettreUneDemande() throws Exception {
+        long nombreDemandesAvant = demandeRepository.count();
+
+        mockMvc.perform(post("/demandes")
+                        .with(user(utilisateur("paul.rabe")))
+                        .with(csrf())
+                        .param("posteId", "1")
+                        .param("departementId", "1")
+                        .param("motifId", "1"))
+                .andExpect(status().isForbidden());
+
+        assertThat(demandeRepository.count()).isEqualTo(nombreDemandesAvant);
+    }
+
+    @Test
+    void unManagerNePeutPasCreerUneDemandeHorsDeSonDepartement() throws Exception {
+        long nombreDemandesAvant = demandeRepository.count();
+
+        mockMvc.perform(post("/demandes")
+                        .with(user(utilisateur("manager.it")))
+                        .with(csrf())
+                        .param("posteId", "1")
+                        .param("departementId", "3")
+                        .param("motifId", "1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(
+                        "Vous ne pouvez créer une demande que pour votre département.")));
+
+        assertThat(demandeRepository.count()).isEqualTo(nombreDemandesAvant);
+    }
+
+    @Test
+    void leFormulairePreselectionneLeDepartementDuManager() throws Exception {
+        mockMvc.perform(get("/demandes/nouvelle").with(user(utilisateur("manager.it"))))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("demandeForm", hasProperty("departementId", is(1))));
     }
 
     @Test

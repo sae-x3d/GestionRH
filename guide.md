@@ -156,7 +156,28 @@ La page **http://localhost:8080/demandes/nouvelle** permet de saisir une demande
   de champ pour le saisir non plus.
 - Les erreurs de saisie sont affichées champ par champ sous chaque input.
 
-## 7. Dépannage
+## 7. Pages du Bloc 1
+
+| URL | Accès | Contenu |
+|-----|-------|---------|
+| `/demandes` | Tous les utilisateurs connectés | Liste filtrée selon le rôle, filtres statut/département et pagination |
+| `/demandes/nouvelle` | Manager et Administrateur | Formulaire de création d'une demande |
+| `/demandes/{id}` | Selon le périmètre de visibilité | Détail complet d'une demande |
+
+Règles de visibilité appliquées à la liste **et** au détail :
+
+- **Administrateur / RH** : toutes les demandes.
+- **Manager** : uniquement les demandes de son département.
+- **Employé** : uniquement ses propres demandes.
+
+Le filtre **département** n'est proposé qu'aux Administrateurs et RH. La liste est
+paginée côté serveur (10 lignes par défaut, taille modifiable via le sélecteur) et les
+filtres actifs sont conservés lors du changement de page. Après création, l'utilisateur
+est redirigé vers la page de détail de la demande avec un message de confirmation.
+Une demande inaccessible est traitée comme introuvable : redirection vers `/demandes`
+avec un message d'erreur.
+
+## 8. Dépannage
 
 | Problème | Solution |
 |----------|----------|
