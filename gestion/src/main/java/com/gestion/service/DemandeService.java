@@ -101,4 +101,23 @@ public class DemandeService {
                     .toList();
         }
 
+
+    @Transactional(readOnly = true)
+    public DemandeResponseDTO trouverParId(Integer id) {
+        Demande d = demandeRepository.findById(id)
+                .orElseThrow(() -> new RessourceIntrouvableException(
+                        "Demande introuvable : " + id));
+
+        return new DemandeResponseDTO(
+                d.getIdDemande(),
+                d.getPoste() != null ? d.getPoste().getIdPoste() : null,
+                d.getDepartement() != null ? d.getDepartement().getIdDept() : null,
+                d.getMotif() != null ? d.getMotif().getIdMotif() : null,
+                d.getBudget(),
+                d.getDateCreation(),
+                d.getDateSouhaite(),
+                d.getDemandeStatus() != null ? d.getDemandeStatus().getLibelleStatus() : null
+        );
+    }
+
 }

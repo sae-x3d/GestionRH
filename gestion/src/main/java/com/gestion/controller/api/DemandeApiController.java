@@ -30,6 +30,11 @@ public class DemandeApiController {
         return ResponseEntity.ok(demandeService.listerToutes());
     }
 
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<DemandeResponseDTO> detail(@PathVariable Integer id) {
+        return ResponseEntity.ok(demandeService.trouverParId(id));
+    }
+
     @PostMapping
     public ResponseEntity<Map<String, Object>> creer(@Valid @RequestBody DemandeCreateRequestDTO request,Authentication authentication) {
 
