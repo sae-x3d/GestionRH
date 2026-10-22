@@ -76,16 +76,87 @@ L'application démarre sur : **http://localhost:8080**
 
 ## 4. Accès et sécurité
 
-Spring Security est actif : toutes les pages sont protégées.
+Spring Security est actif : toutes les pages sont protégées par une page de connexion.
 
-- L'utilisateur par défaut s'affiche dans les logs au démarrage :
-  ```
-  Using generated security password: ********
-  ```
-- Utilisateur : `user`
-- Mot de passe : celui affiché ci-dessus (regénéré à chaque redémarrage tant qu'aucun utilisateur n'est configuré en base)
+Les comptes proviennent de la table `utilisateur` (rôle `role` inclus dans le menu).
+Les comptes de démonstration créés par le script de seed partagent le mot de passe
+**`MotDePasse2026`** (hash bcrypt dans la colonne `password_hash`) :
 
-## 5. Dépannage
+| Identifiant | Rôle | Employé lié |
+|-------------|------|-------------|
+| `admin` | Administrateur | - |
+| `rh.sophie` | RH | Sophie Rakotomalala |
+| `rh.nina` | RH | Nina Rasoa |
+| `manager.it` | Manager | Jean Rakoto |
+| `manager.finance` | Manager | Michel Rajoelina |
+| `manager.marketing` | Manager | Laura Randriam |
+| `paul.rabe` | Employé | Paul Rabe |
+| `marie.randria` | Employé | Marie Randria |
+
+> En production, remplacer ces hash par des mots de passe réels et supprimer
+> les comptes de démonstration.
+
+## 5. Structure du code et conventions
+
+Le code suit les conventions du projet de référence **EggLand** (`com.app.eggland`).
+
+### Arborescence des paquets (`gestion/src/main/java/com/gestion`)
+
+| Paquet    | Rôle |
+|-----------|------|
+| `model`   | Entités JPA (ex-`entity`) : `Demande`, `Employe`, `Poste`, `Utilisateur`… |
+| `controller` | Contrôleurs MVC (`@Controller`), un dossier par écran |
+| `service` | Services métier (`@Service`), un service par entité |
+| `repository` | Interfaces `JpaRepository<T, Integer>` |
+| `dto`     | Objets de transport du formulaire (POJO à accesseurs manuels) |
+| `config`  | Configuration Spring (`SecurityConfig`) |
+| `exception` | Erreurs API (`ApiError`, `GlobalExceptionHandler`, `RessourceIntrouvableException`) |
+
+### Conventions de code
+
+- **Entités** : `@Entity` + `@Table` + Lombok `@Data @NoArgsConstructor @AllArgsConstructor @Builder`,
+  imports jokers (`import jakarta.persistence.*;` / `import lombok.*;`),
+  clé primaire `Integer` en `GenerationType.IDENTITY`, colonnes en `snake_case` via `@Column(name = "...")`.
+- **Services** : classes concrètes `@Service`, injection par constructeur
+  (`@RequiredArgsConstructor` + `private final`), `@Transactional` **méthode par méthode**,
+  noms de méthodes en français : `listerTous()`, `listerActifs()`, `trouverParId()`,
+  `creer()`, `supprimer()`, `verifier*()` pour les règles de gestion.
+- **Contrôleurs** : `@Controller` + `@RequestMapping` de classe, la vue est renvoyée
+  sous forme de `String` (`"demande/formulaire"`), messages via
+  `RedirectAttributes.addFlashAttribute("succes" | "erreur", message)`.
+- **Repositories** : requêtes dérivées par défaut (`findAllByOrderByNomPosteAsc`),
+  `@Query` en bloc de texte (`"""`) pour les jointures et agrégats.
+- **Front** : Thymeleaf + Layout Dialect : `fragments/layout.html` est le gabarit commun,
+  les pages utilisent `layout:decorate="~{fragments/layout}"` et `layout:fragment="content"`.
+  CSS en CSS simple avec variables dans `static/css/variables.css`, un fichier par écran
+  (`demande.css`, `connexion.css`) et un fichier par squelette
+  (`layout.css`, `sidebar.css`, `header.css`, `components.css`).
+
+### Écarts assumés par rapport à EggLand
+
+Ces points ont été conservés car ils répondent à des exigences propres à GestionRH :
+
+- **Validation Bean Validation** (`jakarta.validation`) sur les DTO + `@Valid` dans le contrôleur.
+- **Gestionnaire d'erreurs global** (`GlobalExceptionHandler`) et `ApiError` pour les réponses JSON.
+- **Mots de passe hachés en BCrypt** et **protection CSRF activée** (EggLand utilise un
+  `PasswordEncoder` en clair et désactive le CSRF : à ne pas reproduire).
+- Les relations `ManyToOne` restent en chargement `EAGER` (EggLand utilise `LAZY`),
+  afin que les entités restent exploitables hors transaction (tests, exports).
+
+## 6. Formulaire de demande de recrutement
+
+La page **http://localhost:8080/demandes/nouvelle** permet de saisir une demande.
+
+- Les listes (postes, départements, motifs, employés actifs) sont chargées
+  depuis la base à chaque affichage du formulaire.
+- Le **demandeur** est déterminé automatiquement : il s'agit de l'utilisateur
+  connecté, il n'y a pas de champ pour le saisir.
+- Le **statut initial** est déterminé automatiquement à partir de la propriété
+  `app.demande.statut-initial` (valeur par défaut : `En attente`), il n'y a pas
+  de champ pour le saisir non plus.
+- Les erreurs de saisie sont affichées champ par champ sous chaque input.
+
+## 7. Dépannage
 
 | Problème | Solution |
 |----------|----------|

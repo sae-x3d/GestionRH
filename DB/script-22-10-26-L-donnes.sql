@@ -129,30 +129,30 @@ VALUES
 -- ==========================================
 
 -- IMPORTANT :
--- Les mots de passe ci-dessous sont des valeurs
--- fictives pour tester la structure.
--- Remplacer par de vrais hash bcrypt ou Argon2
--- générés par l'application.
+-- Mot de passe commun à tous les comptes de démonstration : MotDePasse2026
+-- Le hash ci-dessous est un bcrypt (10 tours) généré par Spring Security
+-- (BCryptPasswordEncoder). Le remplacer par de vrais hash bcrypt ou Argon2
+-- générés par l'application avant toute mise en production.
 
 INSERT INTO utilisateur
 (id_user, id_emp, id_role, username, password_hash)
 VALUES
 
-(1, NULL, 1, 'admin', 'HASH_A_REMPLACER'),
+(1, NULL, 1, 'admin', '$2a$10$1nm2BgnvH3qKcaVrDRx3XOPJrg0.ANPQwOFlQNVjn8zusD2pD/HcO'),
 
-(2, 5, 2, 'rh.sophie', 'HASH_A_REMPLACER'),
+(2, 5, 2, 'rh.sophie', '$2a$10$1nm2BgnvH3qKcaVrDRx3XOPJrg0.ANPQwOFlQNVjn8zusD2pD/HcO'),
 
-(3, 1, 3, 'manager.it', 'HASH_A_REMPLACER'),
+(3, 1, 3, 'manager.it', '$2a$10$1nm2BgnvH3qKcaVrDRx3XOPJrg0.ANPQwOFlQNVjn8zusD2pD/HcO'),
 
-(4, 7, 3, 'manager.finance', 'HASH_A_REMPLACER'),
+(4, 7, 3, 'manager.finance', '$2a$10$1nm2BgnvH3qKcaVrDRx3XOPJrg0.ANPQwOFlQNVjn8zusD2pD/HcO'),
 
-(5, 13, 3, 'manager.marketing', 'HASH_A_REMPLACER'),
+(5, 13, 3, 'manager.marketing', '$2a$10$1nm2BgnvH3qKcaVrDRx3XOPJrg0.ANPQwOFlQNVjn8zusD2pD/HcO'),
 
-(6, 2, 4, 'paul.rabe', 'HASH_A_REMPLACER'),
+(6, 2, 4, 'paul.rabe', '$2a$10$1nm2BgnvH3qKcaVrDRx3XOPJrg0.ANPQwOFlQNVjn8zusD2pD/HcO'),
 
-(7, 3, 4, 'marie.randria', 'HASH_A_REMPLACER'),
+(7, 3, 4, 'marie.randria', '$2a$10$1nm2BgnvH3qKcaVrDRx3XOPJrg0.ANPQwOFlQNVjn8zusD2pD/HcO'),
 
-(8, 6, 2, 'rh.nina', 'HASH_A_REMPLACER');
+(8, 6, 2, 'rh.nina', '$2a$10$1nm2BgnvH3qKcaVrDRx3XOPJrg0.ANPQwOFlQNVjn8zusD2pD/HcO');
 
 
 -- ==========================================
