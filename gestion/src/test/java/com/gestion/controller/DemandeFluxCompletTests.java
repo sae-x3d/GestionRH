@@ -62,16 +62,16 @@ class DemandeFluxCompletTests {
         assertThat(connexion.headers().firstValue("Location").orElseThrow())
                 .endsWith("/demandes/nouvelle");
 
-        // 3. Formulaire alimenté par la base
+        // 3. Formulaire alimente par la base
         HttpResponse<String> formulaire = client.send(
                 HttpRequest.newBuilder(URI.create(base + "/demandes/nouvelle")).GET().build(),
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         assertThat(formulaire.statusCode()).isEqualTo(200);
         assertThat(formulaire.body())
                 .contains("manager.it")
-                .contains("Développeur Backend")
+                .contains("Developpeur Backend")
                 .contains("Informatique")
-                .contains("Création de poste")
+                .contains("Creation de poste")
                 .contains("En attente");
 
         // 4. Envoi du formulaire
@@ -89,11 +89,11 @@ class DemandeFluxCompletTests {
         assertThat(envoi.headers().firstValue("Location").orElseThrow())
                 .endsWith("/demandes/nouvelle");
 
-        // 5. Confirmation affichée
+        // 5. Confirmation affichee
         HttpResponse<String> confirmation = client.send(
                 HttpRequest.newBuilder(URI.create(base + "/demandes/nouvelle")).GET().build(),
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-        assertThat(confirmation.body()).contains("enregistrée avec le statut");
+        assertThat(confirmation.body()).contains("enregistree avec le statut");
 
         // 6. Trace en base
         assertThat(demandeRepository.count()).isEqualTo(nombreDemandesAvant + 1);
@@ -109,7 +109,7 @@ class DemandeFluxCompletTests {
 
     private String extraireJetonCsrf(String html) {
         Matcher matcher = JETON_CSRF.matcher(html);
-        assertThat(matcher.find()).as("Jeton CSRF présent dans la page").isTrue();
+        assertThat(matcher.find()).as("Jeton CSRF present dans la page").isTrue();
         return matcher.group(1);
     }
 

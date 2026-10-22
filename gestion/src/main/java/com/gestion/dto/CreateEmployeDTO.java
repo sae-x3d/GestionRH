@@ -14,31 +14,31 @@ import java.time.LocalDateTime;
 
 public class CreateEmployeDTO {
 
-    @NotBlank(message = "Le nom de l'employé est obligatoire")
-    @Size(max = 255, message = "Le nom de l'employé ne peut pas dépasser 255 caractères")
+    @NotBlank(message = "Le nom de l'employe est obligatoire")
+    @Size(max = 255, message = "Le nom de l'employe ne peut pas depasser 255 caracteres")
     private String nomEmp;
 
     @NotNull(message = "La date d'embauche est obligatoire")
-    @PastOrPresent(message = "La date d'embauche ne peut pas être dans le futur")
+    @PastOrPresent(message = "La date d'embauche ne peut pas etre dans le futur")
     private LocalDateTime dateEmbauche;
 
-    @FutureOrPresent(message = "La date de départ ne peut pas être dans le passé")
+    @FutureOrPresent(message = "La date de depart ne peut pas etre dans le passe")
     private LocalDateTime dateDepart;
 
     @NotNull(message = "Le poste est obligatoire")
-    @Positive(message = "L'identifiant du poste doit être positif")
+    @Positive(message = "L'identifiant du poste doit etre positif")
     private Integer posteId;
 
-    @NotNull(message = "Le département est obligatoire")
-    @Positive(message = "L'identifiant du département doit être positif")
+    @NotNull(message = "Le departement est obligatoire")
+    @Positive(message = "L'identifiant du departement doit etre positif")
     private Integer departementId;
 
     @NotNull(message = "Le salaire est obligatoire")
-    @PositiveOrZero(message = "Le salaire ne peut pas être négatif")
+    @PositiveOrZero(message = "Le salaire ne peut pas etre negatif")
     private Integer salaireEmp;
 
     @NotNull(message = "La provenance est obligatoire")
-    @Positive(message = "L'identifiant de la provenance doit être positif")
+    @Positive(message = "L'identifiant de la provenance doit etre positif")
     private Integer provenanceId;
 
     public CreateEmployeDTO() {
@@ -100,7 +100,7 @@ public class CreateEmployeDTO {
         this.provenanceId = provenanceId;
     }
 
-    @AssertTrue(message = "La date de départ doit être postérieure ou égale à la date d'embauche")
+    @AssertTrue(message = "La date de depart doit etre posterieure ou egale a la date d'embauche")
     @JsonIgnore
     public boolean isDateDepartCoherente() {
         if (dateDepart == null || dateEmbauche == null) {

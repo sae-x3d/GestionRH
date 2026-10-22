@@ -39,13 +39,13 @@ public class DemandeService {
     public Demande creer(CreateDemandeDTO dto, Utilisateur demandeur) {
         Demande demande = Demande.builder()
                 .poste(trouverReference(posteRepository.findById(dto.getPosteId()), "poste"))
-                .departement(trouverReference(departementRepository.findById(dto.getDepartementId()), "département"))
+                .departement(trouverReference(departementRepository.findById(dto.getDepartementId()), "departement"))
                 .motif(trouverReference(motifRepository.findById(dto.getMotifId()), "motif"))
                 .demandeur(trouverReference(utilisateurRepository.findById(demandeur.getIdUser()), "demandeur"))
                 .demandeStatus(trouverStatutInitial())
                 .empRemplace(dto.getEmpRemplaceId() == null
                         ? null
-                        : trouverReference(employeRepository.findById(dto.getEmpRemplaceId()), "employé remplacé"))
+                        : trouverReference(employeRepository.findById(dto.getEmpRemplaceId()), "employe remplace"))
                 .budget(dto.getBudget())
                 .dateSouhaite(dto.getDateSouhaite())
                 .dateCreation(LocalDateTime.now())
@@ -57,10 +57,10 @@ public class DemandeService {
     private DemandeStatus trouverStatutInitial() {
         return demandeStatusService.trouverStatutInitial()
                 .orElseThrow(() -> new RessourceIntrouvableException(
-                        "Statut initial introuvable : « " + demandeStatusService.getLibelleStatutInitial() + " »"));
+                        "Statut initial introuvable : \"" + demandeStatusService.getLibelleStatutInitial() + "\""));
     }
 
     private <T> T trouverReference(Optional<T> ressource, String nom) {
-        return ressource.orElseThrow(() -> new RessourceIntrouvableException("Référence introuvable : " + nom));
+        return ressource.orElseThrow(() -> new RessourceIntrouvableException("Reference introuvable : " + nom));
     }
 }

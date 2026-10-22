@@ -63,9 +63,9 @@ public class DemandeController {
         }
 
         redirectAttributes.addFlashAttribute("succes",
-                "Demande n° " + demande.getIdDemande() + " enregistrée avec le statut « "
+                "Demande n " + demande.getIdDemande() + " enregistree avec le statut \""
                         + demandeStatusService.trouverStatutInitial().map(statut -> statut.getLibelleStatus()).orElse("")
-                        + " ».");
+                        + "\".");
         return "redirect:/demandes/nouvelle";
     }
 
@@ -83,6 +83,6 @@ public class DemandeController {
         if (authentication != null && authentication.getPrincipal() instanceof UtilisateurDetails details) {
             return details.getUtilisateur();
         }
-        throw new IllegalStateException("Aucun utilisateur authentifié");
+        throw new IllegalStateException("Aucun utilisateur authentifie");
     }
 }

@@ -1,0 +1,26 @@
+.ligne-parcours {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: #fafbfd;
+}
+
+.ligne-parcours hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 0.8rem 0 0;
+}
+
+.ligne-parcours .retirer-ligne {
+    margin-top: 0.4rem;
+}
+
+.parcours-liste {
+    margin: 0;
+    padding-left: 1.1rem;
+}
+
+.parcours-liste li {
+    font-size: 0.88rem;
+}

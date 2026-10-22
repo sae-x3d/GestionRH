@@ -24,7 +24,7 @@ public class UtilisateurDetails extends User {
     }
 
     private static Collection<GrantedAuthority> authorities(Utilisateur utilisateur) {
-        String nomRole = utilisateur.getRole() == null ? "Employé" : utilisateur.getRole().getNomRole();
+        String nomRole = utilisateur.getRole() == null ? "Employe" : utilisateur.getRole().getNomRole();
         return List.of(new SimpleGrantedAuthority("ROLE_" + normaliser(nomRole)));
     }
 

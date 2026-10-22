@@ -9,31 +9,31 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 
 /**
- * Données saisies pour créer une demande de recrutement.
- * Le demandeur et le statut initial sont déterminés par le backend
- * (utilisateur authentifié et statut configuré), ils ne font donc pas partie du formulaire.
+ * Donnees saisies pour creer une demande de recrutement.
+ * Le demandeur et le statut initial sont determines par le backend
+ * (utilisateur authentifie et statut configure), ils ne font donc pas partie du formulaire.
  */
 public class CreateDemandeDTO {
 
     @NotNull(message = "Le poste est obligatoire")
-    @Positive(message = "L'identifiant du poste doit être positif")
+    @Positive(message = "L'identifiant du poste doit etre positif")
     private Integer posteId;
 
-    @NotNull(message = "Le département est obligatoire")
-    @Positive(message = "L'identifiant du département doit être positif")
+    @NotNull(message = "Le departement est obligatoire")
+    @Positive(message = "L'identifiant du departement doit etre positif")
     private Integer departementId;
 
     @NotNull(message = "Le motif est obligatoire")
-    @Positive(message = "L'identifiant du motif doit être positif")
+    @Positive(message = "L'identifiant du motif doit etre positif")
     private Integer motifId;
 
-    @Positive(message = "L'identifiant de l'employé remplacé doit être positif")
+    @Positive(message = "L'identifiant de l'employe remplace doit etre positif")
     private Integer empRemplaceId;
 
-    @PositiveOrZero(message = "Le budget ne peut pas être négatif")
+    @PositiveOrZero(message = "Le budget ne peut pas etre negatif")
     private Integer budget;
 
-    @FutureOrPresent(message = "La date souhaitée ne peut pas être dans le passé")
+    @FutureOrPresent(message = "La date souhaitee ne peut pas etre dans le passe")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime dateSouhaite;
 
