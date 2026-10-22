@@ -62,22 +62,9 @@ public class DemandeService {
     }
 
     @Transactional(readOnly = true)
-<<<<<<< HEAD
-    public List<Demande> listerPour(Utilisateur utilisateur) {
-        if (estAdminOuRh(utilisateur)) {
-            return demandeRepository.findAllByOrderByDateCreationDesc();
-        }
-        if (estManager(utilisateur)) {
-            Integer idDepartement = idDepartementUtilisateur(utilisateur);
-            if (idDepartement != null) {
-                return demandeRepository.findByDepartementIdDeptOrderByDateCreationDesc(idDepartement);
-            }
-        }
-        return demandeRepository.findByDemandeurIdUserOrderByDateCreationDesc(utilisateur.getIdUser());
+    public List<Demande> listerParStatut(String libelleStatut) {
+        return demandeRepository.findByDemandeStatusLibelleStatusOrderByDateCreationAsc(libelleStatut);
     }
-
-    public boolean peutCreer(Utilisateur utilisateur) {
-        return estManager(utilisateur) || estAdmin(utilisateur);
     }
 
     public boolean peutFiltrerParDepartement(Utilisateur utilisateur) {
@@ -131,18 +118,11 @@ public class DemandeService {
         return estAdmin(utilisateur) || estRole(utilisateur, "RH");
     }
 
-    private boolean estAdmin(Utilisateur utilisateur) {
-        return estRole(utilisateur, "Administrateur");
+    private DemandeStatus trouverStatutInitial() {
+        return demandeStatusService.trouverStatutInitial()
+                .orElseThrow(() -> new RessourceIntrouvableException(
+                        "Statut initial introuvable : \"" + demandeStatusService.getLibelleStatutInitial() + "\""));
     }
-
-    private boolean estManager(Utilisateur utilisateur) {
-        return estRole(utilisateur, "Manager");
-    }
-
-    private boolean estRole(Utilisateur utilisateur, String nomRole) {
-        return utilisateur != null
-                && utilisateur.getRole() != null
-                && nomRole.equalsIgnoreCase(utilisateur.getRole().getNomRole());
 =======
     public List<Demande> listerParStatut(String libelleStatut) {
         return demandeRepository.findByDemandeStatusLibelleStatusOrderByDateCreationAsc(libelleStatut);
