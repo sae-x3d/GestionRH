@@ -106,7 +106,7 @@ class DemandeControllerTests {
     void soumissionValide_creeLaDemandeAvecLeDemandeurEtLeStatutInitial() throws Exception {
         long nombreDemandesAvant = demandeRepository.count();
 
-        mockMvc.perform(post("/demandes")
+        MvcResult resultat = mockMvc.perform(post("/demandes")
                         .with(user(utilisateur("manager.it")))
                         .with(csrf())
                         .param("posteId", "1")
@@ -115,13 +115,15 @@ class DemandeControllerTests {
                         .param("budget", "3500000")
                         .param("dateSouhaite", "2030-11-01T09:00"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/demandes"));
+                .andReturn();
 
         assertThat(demandeRepository.count()).isEqualTo(nombreDemandesAvant + 1);
 
         Demande demande = demandeRepository.findAll().stream()
                 .max(Comparator.comparing(Demande::getIdDemande))
                 .orElseThrow();
+        assertThat(resultat.getResponse().getRedirectedUrl())
+                .isEqualTo("/demandes/" + demande.getIdDemande());
         assertThat(demande.getDemandeur().getIdUser()).isEqualTo(3);
         assertThat(demande.getDemandeStatus().getLibelleStatus()).isEqualTo("En attente");
         assertThat(demande.getPoste().getIdPoste()).isEqualTo(1);
@@ -157,7 +159,7 @@ class DemandeControllerTests {
     void unAdministrateurPeutCreerUneDemandePourNImporteQuelDepartement() throws Exception {
         long nombreDemandesAvant = demandeRepository.count();
 
-        mockMvc.perform(post("/demandes")
+        MvcResult resultat = mockMvc.perform(post("/demandes")
                         .with(user(utilisateur("admin")))
                         .with(csrf())
                         .param("posteId", "1")
@@ -165,13 +167,15 @@ class DemandeControllerTests {
                         .param("motifId", "1")
                         .param("budget", "2500000"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/demandes"));
+                .andReturn();
 
         assertThat(demandeRepository.count()).isEqualTo(nombreDemandesAvant + 1);
 
         Demande demande = demandeRepository.findAll().stream()
                 .max(Comparator.comparing(Demande::getIdDemande))
                 .orElseThrow();
+        assertThat(resultat.getResponse().getRedirectedUrl())
+                .isEqualTo("/demandes/" + demande.getIdDemande());
         assertThat(demande.getDemandeur().getIdUser()).isEqualTo(1);
         assertThat(demande.getDepartement().getIdDept()).isEqualTo(3);
     }

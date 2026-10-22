@@ -37,7 +37,8 @@ class DemandeListeTests {
                 .andExpect(content().string(containsString("Développeur Backend")))
                 .andExpect(content().string(containsString("Comptable")))
                 .andExpect(content().string(containsString("Responsable Marketing")))
-                .andExpect(content().string(containsString("Nouvelle demande")));
+                .andExpect(content().string(containsString("Nouvelle demande")))
+                .andExpect(content().string(containsString("href=\"/demandes/1\"")));
     }
 
     @Test

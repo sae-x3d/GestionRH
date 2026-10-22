@@ -86,18 +86,19 @@ class DemandeFluxCompletTests {
                         .build(),
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         assertThat(envoi.statusCode()).isEqualTo(302);
-        assertThat(envoi.headers().firstValue("Location").orElseThrow())
-                .endsWith("/demandes");
+        URI destination = URI.create(envoi.headers().firstValue("Location").orElseThrow());
+        assertThat(destination.getPath()).matches("/demandes/\\d+");
 
-        // 5. Confirmation affichée sur la liste
+        // 5. Page de détail de la demande créée
         HttpResponse<String> confirmation = client.send(
-                HttpRequest.newBuilder(URI.create(base + "/demandes")).GET().build(),
+                HttpRequest.newBuilder(URI.create(base + destination.getPath())).GET().build(),
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         assertThat(confirmation.statusCode()).isEqualTo(200);
         assertThat(confirmation.body())
                 .contains("enregistrée avec le statut")
                 .contains("Développeur Backend")
-                .contains("manager.it");
+                .contains("manager.it")
+                .contains("Demande n°");
 
         // 6. Trace en base
         assertThat(demandeRepository.count()).isEqualTo(nombreDemandesAvant + 1);

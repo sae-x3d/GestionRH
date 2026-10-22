@@ -77,6 +77,31 @@ public class DemandeService {
         return estAdminOuRh(utilisateur);
     }
 
+    @Transactional(readOnly = true)
+    public Demande trouverPourUtilisateur(Integer id, Utilisateur utilisateur) {
+        Demande demande = demandeRepository.findById(id)
+                .orElseThrow(() -> new RessourceIntrouvableException("Demande introuvable : " + id));
+        if (!peutConsulter(demande, utilisateur)) {
+            throw new RessourceIntrouvableException("Demande introuvable : " + id);
+        }
+        return demande;
+    }
+
+    private boolean peutConsulter(Demande demande, Utilisateur utilisateur) {
+        if (estAdminOuRh(utilisateur)) {
+            return true;
+        }
+        if (estManager(utilisateur)) {
+            Integer idDepartement = idDepartementUtilisateur(utilisateur);
+            return idDepartement != null
+                    && demande.getDepartement() != null
+                    && idDepartement.equals(demande.getDepartement().getIdDept());
+        }
+        return utilisateur != null
+                && demande.getDemandeur() != null
+                && demande.getDemandeur().getIdUser().equals(utilisateur.getIdUser());
+    }
+
     public boolean departementAutorise(Integer idDepartement, Utilisateur utilisateur) {
         if (estAdmin(utilisateur)) {
             return true;

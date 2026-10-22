@@ -72,6 +72,7 @@
                             <th>Motif</th>
                             <th>Budget</th>
                             <th>Statut</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -87,6 +88,10 @@
                                 <span class="status-badge"
                                       th:classappend="${@demandeStatusService.classeStatut(demande.demandeStatus != null ? demande.demandeStatus.libelleStatus : null)}"
                                       th:text="${demande.demandeStatus != null ? demande.demandeStatus.libelleStatus : '—'}">Statut</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/demandes/{id}(id=${demande.idDemande})}"
+                                   class="btn btn-outline btn-sm">Voir</a>
                             </td>
                         </tr>
                     </tbody>
