@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Validation RH</title>
+    <link rel="stylesheet" th:href="@{/css/demande.css}">
+</head>
+
+<body>
+    <div layout:fragment="content">
+
+        <div class="page-header">
+            <div class="detail-heading">
+                <h2>Validation RH</h2>
+                <span class="status-badge status-pending"
+                      th:text="${#lists.size(demandes)} + ' demande(s) en attente'">3 demandes en attente</span>
+            </div>
+            <a th:href="@{/demandes}" class="btn btn-outline">Retour aux demandes</a>
+        </div>
+
+        <div class="alert-success" th:if="${succes}" th:text="${succes}">
+            Décision enregistrée
+        </div>
+
+        <div class="alert-error" th:if="${erreur}" th:text="${erreur}">
+            Message d'erreur
+        </div>
+
+        <div class="card">
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>N°</th>
+                            <th>Date</th>
+                            <th>Poste</th>
+                            <th>Département</th>
+                            <th>Demandeur</th>
+                            <th>Motif</th>
+                            <th>Budget</th>
+                            <th>Date souhaitée</th>
+                            <th class="col-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="demande : ${demandes}">
+                            <td th:text="${demande.idDemande}">1</td>
+                            <td th:text="${#temporals.format(demande.dateCreation, 'dd/MM/yyyy HH:mm')}">01/01/2026 09:00</td>
+                            <td th:text="${demande.poste != null ? demande.poste.nomPoste : '—'}">Poste</td>
+                            <td th:text="${demande.departement != null ? demande.departement.nomDept : '—'}">Département</td>
+                            <td th:text="${demande.demandeur != null ? demande.demandeur.username : '—'}">utilisateur</td>
+                            <td th:text="${demande.motif != null ? demande.motif.libelle : '—'}">Motif</td>
+                            <td th:text="${demande.budget != null ? #numbers.formatDecimal(demande.budget, 0, 'WHITESPACE', 0, 'COMMA') + ' Ar' : '—'}">—</td>
+                            <td th:text="${demande.dateSouhaite != null ? #temporals.format(demande.dateSouhaite, 'dd/MM/yyyy') : '—'}">—</td>
+                            <td class="col-actions">
+                                <div class="action-group">
+                                    <a th:href="@{/demandes/{id}(id=${demande.idDemande})}"
+                                       class="btn btn-outline btn-sm">Voir</a>
+                                    <form th:action="@{/demandes/{id}/validation-rh/accepter(id=${demande.idDemande})}"
+                                          method="post">
+                                        <button type="submit" class="btn btn-primary btn-sm">Accepter</button>
+                                    </form>
+                                    <form th:action="@{/demandes/{id}/validation-rh/refuser(id=${demande.idDemande})}"
+                                          method="post">
+                                        <button type="submit" class="btn btn-danger btn-sm">Refuser</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="empty-state" th:if="${#lists.isEmpty(demandes)}">
+                Aucune demande en attente de validation RH.
+            </p>
+        </div>
+
+    </div>
+</body>
+
+</html>

@@ -2,6 +2,7 @@ package com.gestion.controller;
 
 import com.gestion.model.Demande;
 import com.gestion.repository.DemandeRepository;
+import com.gestion.service.DemandeStatusService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

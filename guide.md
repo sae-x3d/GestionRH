@@ -97,6 +97,9 @@ Les comptes de demonstration crees par le script de seed partagent le mot de pas
 > En production, remplacer ces hash par des mots de passe reels et supprimer
 > les comptes de demonstration.
 
+La **validation RH** (file d'attente et décisions accepter/refuser) est réservée
+aux comptes ayant le rôle **RH**. Les autres rôles reçoivent une erreur 403.
+
 ## 5. Structure du code et conventions
 
 Le code suit les conventions du projet de reference **EggLand** (`com.app.eggland`).

@@ -1,6 +1,7 @@
 package com.gestion.controller;
 
 import com.gestion.dto.CreateDemandeDTO;
+import com.gestion.exception.DecisionRhImpossibleException;
 import com.gestion.exception.RessourceIntrouvableException;
 import com.gestion.model.Demande;
 import com.gestion.model.Utilisateur;
@@ -15,6 +16,7 @@ import com.gestion.service.UtilisateurDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -92,6 +94,30 @@ public class DemandeController {
         return "demande/liste";
     }
 
+    @PreAuthorize("hasAuthority('ROLE_RH')")
+    @GetMapping("/validation-rh")
+    public String validationRh(Model model) {
+        model.addAttribute("demandes", demandeService.listerEnAttenteValidationRh());
+        model.addAttribute("pageTitle", "Validation RH");
+        return "demande/validation-rh";
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_RH')")
+    @PostMapping("/{id}/validation-rh/accepter")
+    public String accepterRh(@PathVariable Integer id,
+                             Authentication authentication,
+                             RedirectAttributes redirectAttributes) {
+        return traiterDecisionRh(id, true, authentication, redirectAttributes);
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_RH')")
+    @PostMapping("/{id}/validation-rh/refuser")
+    public String refuserRh(@PathVariable Integer id,
+                            Authentication authentication,
+                            RedirectAttributes redirectAttributes) {
+        return traiterDecisionRh(id, false, authentication, redirectAttributes);
+    }
+
     @GetMapping("/{id}")
     public String detail(@PathVariable Integer id,
                          Model model,
@@ -146,6 +172,9 @@ public class DemandeController {
             return "demande/formulaire";
         }
 
+        String libelleStatut = demandeStatusService.trouverStatutInitial()
+                .map(statut -> demandeStatusService.libelleAffichage(statut.getLibelleStatus()))
+                .orElse("");
         redirectAttributes.addFlashAttribute("succes",
                 "Demande n° " + demande.getIdDemande() + " enregistrée avec le statut « "
                         + demandeStatusService.trouverStatutInitial()
@@ -153,6 +182,21 @@ public class DemandeController {
                                 .orElse("")
                         + " ».");
         return "redirect:/demandes/" + demande.getIdDemande();
+    }
+
+    private String traiterDecisionRh(Integer id, boolean accepter, Authentication authentication,
+                                     RedirectAttributes redirectAttributes) {
+        try {
+            Demande demande = demandeService.deciderRh(id, utilisateurCourant(authentication), accepter);
+            String message = accepter
+                    ? "Demande n° " + demande.getIdDemande()
+                            + " acceptée : en attente de validation budgétaire."
+                    : "Demande n° " + demande.getIdDemande() + " refusée.";
+            redirectAttributes.addFlashAttribute("succes", message);
+        } catch (RessourceIntrouvableException | DecisionRhImpossibleException ex) {
+            redirectAttributes.addFlashAttribute("erreur", ex.getMessage());
+        }
+        return "redirect:/demandes/validation-rh";
     }
 
     private void preparerFormulaire(Model model, Authentication authentication) {

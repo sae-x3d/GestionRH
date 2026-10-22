@@ -81,7 +81,7 @@ class DemandeListeTests {
     @Test
     void filtreParStatut() throws Exception {
         mockMvc.perform(get("/demandes")
-                        .param("statutId", "2")
+                        .param("statutId", "3")
                         .with(user(utilisateur("admin"))))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("statutId", is(2)))

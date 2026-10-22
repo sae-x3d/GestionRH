@@ -32,6 +32,7 @@ public class SecurityConfig {
                         .hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMINISTRATEUR")
                         .requestMatchers(HttpMethod.POST, "/demandes")
                         .hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMINISTRATEUR")
+
                         .requestMatchers("/demandes/validation/rh", "/demandes/*/validation/rh/**")
                         .hasAnyAuthority("ROLE_ADMINISTRATEUR", "ROLE_RH")
                         .requestMatchers("/demandes/validation/finance", "/demandes/*/validation/finance/**")
