@@ -21,11 +21,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class DemandeService {
+
+    public static final String STATUT_ATTENTE_RH = "EN_ATTENTE_VALIDATION_RH";
+    public static final String STATUT_ATTENTE_BUDGET = "EN_ATTENTE_VALIDATION_BUDGET";
+    public static final String STATUT_ATTENTE_DIRECTION = "EN_ATTENTE_VALIDATION_DIRECTION";
+    public static final String STATUT_APPROUVE = "APPROUVE";
+    public static final String STATUT_REFUSE = "REFUSE";
 
     private final DemandeRepository demandeRepository;
     private final PosteRepository posteRepository;
@@ -51,6 +58,63 @@ public class DemandeService {
                 .dateCreation(LocalDateTime.now())
                 .build();
 
+        return demandeRepository.save(demande);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Demande> listerParStatut(String libelleStatut) {
+        return demandeRepository.findByDemandeStatusLibelleStatusOrderByDateCreationAsc(libelleStatut);
+    }
+
+    @Transactional
+    public Demande validerRh(Integer idDemande) {
+        return transitionner(idDemande, STATUT_ATTENTE_RH, STATUT_ATTENTE_BUDGET);
+    }
+
+    @Transactional
+    public Demande refuserRh(Integer idDemande) {
+        return transitionner(idDemande, STATUT_ATTENTE_RH, STATUT_REFUSE);
+    }
+
+    @Transactional
+    public Demande validerFinance(Integer idDemande) {
+        return transitionner(idDemande, STATUT_ATTENTE_BUDGET, STATUT_ATTENTE_DIRECTION);
+    }
+
+    @Transactional
+    public Demande refuserFinance(Integer idDemande) {
+        return transitionner(idDemande, STATUT_ATTENTE_BUDGET, STATUT_REFUSE);
+    }
+
+    @Transactional
+    public Demande validerDirection(Integer idDemande) {
+        return transitionner(idDemande, STATUT_ATTENTE_DIRECTION, STATUT_APPROUVE);
+    }
+
+    @Transactional
+    public Demande refuserDirection(Integer idDemande) {
+        return transitionner(idDemande, STATUT_ATTENTE_DIRECTION, STATUT_REFUSE);
+    }
+
+    private Demande transitionner(Integer idDemande, String statutAttendu, String statutCible) {
+        Demande demande = demandeRepository.findById(idDemande)
+                .orElseThrow(() -> new RessourceIntrouvableException("Demande introuvable : " + idDemande));
+
+        String statutActuel = demande.getDemandeStatus() == null
+                ? ""
+                : demande.getDemandeStatus().getLibelleStatus();
+
+        if (statutActuel == null || !statutAttendu.equalsIgnoreCase(statutActuel)) {
+            throw new IllegalStateException("La demande n'est pas au statut attendu : \""
+                    + statutAttendu + "\" (statut actuel : \"" + statutActuel + "\").");
+        }
+
+        DemandeStatus cible = demandeStatusService.trouverParLibelle(statutCible)
+                .orElseThrow(() -> new RessourceIntrouvableException(
+                        "Statut de demande introuvable : \"" + statutCible + "\""));
+
+        demande.setDemandeStatus(cible);
+        demande.setDateReponse(LocalDateTime.now());
         return demandeRepository.save(demande);
     }
 

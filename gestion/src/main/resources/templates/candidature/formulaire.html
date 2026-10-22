@@ -38,6 +38,21 @@
             <span class="field-error" th:if="${#fields.hasErrors('offreId')}" th:errors="*{offreId}"></span>
         </div>
 
+        <div class="form-group" th:if="${questionsParOffre != null and !questionsParOffre.isEmpty()}">
+            <h3>Questionnaire</h3>
+            <p class="help-text">Les questions affichees correspondent a l'offre selectionnee.</p>
+
+            <div th:each="entry : ${questionsParOffre}">
+                <div class="question-item" th:each="q : ${entry.value}"
+                     th:attr="data-offre=${entry.key}">
+                    <label th:for="'reponse' + ${q.idQuestion}" th:text="${q.libelle}">Question</label>
+                    <textarea class="form-control" rows="2" th:id="'reponse' + ${q.idQuestion}"
+                              th:name="'reponses[' + ${q.idQuestion} + ']'"
+                              th:text="${candidatureForm.reponses.get(q.idQuestion)}"></textarea>
+                </div>
+            </div>
+        </div>
+
         <div class="form-group">
             <label for="cv">CV (pdf, doc, docx) <span class="required">*</span></label>
             <input type="file" id="cv" name="cv" class="form-control" accept=".pdf,.doc,.docx" required>
@@ -54,11 +69,12 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label th:for="'parcoursId' + ${stat.index}">Type de parcours <span class="required">*</span></label>
-                        <select class="form-select" th:id="'parcoursId' + ${stat.index}"
+                        <select class="form-select select-parcours" th:id="'parcoursId' + ${stat.index}"
                                 th:name="'parcours[' + ${stat.index} + '].parcoursId'">
                             <option value="">-- Type --</option>
                             <option th:each="p : ${parcoursRef}" th:value="${p.idParcours}"
                                     th:text="${p.type}"
+                                    th:attr="data-type=${p.type}"
                                     th:selected="${ligne.parcoursId != null and ligne.parcoursId == p.idParcours}">Type</option>
                         </select>
                         <span class="field-error"
@@ -68,11 +84,12 @@
 
                     <div class="form-group">
                         <label th:for="'niveauId' + ${stat.index}">Niveau <span class="required">*</span></label>
-                        <select class="form-select" th:id="'niveauId' + ${stat.index}"
+                        <select class="form-select select-niveau" th:id="'niveauId' + ${stat.index}"
                                 th:name="'parcours[' + ${stat.index} + '].niveauId'">
                             <option value="">-- Niveau --</option>
                             <option th:each="n : ${niveauxRef}" th:value="${n.idNiveau}"
                                     th:text="${n.libelle}"
+                                    th:attr="data-categorie=${n.categorie}"
                                     th:selected="${ligne.niveauId != null and ligne.niveauId == n.idNiveau}">Niveau</option>
                         </select>
                         <span class="field-error"
@@ -113,16 +130,18 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Type de parcours <span class="required">*</span></label>
-                    <select class="form-select" name="parcours[__INDEX__].parcoursId">
+                    <select class="form-select select-parcours" name="parcours[__INDEX__].parcoursId">
                         <option value="">-- Type --</option>
-                        <option th:each="p : ${parcoursRef}" th:value="${p.idParcours}" th:text="${p.type}">Type</option>
+                        <option th:each="p : ${parcoursRef}" th:value="${p.idParcours}" th:text="${p.type}"
+                                th:attr="data-type=${p.type}">Type</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Niveau <span class="required">*</span></label>
-                    <select class="form-select" name="parcours[__INDEX__].niveauId">
+                    <select class="form-select select-niveau" name="parcours[__INDEX__].niveauId">
                         <option value="">-- Niveau --</option>
-                        <option th:each="n : ${niveauxRef}" th:value="${n.idNiveau}" th:text="${n.libelle}">Niveau</option>
+                        <option th:each="n : ${niveauxRef}" th:value="${n.idNiveau}" th:text="${n.libelle}"
+                                th:attr="data-categorie=${n.categorie}">Niveau</option>
                     </select>
                 </div>
             </div>

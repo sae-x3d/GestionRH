@@ -13,6 +13,7 @@ import com.gestion.service.PosteService;
 import com.gestion.service.UtilisateurDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -37,6 +38,7 @@ public class DemandeController {
 
     @GetMapping("/nouvelle")
     public String formulaireCreation(Model model, Authentication authentication) {
+        verifierCreationDemande(authentication);
         model.addAttribute("demandeForm", new CreateDemandeDTO());
         preparerFormulaire(model, authentication);
         return "demande/formulaire";
@@ -48,6 +50,7 @@ public class DemandeController {
                         Authentication authentication,
                         Model model,
                         RedirectAttributes redirectAttributes) {
+        verifierCreationDemande(authentication);
         if (bindingResult.hasErrors()) {
             preparerFormulaire(model, authentication);
             return "demande/formulaire";
@@ -84,5 +87,19 @@ public class DemandeController {
             return details.getUtilisateur();
         }
         throw new IllegalStateException("Aucun utilisateur authentifie");
+    }
+
+    private void verifierCreationDemande(Authentication authentication) {
+        if (authentication == null) {
+            throw new AccessDeniedException("Utilisateur non authentifie.");
+        }
+        boolean autorise = authentication.getAuthorities().stream()
+                .anyMatch(authority -> {
+                    String a = authority.getAuthority();
+                    return "ROLE_ADMINISTRATEUR".equals(a) || "ROLE_MANAGER".equals(a);
+                });
+        if (!autorise) {
+            throw new AccessDeniedException("Seuls les managers et l'administration peuvent creer une demande de recrutement.");
+        }
     }
 }

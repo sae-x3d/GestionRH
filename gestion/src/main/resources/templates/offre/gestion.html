@@ -53,6 +53,8 @@
                         <a th:href="@{/offres/{id}(id=${offre.idOffre})}" class="btn btn-outline btn-small">Voir</a>
                         <a th:href="@{/offres/{id}/modifier(id=${offre.idOffre})}"
                            class="btn btn-outline btn-small">Modifier</a>
+                        <a th:href="@{/offres/{id}/questions(id=${offre.idOffre})}"
+                           class="btn btn-outline btn-small">Questionnaire</a>
                         <form th:if="${offre.statut.name() == 'BROUILLON'}"
                               th:action="@{/offres/{id}/publier(id=${offre.idOffre})}" method="post" class="inline-form">
                             <button type="submit" class="btn btn-primary btn-small">Publier</button>

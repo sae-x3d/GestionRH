@@ -1,5 +1,6 @@
 package com.gestion.model;
 
+import com.gestion.enums.CategorieNiveau;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,4 +19,8 @@ public class Niveau {
 
     @Column(name = "libelle", length = 50, nullable = false)
     private String libelle;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "categorie", length = 20, nullable = false)
+    private CategorieNiveau categorie;
 }

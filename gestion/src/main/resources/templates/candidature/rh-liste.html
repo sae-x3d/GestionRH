@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Candidatures RH</title>
+    <link rel="stylesheet" th:href="@{/css/offre.css}">
+    <link rel="stylesheet" th:href="@{/css/candidature.css}">
+</head>
+
+<body>
+<div layout:fragment="content">
+
+    <div class="page-header">
+        <h2>Candidatures recues</h2>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Action enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <section class="card gestion-section">
+        <h3>Filtres</h3>
+        <form th:action="@{/candidatures/rh}" method="get">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="offreId">Offre</label>
+                    <select id="offreId" name="offreId" class="form-select">
+                        <option value="">Toutes les offres</option>
+                        <option th:each="offre : ${offres}" th:value="${offre.idOffre}"
+                                th:text="${offre.titre}"
+                                th:selected="${offreId != null and offreId == offre.idOffre}">Offre</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="statut">Statut</label>
+                    <select id="statut" name="statut" class="form-select">
+                        <option value="">Tous les statuts</option>
+                        <option th:each="s : ${statuts}" th:value="${s.libelle}"
+                                th:text="${s.libelle}"
+                                th:selected="${statut != null and statut == s.libelle}">Statut</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Filtrer</button>
+                <a th:href="@{/candidatures/rh}" class="btn btn-outline">Reinitialiser</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="card gestion-section">
+        <h3>Resultats</h3>
+
+        <p class="empty-state" th:if="${#lists.isEmpty(candidatures)}">
+            Aucune candidature ne correspond aux filtres.
+        </p>
+
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(candidatures)}">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Candidat</th>
+                    <th>Offre</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                    <th>CV</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="candidature : ${candidatures}">
+                    <td>
+                        <span th:text="${candidature.utilisateur.username}">candidat</span>
+                        <span th:if="${candidature.utilisateur.employe != null}"
+                              th:text="${' (' + candidature.utilisateur.employe.nomEmp + ')'}"></span>
+                    </td>
+                    <td th:text="${candidature.offre.titre}">Offre</td>
+                    <td th:text="${#temporals.format(candidature.dateCandidature, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                    <td>
+                        <span class="statut" th:text="${candidature.statut.libelle}">RECUE</span>
+                    </td>
+                    <td th:text="${candidature.cvNum != null ? candidature.cvNum : '-'}">CV</td>
+                    <td class="actions">
+                        <a th:href="@{/candidatures/rh/{id}(id=${candidature.idCandidature})}"
+                           class="btn btn-primary btn-small">Ouvrir</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+</body>
+
+</html>

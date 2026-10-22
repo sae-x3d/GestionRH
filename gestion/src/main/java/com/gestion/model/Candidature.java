@@ -5,7 +5,9 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "candidature")
@@ -34,6 +36,9 @@ public class Candidature {
     @Column(name = "date_candidature", nullable = false)
     private LocalDateTime dateCandidature;
 
+    @Column(name = "date_decision")
+    private LocalDateTime dateDecision;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_candidature_status", nullable = false)
     private CandidatureStatus statut;
@@ -43,4 +48,16 @@ public class Candidature {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<Info> parcours = new ArrayList<>();
+
+    @OneToMany(mappedBy = "candidature", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Set<Reponse> reponses = new HashSet<>();
+
+    @OneToMany(mappedBy = "candidature", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Set<Entretien> entretiens = new HashSet<>();
 }

@@ -5,6 +5,7 @@ import com.gestion.exception.RessourceIntrouvableException;
 import com.gestion.model.OffreEmploi;
 import com.gestion.model.Utilisateur;
 import com.gestion.service.OffreEmploiService;
+import com.gestion.service.QuestionService;
 import com.gestion.service.UtilisateurDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class OffreEmploiController {
 
     private final OffreEmploiService offreEmploiService;
+    private final QuestionService questionService;
 
     @GetMapping
     public String filActualite(Model model, Authentication authentication) {
@@ -129,6 +131,41 @@ public class OffreEmploiController {
             preparerFormulaire(model, authentication);
             return "offre/formulaire";
         }
+    }
+
+    @GetMapping("/{id}/questions")
+    public String questionnaire(@PathVariable Integer id, Model model, Authentication authentication) {
+        model.addAttribute("pageTitle", "Questionnaire de l'offre");
+        model.addAttribute("offre", offreEmploiService.trouverParId(id));
+        model.addAttribute("questions", questionService.listerParOffre(id));
+        model.addAttribute("demandeur", utilisateurCourant(authentication));
+        return "offre/questions";
+    }
+
+    @PostMapping("/{id}/questions")
+    public String ajouterQuestion(@PathVariable Integer id,
+                                  @RequestParam("libelle") String libelle,
+                                  @RequestParam(name = "ordre", required = false) Integer ordre,
+                                  RedirectAttributes redirectAttributes) {
+        try {
+            questionService.ajouter(id, libelle, ordre);
+            redirectAttributes.addFlashAttribute("succes", "Question ajoutee au questionnaire.");
+        } catch (RessourceIntrouvableException | IllegalStateException ex) {
+            redirectAttributes.addFlashAttribute("erreur", ex.getMessage());
+        }
+        return "redirect:/offres/" + id + "/questions";
+    }
+
+    @PostMapping("/{id}/questions/{idQuestion}/supprimer")
+    public String supprimerQuestion(@PathVariable Integer id, @PathVariable Integer idQuestion,
+                                    RedirectAttributes redirectAttributes) {
+        try {
+            questionService.supprimer(idQuestion);
+            redirectAttributes.addFlashAttribute("succes", "Question supprimee.");
+        } catch (RessourceIntrouvableException ex) {
+            redirectAttributes.addFlashAttribute("erreur", ex.getMessage());
+        }
+        return "redirect:/offres/" + id + "/questions";
     }
 
     @PostMapping("/{id}/publier")

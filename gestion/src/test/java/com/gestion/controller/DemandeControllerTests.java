@@ -76,7 +76,7 @@ class DemandeControllerTests {
                 .andExpect(content().string(containsString("Developpeur Backend")))
                 .andExpect(content().string(containsString("Informatique")))
                 .andExpect(content().string(containsString("Creation de poste")))
-                .andExpect(content().string(containsString("En attente")))
+                .andExpect(content().string(containsString("EN_ATTENTE_VALIDATION_RH")))
                 .andExpect(content().string(containsString("Ressources Humaines")))
                 .andExpect(content().string(containsString("name=\"_csrf\"")));
     }
@@ -120,7 +120,7 @@ class DemandeControllerTests {
                 .max(Comparator.comparing(Demande::getIdDemande))
                 .orElseThrow();
         assertThat(demande.getDemandeur().getIdUser()).isEqualTo(3);
-        assertThat(demande.getDemandeStatus().getLibelleStatus()).isEqualTo("En attente");
+        assertThat(demande.getDemandeStatus().getLibelleStatus()).isEqualTo("EN_ATTENTE_VALIDATION_RH");
         assertThat(demande.getPoste().getIdPoste()).isEqualTo(1);
         assertThat(demande.getDepartement().getIdDept()).isEqualTo(1);
         assertThat(demande.getMotif().getIdMotif()).isEqualTo(3);
@@ -157,7 +157,7 @@ class DemandeControllerTests {
         mockMvc.perform(get("/demandes/nouvelle").session(session))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("manager.it")))
-                .andExpect(content().string(containsString("En attente")));
+                .andExpect(content().string(containsString("EN_ATTENTE_VALIDATION_RH")));
     }
 
     private UserDetails utilisateur(String username) {

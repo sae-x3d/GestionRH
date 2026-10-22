@@ -6,7 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CreateCandidatureDTO {
 
@@ -17,6 +19,8 @@ public class CreateCandidatureDTO {
     @Valid
     @NotEmpty(message = "Au moins un parcours est obligatoire")
     private List<LigneParcoursDTO> parcours = new ArrayList<>();
+
+    private Map<Integer, String> reponses = new HashMap<>();
 
     public CreateCandidatureDTO() {
     }
@@ -35,5 +39,13 @@ public class CreateCandidatureDTO {
 
     public void setParcours(List<LigneParcoursDTO> parcours) {
         this.parcours = parcours;
+    }
+
+    public Map<Integer, String> getReponses() {
+        return reponses;
+    }
+
+    public void setReponses(Map<Integer, String> reponses) {
+        this.reponses = reponses;
     }
 }

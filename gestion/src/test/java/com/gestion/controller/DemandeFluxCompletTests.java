@@ -72,7 +72,7 @@ class DemandeFluxCompletTests {
                 .contains("Developpeur Backend")
                 .contains("Informatique")
                 .contains("Creation de poste")
-                .contains("En attente");
+                .contains("EN_ATTENTE_VALIDATION_RH");
 
         // 4. Envoi du formulaire
         long nombreDemandesAvant = demandeRepository.count();
@@ -101,7 +101,7 @@ class DemandeFluxCompletTests {
                 .max(Comparator.comparing(Demande::getIdDemande))
                 .orElseThrow();
         assertThat(demande.getDemandeur().getIdUser()).isEqualTo(3);
-        assertThat(demande.getDemandeStatus().getLibelleStatus()).isEqualTo("En attente");
+        assertThat(demande.getDemandeStatus().getLibelleStatus()).isEqualTo("EN_ATTENTE_VALIDATION_RH");
         assertThat(demande.getBudget()).isEqualTo(3500000);
 
         demandeRepository.delete(demande);
