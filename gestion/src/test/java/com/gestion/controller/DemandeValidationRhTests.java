@@ -57,8 +57,8 @@ class DemandeValidationRhTests {
         mockMvc.perform(get("/demandes/validation-rh").with(user(utilisateur("rh.sophie"))))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("demandes", hasSize(3)))
-                .andExpect(content().string(containsString("Développeur Backend")))
-                .andExpect(content().string(containsString("Développeur Frontend")))
+                .andExpect(content().string(containsString("Developpeur Backend")))
+                .andExpect(content().string(containsString("Developpeur Frontend")))
                 .andExpect(content().string(containsString("Comptable")))
                 .andExpect(content().string(not(containsString("Assistant RH"))));
     }

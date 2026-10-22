@@ -17,6 +17,8 @@ public interface DemandeRepository extends JpaRepository<Demande, Integer> {
 
     List<Demande> findByDemandeurIdUserOrderByDateCreationDesc(Integer idUser);
 
+    List<Demande> findByDemandeStatusIdDemandeStatusOrderByDateCreationAsc(Integer idDemandeStatus);
+
     List<Demande> findByDemandeStatusLibelleStatusOrderByDateCreationAsc(String libelleStatus);
 
     @Query("""

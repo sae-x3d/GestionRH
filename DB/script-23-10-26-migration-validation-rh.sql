@@ -24,7 +24,10 @@ UPDATE demande
 SET id_demande_status = 2
 WHERE id_demande_status = 5;
 
-DELETE FROM demande_status
-WHERE id_demande_status = 5;
+-- Le statut 5 est réutilisé pour la validation Direction.
+INSERT INTO demande_status (id_demande_status, libelle_status)
+VALUES (5, 'EN_ATTENTE_VALIDATION_DIRECTION')
+ON CONFLICT (id_demande_status)
+DO UPDATE SET libelle_status = EXCLUDED.libelle_status;
 
 COMMIT;

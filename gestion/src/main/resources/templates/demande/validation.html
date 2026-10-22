@@ -49,11 +49,25 @@
                 <td th:text="${demande.dateSouhaite != null ? #temporals.format(demande.dateSouhaite, 'dd/MM/yyyy') : '-'}">-</td>
                 <td th:text="${demande.dateCreation != null ? #temporals.format(demande.dateCreation, 'dd/MM/yyyy') : '-'}">-</td>
                 <td class="actions">
-                    <form th:action="@{/demandes/{id}/validation/{etape}/accepter(id=${demande.idDemande}, etape=${etape})}"
+                    <a th:href="@{/demandes/{id}(id=${demande.idDemande})}"
+                       class="btn btn-outline btn-small">Voir</a>
+                    <form th:if="${etape == 'rh'}"
+                          th:action="@{/demandes/{id}/validation-rh/accepter(id=${demande.idDemande})}"
                           method="post" class="inline-form">
                         <button type="submit" class="btn btn-primary btn-small">Accepter</button>
                     </form>
-                    <form th:action="@{/demandes/{id}/validation/{etape}/refuser(id=${demande.idDemande}, etape=${etape})}"
+                    <form th:if="${etape == 'rh'}"
+                          th:action="@{/demandes/{id}/validation-rh/refuser(id=${demande.idDemande})}"
+                          method="post" class="inline-form">
+                        <button type="submit" class="btn btn-outline btn-small">Refuser</button>
+                    </form>
+                    <form th:unless="${etape == 'rh'}"
+                          th:action="@{/demandes/{id}/validation/{etape}/accepter(id=${demande.idDemande}, etape=${etape})}"
+                          method="post" class="inline-form">
+                        <button type="submit" class="btn btn-primary btn-small">Accepter</button>
+                    </form>
+                    <form th:unless="${etape == 'rh'}"
+                          th:action="@{/demandes/{id}/validation/{etape}/refuser(id=${demande.idDemande}, etape=${etape})}"
                           method="post" class="inline-form">
                         <button type="submit" class="btn btn-outline btn-small">Refuser</button>
                     </form>

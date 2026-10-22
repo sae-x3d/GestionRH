@@ -25,7 +25,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class DemandeService {
 
-    public static final String STATUT_ATTENTE_RH = "EN_ATTENTE_VALIDATION_RH";
     public static final String STATUT_ATTENTE_BUDGET = "EN_ATTENTE_VALIDATION_BUDGET";
     public static final String STATUT_ATTENTE_DIRECTION = "EN_ATTENTE_VALIDATION_DIRECTION";
     public static final String STATUT_APPROUVE = "APPROUVE";
@@ -178,16 +177,6 @@ public class DemandeService {
         return utilisateur != null
                 && utilisateur.getRole() != null
                 && nomRole.equalsIgnoreCase(utilisateur.getRole().getNomRole());
-    }
-
-    @Transactional
-    public Demande validerRh(Integer idDemande) {
-        return transitionner(idDemande, STATUT_ATTENTE_RH, STATUT_ATTENTE_BUDGET);
-    }
-
-    @Transactional
-    public Demande refuserRh(Integer idDemande) {
-        return transitionner(idDemande, STATUT_ATTENTE_RH, STATUT_REFUSE);
     }
 
     @Transactional

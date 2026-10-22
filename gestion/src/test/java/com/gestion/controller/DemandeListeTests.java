@@ -34,7 +34,7 @@ class DemandeListeTests {
     void unAdministrateurVoitToutesLesDemandes() throws Exception {
         mockMvc.perform(get("/demandes").with(user(utilisateur("admin"))))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Développeur Backend")))
+                .andExpect(content().string(containsString("Developpeur Backend")))
                 .andExpect(content().string(containsString("Comptable")))
                 .andExpect(content().string(containsString("Responsable Marketing")))
                 .andExpect(content().string(containsString("Nouvelle demande")))
@@ -45,7 +45,7 @@ class DemandeListeTests {
     void unResponsableRhVoitToutesLesDemandes() throws Exception {
         mockMvc.perform(get("/demandes").with(user(utilisateur("rh.sophie"))))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Développeur Backend")))
+                .andExpect(content().string(containsString("Developpeur Backend")))
                 .andExpect(content().string(containsString("Comptable")))
                 .andExpect(content().string(containsString("Responsable Marketing")));
     }
@@ -54,7 +54,7 @@ class DemandeListeTests {
     void unManagerVoitUniquementLesDemandesDeSonDepartement() throws Exception {
         mockMvc.perform(get("/demandes").with(user(utilisateur("manager.it"))))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Développeur Backend")))
+                .andExpect(content().string(containsString("Developpeur Backend")))
                 .andExpect(content().string(not(containsString("Comptable"))))
                 .andExpect(content().string(not(containsString("Responsable Marketing"))))
                 .andExpect(content().string(containsString("Nouvelle demande")));
@@ -65,7 +65,7 @@ class DemandeListeTests {
         mockMvc.perform(get("/demandes").with(user(utilisateur("manager.finance"))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Comptable")))
-                .andExpect(content().string(not(containsString("Développeur Backend"))))
+                .andExpect(content().string(not(containsString("Developpeur Backend"))))
                 .andExpect(content().string(not(containsString("Responsable Marketing"))));
     }
 
@@ -74,14 +74,14 @@ class DemandeListeTests {
         mockMvc.perform(get("/demandes").with(user(utilisateur("paul.rabe"))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Aucune demande.")))
-                .andExpect(content().string(not(containsString("Développeur Backend"))))
+                .andExpect(content().string(not(containsString("Developpeur Backend"))))
                 .andExpect(content().string(not(containsString("Nouvelle demande"))));
     }
 
     @Test
     void filtreParStatut() throws Exception {
         mockMvc.perform(get("/demandes")
-                        .param("statutId", "3")
+                        .param("statutId", "2")
                         .with(user(utilisateur("admin"))))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("statutId", is(2)))
@@ -100,7 +100,7 @@ class DemandeListeTests {
                 .andExpect(model().attribute("departementId", is(3)))
                 .andExpect(model().attribute("demandes", hasSize(2)))
                 .andExpect(content().string(containsString("Comptable")))
-                .andExpect(content().string(not(containsString("Développeur Backend"))));
+                .andExpect(content().string(not(containsString("Developpeur Backend"))));
     }
 
     @Test
@@ -111,8 +111,8 @@ class DemandeListeTests {
                         .with(user(utilisateur("admin"))))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("demandes", hasSize(2)))
-                .andExpect(content().string(containsString("Développeur Backend")))
-                .andExpect(content().string(containsString("Développeur Frontend")));
+                .andExpect(content().string(containsString("Developpeur Backend")))
+                .andExpect(content().string(containsString("Developpeur Frontend")));
     }
 
     @Test

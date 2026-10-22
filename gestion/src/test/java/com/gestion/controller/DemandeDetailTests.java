@@ -59,7 +59,7 @@ class DemandeDetailTests {
         mockMvc.perform(get("/demandes/1").with(user(utilisateur("manager.it"))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Demande n° 1")))
-                .andExpect(content().string(containsString("Développeur Backend")))
+                .andExpect(content().string(containsString("Developpeur Backend")))
                 .andExpect(content().string(containsString("manager.it")))
                 .andExpect(content().string(containsString("Création de poste")));
     }
@@ -89,7 +89,7 @@ class DemandeDetailTests {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Demande n° " + demande.getIdDemande())))
                 .andExpect(content().string(containsString("paul.rabe")))
-                .andExpect(content().string(containsString("Développeur Backend")));
+                .andExpect(content().string(containsString("Developpeur Backend")));
     }
 
     @Test

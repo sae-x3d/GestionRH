@@ -70,9 +70,9 @@ class DemandeFluxCompletTests {
         assertThat(formulaire.statusCode()).isEqualTo(200);
         assertThat(formulaire.body())
                 .contains("manager.it")
-                .contains("Développeur Backend")
+                .contains("Developpeur Backend")
                 .contains("Informatique")
-                .contains("Création de poste")
+                .contains("Creation de poste")
                 .contains("En attente validation RH");
 
         // 4. Envoi du formulaire

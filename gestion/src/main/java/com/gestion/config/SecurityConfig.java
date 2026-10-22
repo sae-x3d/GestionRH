@@ -33,8 +33,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/demandes")
                         .hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMINISTRATEUR")
 
-                        .requestMatchers("/demandes/validation/rh", "/demandes/*/validation/rh/**")
-                        .hasAnyAuthority("ROLE_ADMINISTRATEUR", "ROLE_RH")
+                        .requestMatchers("/demandes/validation-rh", "/demandes/*/validation-rh/**")
+                        .hasAuthority("ROLE_RH")
                         .requestMatchers("/demandes/validation/finance", "/demandes/*/validation/finance/**")
                         .authenticated()
                         .requestMatchers("/demandes/validation/direction", "/demandes/*/validation/direction/**")

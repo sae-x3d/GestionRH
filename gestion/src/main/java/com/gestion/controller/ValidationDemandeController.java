@@ -22,14 +22,6 @@ public class ValidationDemandeController {
 
     private final DemandeService demandeService;
 
-    @GetMapping("/rh")
-    public String attenteRh(Model model, Authentication authentication) {
-        verifierRh(authentication);
-        return afficherFile(model, "rh", "Validation RH",
-                "Demandes en attente de validation RH",
-                DemandeService.STATUT_ATTENTE_RH);
-    }
-
     @GetMapping("/finance")
     public String attenteFinance(Model model, Authentication authentication) {
         verifierFinance(authentication);
@@ -53,22 +45,6 @@ public class ValidationDemandeController {
         return afficherFile(model, "direction", "Validation Direction",
                 "Demandes en attente de validation de la direction",
                 DemandeService.STATUT_ATTENTE_DIRECTION);
-    }
-
-    @PostMapping("/{id}/rh/accepter")
-    public String accepterRh(@PathVariable Integer id, Authentication authentication,
-                             RedirectAttributes redirectAttributes) {
-        verifierRh(authentication);
-        return executer(id, "rh", "Demande validee par la RH, transmise a la finance.",
-                () -> demandeService.validerRh(id), redirectAttributes);
-    }
-
-    @PostMapping("/{id}/rh/refuser")
-    public String refuserRh(@PathVariable Integer id, Authentication authentication,
-                            RedirectAttributes redirectAttributes) {
-        verifierRh(authentication);
-        return executer(id, "rh", "Demande refusee par la RH.",
-                () -> demandeService.refuserRh(id), redirectAttributes);
     }
 
     @PostMapping("/{id}/finance/accepter")
@@ -142,16 +118,6 @@ public class ValidationDemandeController {
             }
         }
         throw new AccessDeniedException("Seuls les membres du departement Finance peuvent valider un budget.");
-    }
-
-    private void verifierRh(Authentication authentication) {
-        if (authentication == null) {
-            throw new AccessDeniedException("Utilisateur non authentifie.");
-        }
-        if (isRh(authentication) || isAdmin(authentication)) {
-            return;
-        }
-        throw new AccessDeniedException("Acces reserve a la RH.");
     }
 
     private void verifierDirection(Authentication authentication) {

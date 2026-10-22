@@ -77,9 +77,9 @@ class DemandeControllerTests {
         mockMvc.perform(get("/demandes/nouvelle").with(user(utilisateur("manager.it"))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("manager.it")))
-                .andExpect(content().string(containsString("Développeur Backend")))
+                .andExpect(content().string(containsString("Developpeur Backend")))
                 .andExpect(content().string(containsString("Informatique")))
-                .andExpect(content().string(containsString("Création de poste")))
+                .andExpect(content().string(containsString("Creation de poste")))
                 .andExpect(content().string(containsString("En attente validation RH")))
                 .andExpect(content().string(containsString("Ressources Humaines")))
                 .andExpect(content().string(containsString("name=\"_csrf\"")));

@@ -99,7 +99,9 @@ public class DemandeController {
     public String validationRh(Model model) {
         model.addAttribute("demandes", demandeService.listerEnAttenteValidationRh());
         model.addAttribute("pageTitle", "Validation RH");
-        return "demande/validation-rh";
+        model.addAttribute("titre", "Demandes en attente de validation RH");
+        model.addAttribute("etape", "rh");
+        return "demande/validation";
     }
 
     @PreAuthorize("hasAuthority('ROLE_RH')")
