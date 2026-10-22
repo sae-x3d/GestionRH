@@ -11,7 +11,7 @@
 
         <div class="page-header">
             <h2>Nouvelle demande de recrutement</h2>
-            <a th:href="@{/demandes/nouvelle}" class="btn btn-outline">Annuler</a>
+            <a th:href="@{/demandes}" class="btn btn-outline">Annuler</a>
         </div>
 
         <div class="alert-success" th:if="${succes}" th:text="${succes}">
@@ -96,7 +96,7 @@
 
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Envoyer la demande</button>
-                <a class="btn btn-outline" th:href="@{/demandes/nouvelle}">Annuler</a>
+                <a class="btn btn-outline" th:href="@{/demandes}">Annuler</a>
             </div>
         </form>
 

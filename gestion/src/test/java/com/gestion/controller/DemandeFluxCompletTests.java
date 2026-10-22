@@ -60,7 +60,7 @@ class DemandeFluxCompletTests {
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         assertThat(connexion.statusCode()).isEqualTo(302);
         assertThat(connexion.headers().firstValue("Location").orElseThrow())
-                .endsWith("/demandes/nouvelle");
+                .endsWith("/demandes");
 
         // 3. Formulaire alimenté par la base
         HttpResponse<String> formulaire = client.send(
@@ -87,13 +87,17 @@ class DemandeFluxCompletTests {
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         assertThat(envoi.statusCode()).isEqualTo(302);
         assertThat(envoi.headers().firstValue("Location").orElseThrow())
-                .endsWith("/demandes/nouvelle");
+                .endsWith("/demandes");
 
-        // 5. Confirmation affichée
+        // 5. Confirmation affichée sur la liste
         HttpResponse<String> confirmation = client.send(
-                HttpRequest.newBuilder(URI.create(base + "/demandes/nouvelle")).GET().build(),
+                HttpRequest.newBuilder(URI.create(base + "/demandes")).GET().build(),
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-        assertThat(confirmation.body()).contains("enregistrée avec le statut");
+        assertThat(confirmation.statusCode()).isEqualTo(200);
+        assertThat(confirmation.body())
+                .contains("enregistrée avec le statut")
+                .contains("Développeur Backend")
+                .contains("manager.it");
 
         // 6. Trace en base
         assertThat(demandeRepository.count()).isEqualTo(nombreDemandesAvant + 1);

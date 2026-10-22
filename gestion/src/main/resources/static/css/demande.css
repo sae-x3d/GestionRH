@@ -1,3 +1,42 @@
 .content .card-form {
     max-width: 780px;
 }
+
+.status-badge {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-pending {
+    background: #fff4d6;
+    color: #8a6100;
+}
+
+.status-approved {
+    background: #e8f5ee;
+    color: var(--success-color);
+}
+
+.status-refused {
+    background: #fdf3f2;
+    color: var(--error-color);
+}
+
+.status-progress {
+    background: #e6f0fb;
+    color: var(--primary-color);
+}
+
+.status-done {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.status-neutral {
+    background: #eceff3;
+    color: var(--muted-color);
+}

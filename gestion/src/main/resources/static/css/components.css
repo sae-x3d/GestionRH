@@ -124,3 +124,38 @@
     border-color: #c3d7ea;
     color: var(--primary-color);
 }
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+}
+
+.data-table th,
+.data-table td {
+    padding: 0.6rem 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.data-table thead th {
+    color: var(--muted-color);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.data-table tbody tr:hover {
+    background: var(--primary-light);
+}
+
+.empty-state {
+    color: var(--muted-color);
+    padding: 1rem 0;
+    text-align: center;
+}

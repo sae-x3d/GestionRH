@@ -1,16 +1,20 @@
-<div class="sidebar" th:fragment="sidebar">
+<div class="sidebar" th:fragment="sidebar"
+     xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     <div class="logo">
         <h2>GESTIONRH</h2>
     </div>
 
     <nav>
-        <a th:href="@{/demandes/nouvelle}">Nouvelle demande</a>
+        <a th:href="@{/demandes}">Demandes</a>
+        <a sec:authorize="hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMINISTRATEUR')"
+           th:href="@{/demandes/nouvelle}">Nouvelle demande</a>
     </nav>
 
-    <div class="info-user" th:if="${demandeur != null}">
+    <div class="info-user" th:if="${#authentication != null and #authentication.name != 'anonymousUser'}">
         <div class="user-info">
-            <span th:text="${demandeur.username}">utilisateur</span>
-            <span class="badge" th:if="${demandeur.role != null}" th:text="${demandeur.role.nomRole}">rôle</span>
+            <span th:text="${#authentication.name}">utilisateur</span>
+            <span class="badge" th:if="${#authentication.principal.utilisateur.role != null}"
+                  th:text="${#authentication.principal.utilisateur.role.nomRole}">rôle</span>
         </div>
         <form th:action="@{/logout}" method="post" class="logout-form">
             <button type="submit">Se déconnecter</button>

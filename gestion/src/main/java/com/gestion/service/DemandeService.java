@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -52,6 +53,60 @@ public class DemandeService {
                 .build();
 
         return demandeRepository.save(demande);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Demande> listerPour(Utilisateur utilisateur) {
+        if (estAdminOuRh(utilisateur)) {
+            return demandeRepository.findAllByOrderByDateCreationDesc();
+        }
+        if (estManager(utilisateur)) {
+            Integer idDepartement = idDepartementUtilisateur(utilisateur);
+            if (idDepartement != null) {
+                return demandeRepository.findByDepartementIdDeptOrderByDateCreationDesc(idDepartement);
+            }
+        }
+        return demandeRepository.findByDemandeurIdUserOrderByDateCreationDesc(utilisateur.getIdUser());
+    }
+
+    public boolean peutCreer(Utilisateur utilisateur) {
+        return estManager(utilisateur) || estAdmin(utilisateur);
+    }
+
+    public boolean departementAutorise(Integer idDepartement, Utilisateur utilisateur) {
+        if (estAdmin(utilisateur)) {
+            return true;
+        }
+        if (!estManager(utilisateur)) {
+            return false;
+        }
+        Integer idDepartementManager = idDepartementUtilisateur(utilisateur);
+        return idDepartementManager != null && idDepartementManager.equals(idDepartement);
+    }
+
+    public Integer idDepartementUtilisateur(Utilisateur utilisateur) {
+        if (utilisateur == null || utilisateur.getEmploye() == null || utilisateur.getEmploye().getDepartement() == null) {
+            return null;
+        }
+        return utilisateur.getEmploye().getDepartement().getIdDept();
+    }
+
+    private boolean estAdminOuRh(Utilisateur utilisateur) {
+        return estAdmin(utilisateur) || estRole(utilisateur, "RH");
+    }
+
+    private boolean estAdmin(Utilisateur utilisateur) {
+        return estRole(utilisateur, "Administrateur");
+    }
+
+    private boolean estManager(Utilisateur utilisateur) {
+        return estRole(utilisateur, "Manager");
+    }
+
+    private boolean estRole(Utilisateur utilisateur, String nomRole) {
+        return utilisateur != null
+                && utilisateur.getRole() != null
+                && nomRole.equalsIgnoreCase(utilisateur.getRole().getNomRole());
     }
 
     private DemandeStatus trouverStatutInitial() {

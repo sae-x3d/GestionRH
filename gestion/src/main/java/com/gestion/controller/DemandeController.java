@@ -35,9 +35,18 @@ public class DemandeController {
     private final EmployeService employeService;
     private final DemandeStatusService demandeStatusService;
 
+    @GetMapping
+    public String lister(Model model, Authentication authentication) {
+        model.addAttribute("demandes", demandeService.listerPour(utilisateurCourant(authentication)));
+        model.addAttribute("pageTitle", "Liste des demandes");
+        return "demande/liste";
+    }
+
     @GetMapping("/nouvelle")
     public String formulaireCreation(Model model, Authentication authentication) {
-        model.addAttribute("demandeForm", new CreateDemandeDTO());
+        CreateDemandeDTO demandeForm = new CreateDemandeDTO();
+        demandeForm.setDepartementId(demandeService.idDepartementUtilisateur(utilisateurCourant(authentication)));
+        model.addAttribute("demandeForm", demandeForm);
         preparerFormulaire(model, authentication);
         return "demande/formulaire";
     }
@@ -48,6 +57,13 @@ public class DemandeController {
                         Authentication authentication,
                         Model model,
                         RedirectAttributes redirectAttributes) {
+        Utilisateur utilisateur = utilisateurCourant(authentication);
+        if (demandeForm.getDepartementId() != null
+                && !demandeService.departementAutorise(demandeForm.getDepartementId(), utilisateur)) {
+            bindingResult.rejectValue("departementId", "departement.nonAutorise",
+                    "Vous ne pouvez créer une demande que pour votre département.");
+        }
+
         if (bindingResult.hasErrors()) {
             preparerFormulaire(model, authentication);
             return "demande/formulaire";
@@ -55,7 +71,7 @@ public class DemandeController {
 
         Demande demande;
         try {
-            demande = demandeService.creer(demandeForm, utilisateurCourant(authentication));
+            demande = demandeService.creer(demandeForm, utilisateur);
         } catch (RessourceIntrouvableException ex) {
             model.addAttribute("erreur", ex.getMessage());
             preparerFormulaire(model, authentication);
@@ -66,7 +82,7 @@ public class DemandeController {
                 "Demande n° " + demande.getIdDemande() + " enregistrée avec le statut « "
                         + demandeStatusService.trouverStatutInitial().map(statut -> statut.getLibelleStatus()).orElse("")
                         + " ».");
-        return "redirect:/demandes/nouvelle";
+        return "redirect:/demandes";
     }
 
     private void preparerFormulaire(Model model, Authentication authentication) {
