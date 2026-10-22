@@ -65,6 +65,26 @@ public class DemandeService {
     public List<Demande> listerParStatut(String libelleStatut) {
         return demandeRepository.findByDemandeStatusLibelleStatusOrderByDateCreationAsc(libelleStatut);
     }
+
+    @Transactional(readOnly = true)
+    public List<Demande> listerPour(Utilisateur utilisateur) {
+        if (estAdminOuRh(utilisateur)) {
+            return demandeRepository.findAllByOrderByDateCreationDesc();
+        }
+        if (estManager(utilisateur)) {
+            Integer idDepartement = idDepartementUtilisateur(utilisateur);
+            if (idDepartement != null) {
+                return demandeRepository.findByDepartementIdDeptOrderByDateCreationDesc(idDepartement);
+            }
+        }
+        if (utilisateur != null) {
+            return demandeRepository.findByDemandeurIdUserOrderByDateCreationDesc(utilisateur.getIdUser());
+        }
+        return java.util.List.of();
+    }
+
+    public boolean peutCreer(Utilisateur utilisateur) {
+        return estManager(utilisateur) || estAdmin(utilisateur);
     }
 
     public boolean peutFiltrerParDepartement(Utilisateur utilisateur) {
@@ -123,7 +143,6 @@ public class DemandeService {
                 .orElseThrow(() -> new RessourceIntrouvableException(
                         "Statut initial introuvable : \"" + demandeStatusService.getLibelleStatutInitial() + "\""));
     }
-=======
     public List<Demande> listerParStatut(String libelleStatut) {
         return demandeRepository.findByDemandeStatusLibelleStatusOrderByDateCreationAsc(libelleStatut);
     }
@@ -178,7 +197,6 @@ public class DemandeService {
         demande.setDemandeStatus(cible);
         demande.setDateReponse(LocalDateTime.now());
         return demandeRepository.save(demande);
->>>>>>> origin/Joh
     }
 
     private DemandeStatus trouverStatutInitial() {

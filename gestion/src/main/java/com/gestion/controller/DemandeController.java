@@ -14,11 +14,8 @@ import com.gestion.service.PosteService;
 import com.gestion.service.UtilisateurDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-<<<<<<< HEAD
 import org.springframework.data.domain.Page;
-=======
 import org.springframework.security.access.AccessDeniedException;
->>>>>>> origin/Joh
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -106,21 +103,16 @@ public class DemandeController {
             model.addAttribute("pageTitle", "Demande n° " + demande.getIdDemande());
             return "demande/detail";
         } catch (RessourceIntrouvableException ex) {
-            redirectAttributes.addFlashAttribute("erreur", ex.getMessage());
-            return "redirect:/demandes";
-        }
+                    redirectAttributes.addFlashAttribute("succes",
+                "Demande n " + demande.getIdDemande() + " enregistree avec le statut \"" + demandeStatusService.trouverStatutInitial().map(statut -> statut.getLibelleStatus()).orElse("") + "\".");
+        return "redirect:/demandes/nouvelle";
+    }
     }
 
     @GetMapping("/nouvelle")
     public String formulaireCreation(Model model, Authentication authentication) {
-<<<<<<< HEAD
-        CreateDemandeDTO demandeForm = new CreateDemandeDTO();
-        demandeForm.setDepartementId(demandeService.idDepartementUtilisateur(utilisateurCourant(authentication)));
-        model.addAttribute("demandeForm", demandeForm);
-=======
         verifierCreationDemande(authentication);
         model.addAttribute("demandeForm", new CreateDemandeDTO());
->>>>>>> origin/Joh
         preparerFormulaire(model, authentication);
         return "demande/formulaire";
     }
@@ -131,17 +123,8 @@ public class DemandeController {
                         Authentication authentication,
                         Model model,
                         RedirectAttributes redirectAttributes) {
-<<<<<<< HEAD
-        Utilisateur utilisateur = utilisateurCourant(authentication);
-        if (demandeForm.getDepartementId() != null
-                && !demandeService.departementAutorise(demandeForm.getDepartementId(), utilisateur)) {
-            bindingResult.rejectValue("departementId", "departement.nonAutorise",
-                    "Vous ne pouvez créer une demande que pour votre département.");
-        }
-
-=======
         verifierCreationDemande(authentication);
->>>>>>> origin/Joh
+        Utilisateur utilisateur = utilisateurCourant(authentication);
         if (bindingResult.hasErrors()) {
             preparerFormulaire(model, authentication);
             return "demande/formulaire";
@@ -159,13 +142,8 @@ public class DemandeController {
         redirectAttributes.addFlashAttribute("succes",
                 "Demande n " + demande.getIdDemande() + " enregistree avec le statut \""
                         + demandeStatusService.trouverStatutInitial().map(statut -> statut.getLibelleStatus()).orElse("")
-<<<<<<< HEAD
-                        + " ».");
-        return "redirect:/demandes/" + demande.getIdDemande();
-=======
                         + "\".");
         return "redirect:/demandes/nouvelle";
->>>>>>> origin/Joh
     }
 
     private void preparerFormulaire(Model model, Authentication authentication) {
