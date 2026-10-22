@@ -9,9 +9,11 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
-
+import java.util.List;
 import java.net.URI;
 import java.util.Map;
+import org.springframework.http.MediaType;
+import com.gestion.dto.DemandeResponseDTO;
 
 @RestController
 @RequestMapping("/api/demandes")
@@ -21,6 +23,11 @@ public class DemandeApiController {
 
     public DemandeApiController(DemandeService demandeService) {
         this.demandeService = demandeService;
+    }
+
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<DemandeResponseDTO>> lister() {
+        return ResponseEntity.ok(demandeService.listerToutes());
     }
 
     @PostMapping
@@ -41,4 +48,6 @@ public class DemandeApiController {
                 "budget", demande.getBudget()
         ));
     }
+
+    
 }

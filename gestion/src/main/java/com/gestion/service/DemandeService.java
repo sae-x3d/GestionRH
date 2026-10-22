@@ -20,9 +20,11 @@ import com.gestion.repository.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+import java.util.Optional;
+import com.gestion.dto.DemandeResponseDTO;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -80,5 +82,23 @@ public class DemandeService {
         return ressource.orElseThrow(() -> new RessourceIntrouvableException("Référence introuvable : " + nom));
     }
 
+
+    @Transactional(readOnly = true)
+        public List<DemandeResponseDTO> listerToutes() {
+            return demandeRepository.findAllByOrderByDateCreationDesc()
+                    .stream()
+                    .map(d -> new DemandeResponseDTO(
+                            d.getIdDemande(),
+                            d.getPoste() != null ? d.getPoste().getIdPoste() : null,
+                            d.getDepartement() != null ? d.getDepartement().getIdDept() : null,
+                            d.getMotif() != null ? d.getMotif().getIdMotif() : null,
+                            d.getBudget(),
+                            d.getDateCreation(),
+                            d.getDateSouhaite(),
+                            d.getDemandeStatus() != null
+                                    ? d.getDemandeStatus().getLibelleStatus() : null
+                    ))
+                    .toList();
+        }
 
 }
