@@ -32,6 +32,11 @@ public class DemandeStatusService {
         return demandeStatusRepository.findByLibelleStatusIgnoreCase(libelleStatutInitial);
     }
 
+    @Transactional(readOnly = true)
+    public Optional<DemandeStatus> trouverParLibelle(String libelle) {
+        return demandeStatusRepository.findByLibelleStatusIgnoreCase(libelle);
+    }
+
     public String getLibelleStatutInitial() {
         return libelleStatutInitial;
     }

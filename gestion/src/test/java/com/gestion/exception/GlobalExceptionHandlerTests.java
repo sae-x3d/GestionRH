@@ -69,7 +69,7 @@ class GlobalExceptionHandlerTests {
     }
 
     @Test
-    void jsonValide_estAccepté() throws Exception {
+    void jsonValide_estAccepte() throws Exception {
         String json = """
                 {
                   "nomEmp": "Dupont",

@@ -1,0 +1,165 @@
+.offre-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.2rem;
+}
+
+.offre-card {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1.3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.offre-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.8rem;
+}
+
+.offre-card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--primary-color);
+}
+
+.offre-type {
+    background: var(--primary-light);
+    color: var(--primary-color);
+    border-radius: 999px;
+    padding: 0.15rem 0.7rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.offre-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.9rem;
+    margin: 0;
+    color: var(--muted-color);
+    font-size: 0.88rem;
+}
+
+.offre-excerpt {
+    margin: 0;
+    color: var(--text-color);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: pre-line;
+}
+
+.offre-card-footer {
+    margin-top: auto;
+    padding-top: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+}
+
+.offre-salaire {
+    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 0.92rem;
+}
+
+.offre-description p {
+    white-space: pre-line;
+    margin: 0;
+}
+
+.gestion-section + .gestion-section {
+    margin-top: 1.5rem;
+}
+
+.gestion-section h3 {
+    margin-top: 0;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+}
+
+.data-table th,
+.data-table td {
+    text-align: left;
+    padding: 0.6rem 0.7rem;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.data-table thead th {
+    background: var(--primary-light);
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.data-table tbody tr:hover {
+    background: #fafbfd;
+}
+
+.data-table .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+}
+
+.btn-small {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.85rem;
+}
+
+.inline-form {
+    display: inline;
+    margin: 0;
+}
+
+.statut {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 0.15rem 0.65rem;
+    font-size: 0.8rem;
+    background: #eef1f5;
+    color: var(--muted-color);
+}
+
+.statut-brouillon {
+    background: #fff4d6;
+    color: #8a6300;
+}
+
+.statut-publiee {
+    background: #e8f5ee;
+    color: var(--success-color);
+}
+
+.statut-cloturee {
+    background: #eef1f5;
+    color: var(--muted-color);
+}
+
+.help-text,
+.empty-state {
+    color: var(--muted-color);
+    font-size: 0.9rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0 1rem;
+}

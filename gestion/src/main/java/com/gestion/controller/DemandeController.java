@@ -14,7 +14,11 @@ import com.gestion.service.PosteService;
 import com.gestion.service.UtilisateurDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+<<<<<<< HEAD
 import org.springframework.data.domain.Page;
+=======
+import org.springframework.security.access.AccessDeniedException;
+>>>>>>> origin/Joh
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -109,9 +113,14 @@ public class DemandeController {
 
     @GetMapping("/nouvelle")
     public String formulaireCreation(Model model, Authentication authentication) {
+<<<<<<< HEAD
         CreateDemandeDTO demandeForm = new CreateDemandeDTO();
         demandeForm.setDepartementId(demandeService.idDepartementUtilisateur(utilisateurCourant(authentication)));
         model.addAttribute("demandeForm", demandeForm);
+=======
+        verifierCreationDemande(authentication);
+        model.addAttribute("demandeForm", new CreateDemandeDTO());
+>>>>>>> origin/Joh
         preparerFormulaire(model, authentication);
         return "demande/formulaire";
     }
@@ -122,6 +131,7 @@ public class DemandeController {
                         Authentication authentication,
                         Model model,
                         RedirectAttributes redirectAttributes) {
+<<<<<<< HEAD
         Utilisateur utilisateur = utilisateurCourant(authentication);
         if (demandeForm.getDepartementId() != null
                 && !demandeService.departementAutorise(demandeForm.getDepartementId(), utilisateur)) {
@@ -129,6 +139,9 @@ public class DemandeController {
                     "Vous ne pouvez créer une demande que pour votre département.");
         }
 
+=======
+        verifierCreationDemande(authentication);
+>>>>>>> origin/Joh
         if (bindingResult.hasErrors()) {
             preparerFormulaire(model, authentication);
             return "demande/formulaire";
@@ -144,10 +157,15 @@ public class DemandeController {
         }
 
         redirectAttributes.addFlashAttribute("succes",
-                "Demande n° " + demande.getIdDemande() + " enregistrée avec le statut « "
+                "Demande n " + demande.getIdDemande() + " enregistree avec le statut \""
                         + demandeStatusService.trouverStatutInitial().map(statut -> statut.getLibelleStatus()).orElse("")
+<<<<<<< HEAD
                         + " ».");
         return "redirect:/demandes/" + demande.getIdDemande();
+=======
+                        + "\".");
+        return "redirect:/demandes/nouvelle";
+>>>>>>> origin/Joh
     }
 
     private void preparerFormulaire(Model model, Authentication authentication) {
@@ -164,6 +182,20 @@ public class DemandeController {
         if (authentication != null && authentication.getPrincipal() instanceof UtilisateurDetails details) {
             return details.getUtilisateur();
         }
-        throw new IllegalStateException("Aucun utilisateur authentifié");
+        throw new IllegalStateException("Aucun utilisateur authentifie");
+    }
+
+    private void verifierCreationDemande(Authentication authentication) {
+        if (authentication == null) {
+            throw new AccessDeniedException("Utilisateur non authentifie.");
+        }
+        boolean autorise = authentication.getAuthorities().stream()
+                .anyMatch(authority -> {
+                    String a = authority.getAuthority();
+                    return "ROLE_ADMINISTRATEUR".equals(a) || "ROLE_MANAGER".equals(a);
+                });
+        if (!autorise) {
+            throw new AccessDeniedException("Seuls les managers et l'administration peuvent creer une demande de recrutement.");
+        }
     }
 }

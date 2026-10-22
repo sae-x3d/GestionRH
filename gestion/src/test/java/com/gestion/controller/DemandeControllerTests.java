@@ -76,10 +76,10 @@ class DemandeControllerTests {
         mockMvc.perform(get("/demandes/nouvelle").with(user(utilisateur("manager.it"))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("manager.it")))
-                .andExpect(content().string(containsString("Développeur Backend")))
+                .andExpect(content().string(containsString("Developpeur Backend")))
                 .andExpect(content().string(containsString("Informatique")))
-                .andExpect(content().string(containsString("Création de poste")))
-                .andExpect(content().string(containsString("En attente")))
+                .andExpect(content().string(containsString("Creation de poste")))
+                .andExpect(content().string(containsString("EN_ATTENTE_VALIDATION_RH")))
                 .andExpect(content().string(containsString("Ressources Humaines")))
                 .andExpect(content().string(containsString("name=\"_csrf\"")));
     }
@@ -97,7 +97,7 @@ class DemandeControllerTests {
                         .param("budget", "-1"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Le poste est obligatoire")))
-                .andExpect(content().string(containsString("Le budget ne peut pas être négatif")));
+                .andExpect(content().string(containsString("Le budget ne peut pas etre negatif")));
 
         assertThat(demandeRepository.count()).isEqualTo(nombreDemandesAvant);
     }
@@ -125,7 +125,7 @@ class DemandeControllerTests {
         assertThat(resultat.getResponse().getRedirectedUrl())
                 .isEqualTo("/demandes/" + demande.getIdDemande());
         assertThat(demande.getDemandeur().getIdUser()).isEqualTo(3);
-        assertThat(demande.getDemandeStatus().getLibelleStatus()).isEqualTo("En attente");
+        assertThat(demande.getDemandeStatus().getLibelleStatus()).isEqualTo("EN_ATTENTE_VALIDATION_RH");
         assertThat(demande.getPoste().getIdPoste()).isEqualTo(1);
         assertThat(demande.getDepartement().getIdDept()).isEqualTo(1);
         assertThat(demande.getMotif().getIdMotif()).isEqualTo(3);
@@ -144,7 +144,7 @@ class DemandeControllerTests {
                         .param("departementId", "1")
                         .param("motifId", "1"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Référence introuvable : poste")));
+                .andExpect(content().string(containsString("Reference introuvable : poste")));
 
         assertThat(demandeRepository.count()).isEqualTo(nombreDemandesAvant);
     }
@@ -238,7 +238,7 @@ class DemandeControllerTests {
         mockMvc.perform(get("/demandes/nouvelle").session(session))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("manager.it")))
-                .andExpect(content().string(containsString("En attente")));
+                .andExpect(content().string(containsString("EN_ATTENTE_VALIDATION_RH")));
     }
 
     private UserDetails utilisateur(String username) {
