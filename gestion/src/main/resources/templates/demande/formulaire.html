@@ -41,7 +41,7 @@
                 <select id="posteId" class="form-select" th:field="*{posteId}" th:errorclass="is-invalid">
                     <option value="">-- Sélectionnez un poste --</option>
                     <option th:each="poste : ${postes}" th:value="${poste.idPoste}"
-                            th:text="${poste.nomPoste + ' (' + (poste.salaireMin != null ? #numbers.formatInteger(poste.salaireMin, 1, 'COMMA') : '?') + ' - ' + (poste.salaireMax != null ? #numbers.formatInteger(poste.salaireMax, 1, 'COMMA') : '?') + ')'}">
+                            th:text="${poste.nomPoste }">
                         Poste
                     </option>
                 </select>
