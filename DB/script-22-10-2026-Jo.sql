@@ -163,6 +163,9 @@ WHERE NOT EXISTS (
 -- Recree les tables SIRH pour recueillir les donnees des postulants.
 -- Les tables sont supprimees puis recreees car aucune donnee reelle
 -- n'existe encore (les anciennes versions avaient une structure incomplete).
+DROP TABLE IF EXISTS reponse CASCADE;
+DROP TABLE IF EXISTS entretien CASCADE;
+DROP TABLE IF EXISTS question CASCADE;
 DROP TABLE IF EXISTS info CASCADE;
 DROP TABLE IF EXISTS candidature CASCADE;
 DROP TABLE IF EXISTS candidature_status CASCADE;
@@ -180,9 +183,13 @@ CREATE TABLE parcours (
 
 -- Niveau du parcours : diplomes (Bacc+1 a Bacc+7) ou durees
 -- (1 mois ... 12 mois, 1 an ... 50 ans).
+-- La categorie n'autorise les diplomes que pour le parcours "Etude".
 CREATE TABLE niveau (
     id_niveau SERIAL PRIMARY KEY,
-    libelle VARCHAR(50) NOT NULL UNIQUE
+    libelle VARCHAR(50) NOT NULL UNIQUE,
+    categorie VARCHAR(20) NOT NULL DEFAULT 'DIPLOME',
+    CONSTRAINT chk_niveau_categorie
+        CHECK (categorie IN ('DIPLOME', 'DUREE'))
 );
 
 -- Statut d'une candidature. Statut initial : RECUE.
@@ -198,6 +205,7 @@ CREATE TABLE candidature (
     id_offre INT NOT NULL REFERENCES offre_emploi(id_offre),
     cv_num VARCHAR(255),
     date_candidature TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date_decision TIMESTAMP,
     id_candidature_status INT NOT NULL REFERENCES candidature_status(id_candidature_status),
     CONSTRAINT uk_candidature_user_offre UNIQUE (id_user, id_offre)
 );
@@ -224,22 +232,63 @@ CREATE INDEX idx_info_candidature
 CREATE INDEX idx_info_parcours
     ON info(id_parcours);
 
+-- Questionnaire rattache a une offre d'emploi.
+CREATE TABLE question (
+    id_question SERIAL PRIMARY KEY,
+    id_offre INT NOT NULL REFERENCES offre_emploi(id_offre) ON DELETE CASCADE,
+    libelle VARCHAR(255) NOT NULL,
+    ordre INT NOT NULL DEFAULT 1
+);
 
--- Niveaux diplomes : Bacc+1 a Bacc+7
-INSERT INTO niveau (libelle)
-SELECT 'Bacc+' || n
+CREATE INDEX idx_question_offre
+    ON question(id_offre);
+
+-- Reponses du candidat au questionnaire de l'offre visee.
+CREATE TABLE reponse (
+    id_reponse SERIAL PRIMARY KEY,
+    id_candidature INT NOT NULL REFERENCES candidature(id_candidature) ON DELETE CASCADE,
+    id_question INT NOT NULL REFERENCES question(id_question) ON DELETE CASCADE,
+    valeur TEXT NOT NULL,
+    CONSTRAINT uk_reponse_candidature_question
+        UNIQUE (id_candidature, id_question)
+);
+
+CREATE INDEX idx_reponse_candidature
+    ON reponse(id_candidature);
+
+-- Entretiens et tests planifies pour une candidature.
+CREATE TABLE entretien (
+    id_entretien SERIAL PRIMARY KEY,
+    id_candidature INT NOT NULL REFERENCES candidature(id_candidature) ON DELETE CASCADE,
+    type VARCHAR(20) NOT NULL,
+    date_heure TIMESTAMP NOT NULL,
+    lieu VARCHAR(255),
+    participants VARCHAR(255),
+    resultat TEXT,
+    evaluation VARCHAR(255),
+    CONSTRAINT chk_entretien_type
+        CHECK (type IN ('ENTRETIEN', 'TEST'))
+);
+
+CREATE INDEX idx_entretien_candidature
+    ON entretien(id_candidature);
+
+
+-- Niveaux diplomes : Bacc+1 a Bacc+7 (reserves au parcours "Etude")
+INSERT INTO niveau (libelle, categorie)
+SELECT 'Bacc+' || n, 'DIPLOME'
 FROM generate_series(1, 7) AS n
 ON CONFLICT (libelle) DO NOTHING;
 
 -- Niveaux duree : 1 mois a 12 mois
-INSERT INTO niveau (libelle)
-SELECT n || ' mois'
+INSERT INTO niveau (libelle, categorie)
+SELECT n || ' mois', 'DUREE'
 FROM generate_series(1, 12) AS n
 ON CONFLICT (libelle) DO NOTHING;
 
 -- Niveaux duree : 1 an a 50 ans
-INSERT INTO niveau (libelle)
-SELECT n || ' ans'
+INSERT INTO niveau (libelle, categorie)
+SELECT n || ' ans', 'DUREE'
 FROM generate_series(1, 50) AS n
 ON CONFLICT (libelle) DO NOTHING;
 
@@ -253,7 +302,7 @@ WHERE NOT EXISTS (
 
 INSERT INTO candidature_status (libelle)
 SELECT t.libelle
-FROM (VALUES ('RECUE'), ('EN_EXAMEN'), ('RETENUE'), ('REFUSEE')) AS t(libelle)
+FROM (VALUES ('RECUE'), ('EN_EXAMEN'), ('RETENUE'), ('REFUSEE'), ('ACCEPTEE')) AS t(libelle)
 WHERE NOT EXISTS (
     SELECT 1 FROM candidature_status c WHERE c.libelle = t.libelle
 );
@@ -279,10 +328,25 @@ INSERT INTO info (id_info, id_candidature, id_parcours, id_niveau, domaine, comm
 (1, 1, 1, 3, 'Informatique', 'Licence en informatique, mention bien.'),
 (2, 1, 4, 23, 'Informatique', '4 ans d''experience en developpement backend.');
 
+-- Questionnaire de demonstration pour l'offre Developpeur Backend (id_offre = 1).
+INSERT INTO question (id_question, id_offre, libelle, ordre) VALUES
+(1, 1, 'Combien d''annees d''experience avez-vous en developpement backend ?', 1),
+(2, 1, 'Quels langages et frameworks maitrisez-vous ?', 2);
+
+INSERT INTO reponse (id_candidature, id_question, valeur) VALUES
+(1, 1, '4 ans'),
+(1, 2, 'Java, Spring Boot, PostgreSQL');
+
+-- Entretien de demonstration planifie pour la candidature 1.
+INSERT INTO entretien (id_candidature, type, date_heure, lieu, participants) VALUES
+(1, 'ENTRETIEN', TIMESTAMP '2026-08-20 10:00:00', 'Salle RH', 'Sophie Rakotomalala, Jean Rakoto');
+
 SELECT setval(pg_get_serial_sequence('candidature', 'id_candidature'),
               (SELECT MAX(id_candidature) FROM candidature));
 SELECT setval(pg_get_serial_sequence('info', 'id_info'),
               (SELECT MAX(id_info) FROM info));
+SELECT setval(pg_get_serial_sequence('question', 'id_question'),
+              (SELECT MAX(id_question) FROM question));
 
 
 -- ==========================================
@@ -333,13 +397,20 @@ WHERE id_demande = 6;
 UPDATE motif SET libelle = 'Demission'
 WHERE id_motif = 5 AND libelle <> 'Demission';
 
-UPDATE demande_status SET libelle_status = 'Approuvee'
-WHERE id_demande_status = 2 AND libelle_status <> 'Approuvee';
+-- Workflow de validation des demandes (aligne sur le CSV du projet).
+UPDATE demande_status SET libelle_status = 'EN_ATTENTE_VALIDATION_RH'
+WHERE id_demande_status = 1 AND libelle_status <> 'EN_ATTENTE_VALIDATION_RH';
 
-UPDATE demande_status SET libelle_status = 'Refusee'
-WHERE id_demande_status = 3 AND libelle_status <> 'Refusee';
+UPDATE demande_status SET libelle_status = 'APPROUVE'
+WHERE id_demande_status = 2 AND libelle_status <> 'APPROUVE';
 
-UPDATE demande_status SET libelle_status = 'Terminee'
-WHERE id_demande_status = 5 AND libelle_status <> 'Terminee';
+UPDATE demande_status SET libelle_status = 'REFUSE'
+WHERE id_demande_status = 3 AND libelle_status <> 'REFUSE';
+
+UPDATE demande_status SET libelle_status = 'EN_ATTENTE_VALIDATION_BUDGET'
+WHERE id_demande_status = 4 AND libelle_status <> 'EN_ATTENTE_VALIDATION_BUDGET';
+
+UPDATE demande_status SET libelle_status = 'EN_ATTENTE_VALIDATION_DIRECTION'
+WHERE id_demande_status = 5 AND libelle_status <> 'EN_ATTENTE_VALIDATION_DIRECTION';
 
 COMMIT;
