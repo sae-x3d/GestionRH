@@ -1,0 +1,10 @@
+.header {
+    background: #fff;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 2rem;
+}
+
+.header .page-title h1 {
+    margin: 0;
+    font-size: 1.2rem;
+}

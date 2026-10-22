@@ -1,0 +1,19 @@
+<div class="sidebar" th:fragment="sidebar">
+    <div class="logo">
+        <h2>GESTIONRH</h2>
+    </div>
+
+    <nav>
+        <a th:href="@{/demandes/nouvelle}">Nouvelle demande</a>
+    </nav>
+
+    <div class="info-user" th:if="${demandeur != null}">
+        <div class="user-info">
+            <span th:text="${demandeur.username}">utilisateur</span>
+            <span class="badge" th:if="${demandeur.role != null}" th:text="${demandeur.role.nomRole}">rôle</span>
+        </div>
+        <form th:action="@{/logout}" method="post" class="logout-form">
+            <button type="submit">Se déconnecter</button>
+        </form>
+    </div>
+</div>

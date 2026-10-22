@@ -1,0 +1,126 @@
+.card {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+}
+
+.card-info {
+    background: var(--primary-light);
+    border-left: 4px solid var(--primary-color);
+    border-radius: 4px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.card-info p {
+    margin: 0.25rem 0;
+}
+
+.card-info em {
+    color: var(--muted-color);
+    font-size: 0.9rem;
+}
+
+.card-form {
+    display: block;
+}
+
+.form-group {
+    margin-bottom: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.form-group label {
+    font-weight: 600;
+}
+
+.required {
+    color: var(--error-color);
+}
+
+.form-control,
+.form-select {
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    background: #fff;
+    color: var(--text-color);
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: var(--error-color);
+    background: #fdf3f2;
+}
+
+.field-error {
+    color: var(--error-color);
+    font-size: 0.85rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 1.4rem;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.55rem 1.1rem;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    font-size: 0.95rem;
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.btn-outline {
+    background: #fff;
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.badge {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    padding: 0.1rem 0.7rem;
+    font-size: 0.8rem;
+}
+
+.alert-error,
+.alert-success,
+.alert-info {
+    padding: 0.7rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 1.2rem;
+    border: 1px solid transparent;
+}
+
+.alert-error {
+    background: #fdf3f2;
+    border-color: #f2c4c0;
+    color: var(--error-color);
+}
+
+.alert-success {
+    background: #e8f5ee;
+    border-color: #b7dfc8;
+    color: var(--success-color);
+}
+
+.alert-info {
+    background: var(--primary-light);
+    border-color: #c3d7ea;
+    color: var(--primary-color);
+}
