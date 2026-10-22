@@ -69,10 +69,10 @@ class DemandeFluxCompletTests {
         assertThat(formulaire.statusCode()).isEqualTo(200);
         assertThat(formulaire.body())
                 .contains("manager.it")
-                .contains("Developpeur Backend")
+                .contains("Développeur Backend")
                 .contains("Informatique")
-                .contains("Creation de poste")
-                .contains("EN_ATTENTE_VALIDATION_RH");
+                .contains("Création de poste")
+                .contains("En attente validation RH");
 
         // 4. Envoi du formulaire
         long nombreDemandesAvant = demandeRepository.count();
@@ -86,15 +86,18 @@ class DemandeFluxCompletTests {
                         .build(),
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         assertThat(envoi.statusCode()).isEqualTo(302);
-        assertThat(envoi.statusCode()).isEqualTo(302);
-        assertThat(envoi.headers().firstValue("Location").orElseThrow())
-                .endsWith("/demandes/nouvelle");
+        String urlDetail = envoi.headers().firstValue("Location").orElseThrow();
+        assertThat(urlDetail).containsPattern("/demandes/\\d+$");
 
-        // 5. Confirmation affichee
+        // 5. Confirmation affichee sur le detail
+        String urlConfirmation = urlDetail.startsWith("http") ? urlDetail : base + urlDetail;
         HttpResponse<String> confirmation = client.send(
-                HttpRequest.newBuilder(URI.create(base + "/demandes/nouvelle")).GET().build(),
+                HttpRequest.newBuilder(URI.create(urlConfirmation)).GET().build(),
                 HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-        assertThat(confirmation.body()).contains("enregistree avec le statut");
+        assertThat(confirmation.statusCode()).isEqualTo(200);
+        assertThat(confirmation.body())
+                .contains("enregistrée avec le statut")
+                .contains("En attente validation RH");
 
         // 6. Trace en base
         assertThat(demandeRepository.count()).isEqualTo(nombreDemandesAvant + 1);

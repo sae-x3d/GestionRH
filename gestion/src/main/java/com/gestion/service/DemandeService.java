@@ -4,13 +4,8 @@ import com.gestion.dto.CreateDemandeDTO;
 import com.gestion.exception.RessourceIntrouvableException;
 import com.gestion.model.Demande;
 import com.gestion.model.DemandeStatus;
-import com.gestion.model.Departement;
-import com.gestion.model.Employe;
-import com.gestion.model.Motif;
-import com.gestion.model.Poste;
 import com.gestion.model.Utilisateur;
 import com.gestion.repository.DemandeRepository;
-import com.gestion.repository.DemandeStatusRepository;
 import com.gestion.repository.DepartementRepository;
 import com.gestion.repository.EmployeRepository;
 import com.gestion.repository.MotifRepository;
@@ -46,13 +41,13 @@ public class DemandeService {
     public Demande creer(CreateDemandeDTO dto, Utilisateur demandeur) {
         Demande demande = Demande.builder()
                 .poste(trouverReference(posteRepository.findById(dto.getPosteId()), "poste"))
-                .departement(trouverReference(departementRepository.findById(dto.getDepartementId()), "departement"))
+                .departement(trouverReference(departementRepository.findById(dto.getDepartementId()), "département"))
                 .motif(trouverReference(motifRepository.findById(dto.getMotifId()), "motif"))
                 .demandeur(trouverReference(utilisateurRepository.findById(demandeur.getIdUser()), "demandeur"))
                 .demandeStatus(trouverStatutInitial())
                 .empRemplace(dto.getEmpRemplaceId() == null
                         ? null
-                        : trouverReference(employeRepository.findById(dto.getEmpRemplaceId()), "employe remplace"))
+                        : trouverReference(employeRepository.findById(dto.getEmpRemplaceId()), "employé remplacé"))
                 .budget(dto.getBudget())
                 .dateSouhaite(dto.getDateSouhaite())
                 .dateCreation(LocalDateTime.now())
@@ -80,7 +75,7 @@ public class DemandeService {
         if (utilisateur != null) {
             return demandeRepository.findByDemandeurIdUserOrderByDateCreationDesc(utilisateur.getIdUser());
         }
-        return java.util.List.of();
+        return List.of();
     }
 
     public boolean peutCreer(Utilisateur utilisateur) {
@@ -138,13 +133,18 @@ public class DemandeService {
         return estAdmin(utilisateur) || estRole(utilisateur, "RH");
     }
 
-    private DemandeStatus trouverStatutInitial() {
-        return demandeStatusService.trouverStatutInitial()
-                .orElseThrow(() -> new RessourceIntrouvableException(
-                        "Statut initial introuvable : \"" + demandeStatusService.getLibelleStatutInitial() + "\""));
+    private boolean estAdmin(Utilisateur utilisateur) {
+        return estRole(utilisateur, "Administrateur");
     }
-    public List<Demande> listerParStatut(String libelleStatut) {
-        return demandeRepository.findByDemandeStatusLibelleStatusOrderByDateCreationAsc(libelleStatut);
+
+    private boolean estManager(Utilisateur utilisateur) {
+        return estRole(utilisateur, "Manager");
+    }
+
+    private boolean estRole(Utilisateur utilisateur, String nomRole) {
+        return utilisateur != null
+                && utilisateur.getRole() != null
+                && nomRole.equalsIgnoreCase(utilisateur.getRole().getNomRole());
     }
 
     @Transactional
@@ -202,10 +202,10 @@ public class DemandeService {
     private DemandeStatus trouverStatutInitial() {
         return demandeStatusService.trouverStatutInitial()
                 .orElseThrow(() -> new RessourceIntrouvableException(
-                        "Statut initial introuvable : \"" + demandeStatusService.getLibelleStatutInitial() + "\""));
+                        "Statut initial introuvable : « " + demandeStatusService.getLibelleStatutInitial() + " »"));
     }
 
     private <T> T trouverReference(Optional<T> ressource, String nom) {
-        return ressource.orElseThrow(() -> new RessourceIntrouvableException("Reference introuvable : " + nom));
+        return ressource.orElseThrow(() -> new RessourceIntrouvableException("Référence introuvable : " + nom));
     }
 }

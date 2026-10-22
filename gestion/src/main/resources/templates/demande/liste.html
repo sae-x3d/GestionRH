@@ -33,7 +33,7 @@
                     <option value="">Tous les statuts</option>
                     <option th:each="statut : ${statuts}"
                             th:value="${statut.idDemandeStatus}"
-                            th:text="${statut.libelleStatus}"
+                            th:text="${@demandeStatusService.libelleAffichage(statut.libelleStatus)}"
                             th:selected="${statutId != null and statutId == statut.idDemandeStatus}">
                         Statut
                     </option>
@@ -87,7 +87,7 @@
                             <td>
                                 <span class="status-badge"
                                       th:classappend="${@demandeStatusService.classeStatut(demande.demandeStatus != null ? demande.demandeStatus.libelleStatus : null)}"
-                                      th:text="${demande.demandeStatus != null ? demande.demandeStatus.libelleStatus : '—'}">Statut</span>
+                                      th:text="${demande.demandeStatus != null ? @demandeStatusService.libelleAffichage(demande.demandeStatus.libelleStatus) : '—'}">Statut</span>
                             </td>
                             <td>
                                 <a th:href="@{/demandes/{id}(id=${demande.idDemande})}"

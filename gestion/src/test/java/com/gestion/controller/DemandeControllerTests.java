@@ -76,10 +76,10 @@ class DemandeControllerTests {
         mockMvc.perform(get("/demandes/nouvelle").with(user(utilisateur("manager.it"))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("manager.it")))
-                .andExpect(content().string(containsString("Developpeur Backend")))
+                .andExpect(content().string(containsString("Développeur Backend")))
                 .andExpect(content().string(containsString("Informatique")))
-                .andExpect(content().string(containsString("Creation de poste")))
-                .andExpect(content().string(containsString("EN_ATTENTE_VALIDATION_RH")))
+                .andExpect(content().string(containsString("Création de poste")))
+                .andExpect(content().string(containsString("En attente validation RH")))
                 .andExpect(content().string(containsString("Ressources Humaines")))
                 .andExpect(content().string(containsString("name=\"_csrf\"")));
     }
@@ -144,7 +144,7 @@ class DemandeControllerTests {
                         .param("departementId", "1")
                         .param("motifId", "1"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Reference introuvable : poste")));
+                .andExpect(content().string(containsString("Référence introuvable : poste")));
 
         assertThat(demandeRepository.count()).isEqualTo(nombreDemandesAvant);
     }
@@ -238,7 +238,7 @@ class DemandeControllerTests {
         mockMvc.perform(get("/demandes/nouvelle").session(session))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("manager.it")))
-                .andExpect(content().string(containsString("EN_ATTENTE_VALIDATION_RH")));
+                .andExpect(content().string(containsString("En attente validation RH")));
     }
 
     private UserDetails utilisateur(String username) {

@@ -9,6 +9,14 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @ControllerAdvice
 public class GlobalModelAttributes {
 
+    @ModelAttribute("demandeur")
+    public Utilisateur demandeur(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof UtilisateurDetails details) {
+            return details.getUtilisateur();
+        }
+        return null;
+    }
+
     @ModelAttribute("estRh")
     public boolean estRh(Authentication authentication) {
         return aRole(authentication, "ROLE_RH");

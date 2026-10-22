@@ -103,16 +103,17 @@ public class DemandeController {
             model.addAttribute("pageTitle", "Demande n° " + demande.getIdDemande());
             return "demande/detail";
         } catch (RessourceIntrouvableException ex) {
-                    redirectAttributes.addFlashAttribute("succes",
-                "Demande n " + demande.getIdDemande() + " enregistree avec le statut \"" + demandeStatusService.trouverStatutInitial().map(statut -> statut.getLibelleStatus()).orElse("") + "\".");
-        return "redirect:/demandes/nouvelle";
-    }
+            redirectAttributes.addFlashAttribute("erreur", ex.getMessage());
+            return "redirect:/demandes";
+        }
     }
 
     @GetMapping("/nouvelle")
     public String formulaireCreation(Model model, Authentication authentication) {
         verifierCreationDemande(authentication);
-        model.addAttribute("demandeForm", new CreateDemandeDTO());
+        CreateDemandeDTO demandeForm = new CreateDemandeDTO();
+        demandeForm.setDepartementId(demandeService.idDepartementUtilisateur(utilisateurCourant(authentication)));
+        model.addAttribute("demandeForm", demandeForm);
         preparerFormulaire(model, authentication);
         return "demande/formulaire";
     }
@@ -125,6 +126,12 @@ public class DemandeController {
                         RedirectAttributes redirectAttributes) {
         verifierCreationDemande(authentication);
         Utilisateur utilisateur = utilisateurCourant(authentication);
+        if (demandeForm.getDepartementId() != null
+                && !demandeService.departementAutorise(demandeForm.getDepartementId(), utilisateur)) {
+            bindingResult.rejectValue("departementId", "departement.nonAutorise",
+                    "Vous ne pouvez créer une demande que pour votre département.");
+        }
+
         if (bindingResult.hasErrors()) {
             preparerFormulaire(model, authentication);
             return "demande/formulaire";
@@ -140,10 +147,12 @@ public class DemandeController {
         }
 
         redirectAttributes.addFlashAttribute("succes",
-                "Demande n " + demande.getIdDemande() + " enregistree avec le statut \""
-                        + demandeStatusService.trouverStatutInitial().map(statut -> statut.getLibelleStatus()).orElse("")
-                        + "\".");
-        return "redirect:/demandes/nouvelle";
+                "Demande n° " + demande.getIdDemande() + " enregistrée avec le statut « "
+                        + demandeStatusService.trouverStatutInitial()
+                                .map(statut -> demandeStatusService.libelleAffichage(statut.getLibelleStatus()))
+                                .orElse("")
+                        + " ».");
+        return "redirect:/demandes/" + demande.getIdDemande();
     }
 
     private void preparerFormulaire(Model model, Authentication authentication) {
