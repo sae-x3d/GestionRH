@@ -9,10 +9,12 @@ import com.gestion.service.DemandeStatusService;
 import com.gestion.service.DepartementService;
 import com.gestion.service.EmployeService;
 import com.gestion.service.MotifService;
+import com.gestion.service.PaginationUtils;
 import com.gestion.service.PosteService;
 import com.gestion.service.UtilisateurDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,7 +23,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/demandes")
@@ -36,8 +43,49 @@ public class DemandeController {
     private final DemandeStatusService demandeStatusService;
 
     @GetMapping
-    public String lister(Model model, Authentication authentication) {
-        model.addAttribute("demandes", demandeService.listerPour(utilisateurCourant(authentication)));
+    public String lister(@RequestParam(defaultValue = "0") int page,
+                         @RequestParam(defaultValue = "10") int size,
+                         @RequestParam(required = false) Integer statutId,
+                         @RequestParam(required = false) Integer departementId,
+                         Model model,
+                         Authentication authentication) {
+        Utilisateur utilisateur = utilisateurCourant(authentication);
+        List<Demande> demandes = demandeService.listerPour(utilisateur);
+
+        if (statutId != null) {
+            demandes = demandes.stream()
+                    .filter(demande -> demande.getDemandeStatus() != null
+                            && statutId.equals(demande.getDemandeStatus().getIdDemandeStatus()))
+                    .toList();
+        }
+        if (departementId != null) {
+            demandes = demandes.stream()
+                    .filter(demande -> demande.getDepartement() != null
+                            && departementId.equals(demande.getDepartement().getIdDept()))
+                    .toList();
+        }
+
+        Page<Demande> pageDemandes = PaginationUtils.paginerListe(demandes, page, size);
+
+        Map<String, String> filtres = new LinkedHashMap<>();
+        if (statutId != null) {
+            filtres.put("statutId", statutId.toString());
+        }
+        if (departementId != null) {
+            filtres.put("departementId", departementId.toString());
+        }
+
+        model.addAttribute("demandes", pageDemandes.getContent());
+        model.addAttribute("currentPage", pageDemandes.getNumber());
+        model.addAttribute("totalPages", pageDemandes.getTotalPages());
+        model.addAttribute("size", pageDemandes.getSize());
+        model.addAttribute("filtres", filtres);
+        model.addAttribute("statutId", statutId);
+        model.addAttribute("departementId", departementId);
+        model.addAttribute("statuts", demandeStatusService.listerTous());
+        model.addAttribute("departements", demandeService.peutFiltrerParDepartement(utilisateur)
+                ? departementService.listerTous()
+                : List.of());
         model.addAttribute("pageTitle", "Liste des demandes");
         return "demande/liste";
     }

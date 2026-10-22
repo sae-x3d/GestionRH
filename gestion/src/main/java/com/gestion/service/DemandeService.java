@@ -73,6 +73,10 @@ public class DemandeService {
         return estManager(utilisateur) || estAdmin(utilisateur);
     }
 
+    public boolean peutFiltrerParDepartement(Utilisateur utilisateur) {
+        return estAdminOuRh(utilisateur);
+    }
+
     public boolean departementAutorise(Integer idDepartement, Utilisateur utilisateur) {
         if (estAdmin(utilisateur)) {
             return true;
