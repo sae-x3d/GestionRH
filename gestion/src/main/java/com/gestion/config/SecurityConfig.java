@@ -13,6 +13,12 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    private final SuccesConnexionHandler succesConnexionHandler;
+
+    public SecurityConfig(SuccesConnexionHandler succesConnexionHandler) {
+        this.succesConnexionHandler = succesConnexionHandler;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -47,10 +53,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/candidatures")
                         .hasAnyAuthority("ROLE_UTILISATEUR", "ROLE_EMPLOYE", "ROLE_MANAGER")
 
+                        .requestMatchers(HttpMethod.GET, "/", "/offres", "/offres/*")
+                        .permitAll()
+
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/connexion")
-                        .defaultSuccessUrl("/demandes")
+                        .successHandler(succesConnexionHandler)
                         .permitAll())
                 .logout(logout -> logout
                         .logoutSuccessUrl("/connexion?deconnexion")
