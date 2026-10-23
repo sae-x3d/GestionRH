@@ -1,0 +1,12 @@
+<!DOCTYPE html><html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{fragments/layout}"><section layout:fragment="content" class="page-content">
+<h1>Émettre le contrat</h1><p>Les données du poste et le salaire proviennent de l'offre validée. Complétez les informations d'identité et les clauses nécessaires.</p>
+<div class="alert alert-danger" th:if="${erreur}" th:text="${erreur}"></div>
+<form th:action="@{/candidatures/rh/{id}/contrat(id=${candidature})}" th:object="${form}" method="post" class="form-grid">
+<label>Nom légal du salarié<input th:field="*{nomSalarie}" required maxlength="200"></label><label>Adresse du salarié<input th:field="*{adresseSalarie}" required maxlength="500"></label>
+<label>Employeur<input th:field="*{nomEmployeur}" required maxlength="200"></label><label>Adresse de l'employeur<input th:field="*{adresseEmployeur}" required maxlength="500"></label>
+<label>Type<select th:field="*{typeContrat}"><option value="CDI">CDI</option><option value="CDD">CDD</option></select></label><label>Catégorie professionnelle<input th:field="*{categorieProfessionnelle}" required></label>
+<label>Indice minimum de classification<input th:field="*{indiceClassification}" required></label><label>Durée du travail<input th:field="*{dureeTravail}" placeholder="Ex. 40 heures par semaine" required></label>
+<label>Lieu de travail<input th:field="*{lieuTravail}" required></label><label>Date d'effet<input type="date" th:field="*{dateEffet}" required></label>
+<label>Date de fin (obligatoire pour CDD)<input type="date" th:field="*{dateFin}"></label><label>Motif du CDD<input th:field="*{motifCdd}"></label>
+<p>Le salaire mensuel brut repris du budget de l'offre sera intégré au contrat.</p><button class="btn btn-primary" type="submit">Générer le contrat PDF</button></form>
+</section></html>

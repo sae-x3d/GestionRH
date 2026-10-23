@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Gestion des offres</title>
+    <link rel="stylesheet" th:href="@{/css/offre.css}">
+</head>
+
+<body>
+<div layout:fragment="content">
+
+    <div class="page-header">
+        <h2>Gestion des offres d'emploi</h2>
+        <a th:href="@{/offres/nouvelle}" class="btn btn-primary">Nouvelle offre</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Offre enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <section class="card gestion-section">
+        <h3>Offres existantes</h3>
+
+        <p class="empty-state" th:if="${#lists.isEmpty(offres)}">Aucune offre n'a encore ete creee.</p>
+
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(offres)}">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Titre</th>
+                    <th>Demande</th>
+                    <th>Statut</th>
+                    <th>Creee le</th>
+                    <th>Publication</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="offre : ${offres}">
+                    <td th:text="${offre.titre}">Titre</td>
+                    <td>
+                        <span th:text="${'#' + offre.demande.idDemande}">#1</span>
+                        <span th:if="${offre.demande.poste != null}" th:text="${' - ' + offre.demande.poste.nomPoste}"></span>
+                    </td>
+                    <td>
+                        <span class="statut" th:classappend="${'statut-' + #strings.toLowerCase(offre.statut.name())}"
+                              th:text="${offre.statut.libelle}">Brouillon</span>
+                    </td>
+                    <td th:text="${#temporals.format(offre.dateCreation, 'dd/MM/yyyy')}">01/01/2026</td>
+                    <td th:text="${offre.datePublication != null ? #temporals.format(offre.datePublication, 'dd/MM/yyyy') : '-'}">-</td>
+                    <td class="actions">
+                        <a th:href="@{/offres/{id}(id=${offre.idOffre})}" class="btn btn-outline btn-small">Voir</a>
+                        <a th:href="@{/offres/{id}/modifier(id=${offre.idOffre})}"
+                           class="btn btn-outline btn-small">Modifier</a>
+                        <a th:href="@{/offres/{id}/questions(id=${offre.idOffre})}"
+                           class="btn btn-outline btn-small">Questionnaire</a>
+                        <form th:if="${offre.statut.name() == 'BROUILLON'}"
+                              th:action="@{/offres/{id}/publier(id=${offre.idOffre})}" method="post" class="inline-form">
+                            <button type="submit" class="btn btn-primary btn-small">Publier</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card gestion-section">
+        <h3>Demandes validees sans offre</h3>
+        <p class="help-text">
+            Seules les demandes approuvees par la direction peuvent generer une offre d'emploi.
+        </p>
+
+        <p class="empty-state" th:if="${#lists.isEmpty(demandesEligibles)}">
+            Aucune demande validee n'est disponible pour une nouvelle offre.
+        </p>
+
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(demandesEligibles)}">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Demande</th>
+                    <th>Poste</th>
+                    <th>Departement</th>
+                    <th>Budget</th>
+                    <th>Date souhaitee</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="demande : ${demandesEligibles}">
+                    <td th:text="${'#' + demande.idDemande}">#1</td>
+                    <td th:text="${demande.poste != null ? demande.poste.nomPoste : '-'}">Poste</td>
+                    <td th:text="${demande.departement != null ? demande.departement.nomDept : '-'}">Departement</td>
+                    <td th:text="${demande.budget != null ? #numbers.formatInteger(demande.budget, 1, 'POINT') + ' Ar' : '-'}">-</td>
+                    <td th:text="${demande.dateSouhaite != null ? #temporals.format(demande.dateSouhaite, 'dd/MM/yyyy') : '-'}">-</td>
+                    <td>
+                        <a th:href="@{/offres/nouvelle(demandeId=${demande.idDemande})}"
+                           class="btn btn-primary btn-small">Creer l'offre</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+</body>
+
+</html>

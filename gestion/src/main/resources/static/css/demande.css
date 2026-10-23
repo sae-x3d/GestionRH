@@ -1,0 +1,111 @@
+.content .card-form {
+    max-width: 780px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-pending {
+    background: #fff4d6;
+    color: #8a6100;
+}
+
+.status-approved {
+    background: #e8f5ee;
+    color: var(--success-color);
+}
+
+.status-refused {
+    background: #fdf3f2;
+    color: var(--error-color);
+}
+
+.status-progress {
+    background: #e6f0fb;
+    color: var(--primary-color);
+}
+
+.status-done {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.status-neutral {
+    background: #eceff3;
+    color: var(--muted-color);
+}
+
+.detail-heading {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.action-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.action-group form {
+    margin: 0;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.2rem;
+}
+
+.detail-card {
+    padding: 1.2rem 1.4rem;
+}
+
+.detail-card h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.05rem;
+}
+
+.detail-list {
+    display: grid;
+    gap: 0.7rem;
+    margin: 0;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.detail-item:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.detail-item dt {
+    color: var(--muted-color);
+    font-weight: 500;
+}
+
+.detail-item dd {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+}
+
+.detail-empty {
+    color: var(--muted-color);
+    margin: 0;
+}

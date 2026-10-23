@@ -66,6 +66,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 
+    @ExceptionHandler(AccesRefuseException.class)
+    public ResponseEntity<ApiError> handleAccesRefuse(AccesRefuseException ex) {
+        ApiError body = new ApiError(HttpStatus.FORBIDDEN.value(), ex.getMessage(), Map.of());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
+    @ExceptionHandler(DecisionRhImpossibleException.class)
+    public ResponseEntity<ApiError> handleDecisionRhImpossible(DecisionRhImpossibleException ex) {
+        ApiError body = new ApiError(HttpStatus.CONFLICT.value(), ex.getMessage(), Map.of());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
     private ApiError badRequest(Map<String, String> fieldErrors) {
         return new ApiError(HttpStatus.BAD_REQUEST.value(), "Erreur de validation", fieldErrors);
     }

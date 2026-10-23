@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Liste des demandes</title>
+    <link rel="stylesheet" th:href="@{/css/demande.css}">
+</head>
+
+<body>
+    <div layout:fragment="content">
+
+        <div class="page-header">
+            <h2>Liste des demandes</h2>
+            <div class="page-actions">
+                <a sec:authorize="hasAuthority('ROLE_RH')"
+                   th:href="@{/demandes/validation-rh}" class="btn btn-outline">Validation RH</a>
+                <a sec:authorize="hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMINISTRATEUR')"
+                   th:href="@{/demandes/nouvelle}" class="btn btn-primary">Nouvelle demande</a>
+            </div>
+        </div>
+
+        <div class="alert-success" th:if="${succes}" th:text="${succes}">
+            Demande enregistrée
+        </div>
+
+        <div class="alert-error" th:if="${erreur}" th:text="${erreur}">
+            Message d'erreur
+        </div>
+
+        <form method="get" th:action="@{/demandes}" class="filters">
+            <div class="filter-group">
+                <label for="statutId">Statut</label>
+                <select id="statutId" name="statutId" class="form-select">
+                    <option value="">Tous les statuts</option>
+                    <option th:each="statut : ${statuts}"
+                            th:value="${statut.idDemandeStatus}"
+                            th:text="${@demandeStatusService.libelleAffichage(statut.libelleStatus)}"
+                            th:selected="${statutId != null and statutId == statut.idDemandeStatus}">
+                        Statut
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-group" th:if="${!#lists.isEmpty(departements)}">
+                <label for="departementId">Département</label>
+                <select id="departementId" name="departementId" class="form-select">
+                    <option value="">Tous les départements</option>
+                    <option th:each="dept : ${departements}"
+                            th:value="${dept.idDept}"
+                            th:text="${dept.nomDept}"
+                            th:selected="${departementId != null and departementId == dept.idDept}">
+                        Département
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">Filtrer</button>
+                <a th:href="@{/demandes}" class="btn btn-outline">Réinitialiser</a>
+            </div>
+        </form>
+
+        <div class="card">
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>N°</th>
+                            <th>Date</th>
+                            <th>Poste</th>
+                            <th>Département</th>
+                            <th>Demandeur</th>
+                            <th>Motif</th>
+                            <th>Budget</th>
+                            <th>Statut</th>
+                            <th class="col-actions">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="demande : ${demandes}">
+                            <td th:text="${demande.idDemande}">1</td>
+                            <td th:text="${#temporals.format(demande.dateCreation, 'dd/MM/yyyy HH:mm')}">01/01/2026 09:00</td>
+                            <td th:text="${demande.poste != null ? demande.poste.nomPoste : '—'}">Poste</td>
+                            <td th:text="${demande.departement != null ? demande.departement.nomDept : '—'}">Département</td>
+                            <td th:text="${demande.demandeur != null ? demande.demandeur.username : '—'}">utilisateur</td>
+                            <td th:text="${demande.motif != null ? demande.motif.libelle : '—'}">Motif</td>
+                            <td th:text="${demande.budget ?: '—'}">0</td>
+                            <td>
+                                <span class="status-badge"
+                                      th:classappend="${@demandeStatusService.classeStatut(demande.demandeStatus != null ? demande.demandeStatus.libelleStatus : null)}"
+                                      th:text="${demande.demandeStatus != null ? @demandeStatusService.libelleAffichage(demande.demandeStatus.libelleStatus) : '—'}">Statut</span>
+                            </td>
+                            <td class="col-actions">
+                                <a th:href="@{/demandes/{id}(id=${demande.idDemande})}"
+                                   class="btn btn-outline btn-sm">Voir</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="empty-state" th:if="${#lists.isEmpty(demandes)}">Aucune demande.</p>
+
+            <div th:replace="~{fragments/pagination :: pager(currentPage=${currentPage}, totalPages=${totalPages}, size=${size}, url='/demandes', filters=${filtres})}"></div>
+        </div>
+
+    </div>
+</body>
+
+</html>

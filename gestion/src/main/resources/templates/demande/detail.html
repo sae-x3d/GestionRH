@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title th:text="${pageTitle}">Détail de la demande</title>
+    <link rel="stylesheet" th:href="@{/css/demande.css}">
+</head>
+
+<body>
+    <div layout:fragment="content">
+
+        <div class="page-header">
+            <div class="detail-heading">
+                <h2 th:text="'Demande n° ' + ${demande.idDemande}">Demande n° 1</h2>
+                <span class="status-badge"
+                      th:classappend="${@demandeStatusService.classeStatut(demande.demandeStatus != null ? demande.demandeStatus.libelleStatus : null)}"
+                      th:text="${demande.demandeStatus != null ? @demandeStatusService.libelleAffichage(demande.demandeStatus.libelleStatus) : '—'}">Statut</span>
+            </div>
+            <a th:href="@{/demandes}" class="btn btn-outline">Retour à la liste</a>
+        </div>
+
+        <div class="alert-success" th:if="${succes}" th:text="${succes}">
+            Demande enregistrée
+        </div>
+
+        <div class="alert-error" th:if="${erreur}" th:text="${erreur}">
+            Message d'erreur
+        </div>
+
+        <div class="detail-grid">
+
+            <div class="card detail-card">
+                <h3>Informations générales</h3>
+                <dl class="detail-list">
+                    <div class="detail-item">
+                        <dt>Date de la demande</dt>
+                        <dd th:text="${demande.dateCreation != null ? #temporals.format(demande.dateCreation, 'dd/MM/yyyy HH:mm') : '—'}">—</dd>
+                    </div>
+                    <div class="detail-item">
+                        <dt>Date souhaitée</dt>
+                        <dd th:text="${demande.dateSouhaite != null ? #temporals.format(demande.dateSouhaite, 'dd/MM/yyyy HH:mm') : '—'}">—</dd>
+                    </div>
+                    <div class="detail-item">
+                        <dt>Date de réponse</dt>
+                        <dd th:text="${demande.dateReponse != null ? #temporals.format(demande.dateReponse, 'dd/MM/yyyy HH:mm') : '—'}">—</dd>
+                    </div>
+                    <div class="detail-item">
+                        <dt>Budget</dt>
+                        <dd th:text="${demande.budget != null ? #numbers.formatDecimal(demande.budget, 0, 'WHITESPACE', 0, 'COMMA') + ' Ar' : '—'}">—</dd>
+                    </div>
+                    <div class="detail-item">
+                        <dt>Motif</dt>
+                        <dd th:text="${demande.motif != null ? demande.motif.libelle : '—'}">—</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="card detail-card">
+                <h3>Poste demandé</h3>
+                <dl class="detail-list">
+                    <div class="detail-item">
+                        <dt>Intitulé</dt>
+                        <dd th:text="${demande.poste != null ? demande.poste.nomPoste : '—'}">—</dd>
+                    </div>
+                    <div class="detail-item">
+                        <dt>Rôle</dt>
+                        <dd th:text="${demande.poste != null and demande.poste.role != null ? demande.poste.role.nomRole : '—'}">—</dd>
+                    </div>
+                    <div class="detail-item">
+                        <dt>Salaire minimum</dt>
+                        <dd th:text="${demande.poste != null and demande.poste.salaireMin != null ? #numbers.formatDecimal(demande.poste.salaireMin, 0, 'WHITESPACE', 0, 'COMMA') + ' Ar' : '—'}">—</dd>
+                    </div>
+                    <div class="detail-item">
+                        <dt>Salaire maximum</dt>
+                        <dd th:text="${demande.poste != null and demande.poste.salaireMax != null ? #numbers.formatDecimal(demande.poste.salaireMax, 0, 'WHITESPACE', 0, 'COMMA') + ' Ar' : '—'}">—</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="card detail-card">
+                <h3>Département et demandeur</h3>
+                <dl class="detail-list">
+                    <div class="detail-item">
+                        <dt>Département</dt>
+                        <dd th:text="${demande.departement != null ? demande.departement.nomDept : '—'}">—</dd>
+                    </div>
+                    <div class="detail-item">
+                        <dt>Demandeur</dt>
+                        <dd th:text="${demande.demandeur != null ? demande.demandeur.username : '—'}">—</dd>
+                    </div>
+                    <div class="detail-item">
+                        <dt>Employé lié</dt>
+                        <dd th:text="${demande.demandeur != null and demande.demandeur.employe != null ? demande.demandeur.employe.nomEmp : '—'}">—</dd>
+                    </div>
+                    <div class="detail-item">
+                        <dt>Rôle du demandeur</dt>
+                        <dd th:text="${demande.demandeur != null and demande.demandeur.role != null ? demande.demandeur.role.nomRole : '—'}">—</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="card detail-card">
+                <h3>Remplacement</h3>
+                <dl class="detail-list" th:if="${demande.empRemplace != null}">
+                    <div class="detail-item">
+                        <dt>Employé remplacé</dt>
+                        <dd th:text="${demande.empRemplace.nomEmp}">—</dd>
+                    </div>
+                    <div class="detail-item">
+                        <dt>Poste occupé</dt>
+                        <dd th:text="${demande.empRemplace.poste != null ? demande.empRemplace.poste.nomPoste : '—'}">—</dd>
+                    </div>
+                    <div class="detail-item">
+                        <dt>Département</dt>
+                        <dd th:text="${demande.empRemplace.departement != null ? demande.empRemplace.departement.nomDept : '—'}">—</dd>
+                    </div>
+                </dl>
+                <p class="detail-empty" th:unless="${demande.empRemplace != null}">
+                    Création de poste : aucun employé remplacé.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title layout:title-pattern="$CONTENT_TITLE - GestionRH">GestionRH</title>
+
+    <link rel="stylesheet" th:href="@{/css/variables.css}">
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/components.css}">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- Barre de navigation laterale -->
+    <aside class="sidebar" th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <div class="main">
+
+        <!-- En-tete de page -->
+        <header class="header" th:replace="~{fragments/header :: header}"></header>
+
+        <!-- Contenu specifique a la page -->
+        <main class="content" layout:fragment="content">
+        </main>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>
