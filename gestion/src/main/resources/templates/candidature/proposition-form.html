@@ -28,76 +28,11 @@
         </div>
     </section>
 
-    <section class="card gestion-section" th:if="${proposition == null}">
-        <h3>Définir les conditions d'embauche</h3>
-        <p class="help-text">Ces conditions seront présentées clairement au candidat dans son espace "Ma proposition".</p>
-        <form th:action="@{/candidatures/rh/{id}/proposition(id=${candidature.idCandidature})}" method="post">
-            <h4>Poste & Affectation</h4>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="postePropose">Poste proposé</label>
-                    <input type="text" id="postePropose" name="postePropose" class="form-control"
-                           th:value="${candidature.offre.poste != null ? candidature.offre.poste.nomPoste : ''}">
-                </div>
-                <div class="form-group">
-                    <label for="departementPropose">Département</label>
-                    <input type="text" id="departementPropose" name="departementPropose" class="form-control"
-                           th:value="${candidature.offre.departement != null ? candidature.offre.departement.nomDept : ''}">
-                </div>
-                <div class="form-group">
-                    <label for="lieuTravail">Lieu de travail</label>
-                    <input type="text" id="lieuTravail" name="lieuTravail" class="form-control" maxlength="150" placeholder="Ex: Antananarivo">
-                </div>
-            </div>
-
-            <h4>Contrat & Rémunération</h4>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="typeContrat">Type de contrat</label>
-                    <input type="text" id="typeContrat" name="typeContrat" class="form-control" maxlength="50"
-                           th:value="${candidature.offre.typeContrat}">
-                </div>
-                <div class="form-group">
-                    <label for="salairePropose">Salaire brut proposé (Ar)</label>
-                    <input type="number" id="salairePropose" name="salairePropose" class="form-control" min="0">
-                </div>
-                <div class="form-group">
-                    <label for="periodeEssaiMois">Période d'essai (mois)</label>
-                    <input type="number" id="periodeEssaiMois" name="periodeEssaiMois" class="form-control" min="0" max="12" placeholder="Ex: 3">
-                </div>
-                <div class="form-group">
-                    <label for="dateEmbaucheSouhaitee">Date d'embauche souhaitée</label>
-                    <input type="date" id="dateEmbaucheSouhaitee" name="dateEmbaucheSouhaitee" class="form-control">
-                </div>
-            </div>
-
-            <h4>Avantages & Autres conditions</h4>
-            <div class="form-group">
-                <label for="avantages">Avantages (prime, transport, mutuelle, etc.)</label>
-                <textarea id="avantages" name="avantages" class="form-control" rows="3" placeholder="Ex: Prime de transport, Mutuelle, Tickets restaurant"></textarea>
-            </div>
-            <div class="form-group">
-                <label for="autresConditions">Autres conditions particulières</label>
-                <textarea id="autresConditions" name="autresConditions" class="form-control" rows="3" placeholder="Ex: Horaires, Formation, Matériel fourni"></textarea>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="delaiReponseJours">Délai de réponse du candidat (jours)</label>
-                    <input type="number" id="delaiReponseJours" name="delaiReponseJours" class="form-control" min="1" value="7">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="message">Message d'accompagnement</label>
-                <textarea id="message" name="message" class="form-control" rows="4">Nous avons le plaisir de vous adresser notre proposition d'embauche. Nous vous invitons à prendre connaissance des conditions ci-dessous et à nous faire connaître votre réponse dans le délai imparti.</textarea>
-            </div>
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary" th:if="${candidature.statut.libelle == 'ACCEPTEE'}">Générer la proposition avec ses conditions</button>
-            </div>
-        </form>
-    </section>
-
     <section class="card gestion-section" th:if="${proposition != null}">
-        <h3>Conditions d'embauche proposées</h3>
+        <h3>
+            <span th:text="${'Proposition actuelle - révision ' + (proposition.numeroRevision != null ? proposition.numeroRevision : 1)}">Proposition actuelle</span>
+            <span class="statut" th:text="${proposition.statut}">EN_ATTENTE</span>
+        </h3>
         <div class="info-grid">
             <div><strong>Statut proposition :</strong> <span th:text="${proposition.statut}"></span></div>
             <div><strong>Statut candidature :</strong> <span th:text="${candidature.statut.libelle}"></span></div>
@@ -111,20 +46,20 @@
             Le candidat a accepté l'intégralité des conditions. La candidature est en statut <strong>ACCEPTEE</strong> et un dossier employé a été créé le cas échéant.
         </div>
         <div class="alert-error" th:if="${proposition.statut == 'REFUSEE'}">
-            Le candidat a refusé cette proposition. Le dossier de candidature est clôturé en statut <strong>REFUSEE</strong>.
+            Le candidat a refusé cette proposition. Vous pouvez négocier puis soumettre une nouvelle proposition avec des conditions révisées.
         </div>
-        <div class="alert-info" th:if="${proposition.statut == 'EXPIREE'}">
-            Cette proposition a expiré sans réponse du candidat.
+        <div class="alert-info" th:if="${proposition.statut == 'EXPIREE' or propositionExpiree}">
+            Cette proposition a expiré sans réponse du candidat. Vous pouvez soumettre une nouvelle proposition avec des conditions révisées.
         </div>
 
-        <h4>Poste & Affectation</h4>
+        <h4>Poste &amp; Affectation</h4>
         <div class="info-grid">
             <div><strong>Poste proposé :</strong> <span th:text="${proposition.postePropose != null ? proposition.postePropose : '-'}"></span></div>
             <div><strong>Département :</strong> <span th:text="${proposition.departementPropose != null ? proposition.departementPropose : '-'}"></span></div>
             <div><strong>Lieu de travail :</strong> <span th:text="${proposition.lieuTravail != null ? proposition.lieuTravail : '-'}"></span></div>
         </div>
 
-        <h4>Contrat & Rémunération</h4>
+        <h4>Contrat &amp; Rémunération</h4>
         <div class="info-grid">
             <div><strong>Type de contrat :</strong> <span th:text="${proposition.typeContrat != null ? proposition.typeContrat : '-'}"></span></div>
             <div><strong>Salaire brut proposé :</strong> <span th:text="${proposition.salairePropose != null ? proposition.salairePropose + ' Ar' : '-'}"></span></div>
@@ -142,8 +77,151 @@
         <p th:text="${proposition.message}"></p>
 
         <div class="form-group" th:if="${proposition.motifRefus != null}">
-            <h4>Motif de refus du candidat</h4>
+            <h4>Motif de refus / points de négociation du candidat</h4>
             <p th:text="${proposition.motifRefus}"></p>
+        </div>
+
+        <div class="form-group" th:if="${proposition.motifRevision != null}">
+            <h4>Motif de cette révision</h4>
+            <p th:text="${proposition.motifRevision}"></p>
+        </div>
+    </section>
+
+    <section class="card gestion-section" th:if="${peutCreer or peutReviser}">
+        <h3 th:text="${proposition == null ? 'Définir les conditions d’embauche' : 'Réviser la proposition après négociation'}">
+            Définir les conditions d'embauche
+        </h3>
+
+        <p class="help-text" th:if="${proposition == null}">
+            Ces conditions seront présentées clairement au candidat dans son espace "Ma proposition".
+        </p>
+        <p class="help-text" th:if="${proposition != null}">
+            Le candidat a refusé la proposition précédente (ou celle-ci a expiré). Soumettez une nouvelle
+            proposition avec les conditions révisées : l'ancienne proposition reste conservée dans l'historique
+            et la candidature est réouverte si nécessaire.
+        </p>
+
+        <form th:action="@{/candidatures/rh/{id}/proposition(id=${candidature.idCandidature})}" method="post">
+            <h4>Poste &amp; Affectation</h4>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="postePropose">Poste proposé</label>
+                    <input type="text" id="postePropose" name="postePropose" class="form-control"
+                           th:value="${proposition != null and proposition.postePropose != null ? proposition.postePropose : (candidature.offre.demande != null and candidature.offre.demande.poste != null ? candidature.offre.demande.poste.nomPoste : '')}">
+                </div>
+                <div class="form-group">
+                    <label for="departementPropose">Département</label>
+                    <input type="text" id="departementPropose" name="departementPropose" class="form-control"
+                           th:value="${proposition != null and proposition.departementPropose != null ? proposition.departementPropose : (candidature.offre.demande != null and candidature.offre.demande.departement != null ? candidature.offre.demande.departement.nomDept : '')}">
+                </div>
+                <div class="form-group">
+                    <label for="lieuTravail">Lieu de travail</label>
+                    <input type="text" id="lieuTravail" name="lieuTravail" class="form-control" maxlength="150"
+                           placeholder="Ex: Antananarivo"
+                           th:value="${proposition != null and proposition.lieuTravail != null ? proposition.lieuTravail : ''}">
+                </div>
+            </div>
+
+            <h4>Contrat &amp; Rémunération</h4>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="typeContrat">Type de contrat</label>
+                    <input type="text" id="typeContrat" name="typeContrat" class="form-control" maxlength="50"
+                           th:value="${proposition != null and proposition.typeContrat != null ? proposition.typeContrat : (candidature.offre.typeContrat != null ? candidature.offre.typeContrat : '')}">
+                </div>
+                <div class="form-group">
+                    <label for="salairePropose">Salaire brut proposé (Ar)</label>
+                    <input type="number" id="salairePropose" name="salairePropose" class="form-control" min="0"
+                           th:value="${proposition != null and proposition.salairePropose != null ? proposition.salairePropose : ''}">
+                </div>
+                <div class="form-group">
+                    <label for="periodeEssaiMois">Période d'essai (mois)</label>
+                    <input type="number" id="periodeEssaiMois" name="periodeEssaiMois" class="form-control" min="0" max="12"
+                           placeholder="Ex: 3"
+                           th:value="${proposition != null and proposition.periodeEssaiMois != null ? proposition.periodeEssaiMois : ''}">
+                </div>
+                <div class="form-group">
+                    <label for="dateEmbaucheSouhaitee">Date d'embauche souhaitée</label>
+                    <input type="date" id="dateEmbaucheSouhaitee" name="dateEmbaucheSouhaitee" class="form-control"
+                           th:value="${proposition != null and proposition.dateEmbaucheSouhaitee != null ? #temporals.format(proposition.dateEmbaucheSouhaitee, 'yyyy-MM-dd') : ''}">
+                </div>
+            </div>
+
+            <h4>Avantages &amp; Autres conditions</h4>
+            <div class="form-group">
+                <label for="avantages">Avantages (prime, transport, mutuelle, etc.)</label>
+                <textarea id="avantages" name="avantages" class="form-control" rows="3"
+                          placeholder="Ex: Prime de transport, Mutuelle, Tickets restaurant"
+                          th:text="${proposition != null and proposition.avantages != null ? proposition.avantages : ''}"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="autresConditions">Autres conditions particulières</label>
+                <textarea id="autresConditions" name="autresConditions" class="form-control" rows="3"
+                          placeholder="Ex: Horaires, Formation, Matériel fourni"
+                          th:text="${proposition != null and proposition.autresConditions != null ? proposition.autresConditions : ''}"></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="delaiReponseJours">Délai de réponse du candidat (jours)</label>
+                    <input type="number" id="delaiReponseJours" name="delaiReponseJours" class="form-control" min="1" value="7">
+                </div>
+            </div>
+
+            <div class="form-group" th:if="${proposition != null}">
+                <label for="motifRevision">Motif de la révision / éléments négociés</label>
+                <textarea id="motifRevision" name="motifRevision" class="form-control" rows="3"
+                          placeholder="Ex: Salaire revu à la hausse après négociation, période d'essai réduite..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="message">Message d'accompagnement</label>
+                <textarea id="message" name="message" class="form-control" rows="4"
+                          th:text="${proposition != null and proposition.message != null ? proposition.message : 'Nous avons le plaisir de vous adresser notre proposition d’embauche. Nous vous invitons à prendre connaissance des conditions ci-dessous et à nous faire connaître votre réponse dans le délai imparti.'}"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary"
+                        th:text="${proposition == null ? 'Générer la proposition avec ses conditions' : 'Soumettre la nouvelle proposition (révision ' + ((proposition.numeroRevision != null ? proposition.numeroRevision : 1) + 1) + ')'}">
+                    Générer la proposition avec ses conditions
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card gestion-section" th:if="${proposition == null and !peutCreer}">
+        <h3>Proposition d'embauche</h3>
+        <p class="help-text">
+            La proposition d'embauche ne peut être créée que pour une candidature acceptée. La candidature est
+            actuellement au statut <strong th:text="${candidature.statut.libelle}"></strong>.
+        </p>
+    </section>
+
+    <section class="card gestion-section" th:if="${historique != null and #lists.size(historique) > 1}">
+        <h3>Historique des propositions</h3>
+        <p class="help-text">Chaque négociation donne lieu à une nouvelle proposition. Les propositions précédentes restent consultables.</p>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Révision</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                    <th>Salaire proposé</th>
+                    <th>Réponse candidat</th>
+                    <th>Motif de révision</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="h : ${historique}">
+                    <td th:text="${h.numeroRevision != null ? h.numeroRevision : 1}">1</td>
+                    <td th:text="${#temporals.format(h.dateProposition, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                    <td th:text="${h.statut}">EN_ATTENTE</td>
+                    <td th:text="${h.salairePropose != null ? h.salairePropose + ' Ar' : '-'}">-</td>
+                    <td th:text="${h.motifRefus != null ? h.motifRefus : '-'}">-</td>
+                    <td th:text="${h.motifRevision != null ? h.motifRevision : '-'}">-</td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     </section>
 </div>

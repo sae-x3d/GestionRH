@@ -183,6 +183,23 @@ Une offre d'emploi est creee a partir d'une **demande validee par la direction**
 Les nouvelles tables SIRH (`candidats`, `parcours`, `niveau`, `info`) et la table
 `offre_emploi` sont creees par `DB/script-22-10-2026-Jo.sql`.
 
+### Revision de la proposition apres negociation
+
+Une candidature peut recevoir **plusieurs propositions successives** :
+
+- la premiere proposition est creee pour une candidature `ACCEPTEE` ;
+- si le candidat refuse (ou si la proposition expire), la RH peut **reviser les
+  conditions** et soumettre une nouvelle proposition ;
+- chaque revision est conservee dans l'historique (numero de revision, conditions,
+  motif de revision, motif de refus du candidat) ;
+- la candidature est automatiquement reouverte au statut `ACCEPTEE` lors de la
+  soumission d'une proposition revisee.
+
+La migration `DB/script-23-10-26-revision-proposition.sql` supprime l'unicite de
+`proposition_embauche.id_candidature` et ajoute les colonnes `numero_revision` et
+`motif_revision`. Elle doit etre executee sur les bases existantes avant de creer
+une deuxieme proposition.
+
 ## 8. Depannage
 
 | Probleme | Solution |

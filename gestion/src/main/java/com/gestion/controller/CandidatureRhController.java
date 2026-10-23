@@ -62,6 +62,7 @@ public class CandidatureRhController {
         model.addAttribute("candidature", candidature);
         model.addAttribute("entretiens", entretiens);
         model.addAttribute("typesEntretien", TypeEntretien.values());
+        model.addAttribute("proposition", propositionEmbaucheService.trouverParCandidature(id).orElse(null));
         model.addAttribute("demandeur", utilisateurCourant(authentication));
         return "candidature/rh-detail";
     }

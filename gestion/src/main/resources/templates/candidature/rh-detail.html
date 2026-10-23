@@ -188,11 +188,38 @@
         </div>
     </section>
 
-    <section class="card gestion-section" th:if="${candidature.statut.libelle == 'ACCEPTEE'}">
+    <section class="card gestion-section"
+             th:if="${proposition != null or candidature.statut.libelle == 'ACCEPTEE'}">
         <h3>Proposition d'embauche</h3>
-        <p class="help-text">Générer ou consulter la proposition d'embauche pour ce candidat.</p>
+        <div th:if="${proposition != null}">
+            <p>
+                <strong>Dernière proposition :</strong>
+                révision <span th:text="${proposition.numeroRevision != null ? proposition.numeroRevision : 1}"></span>,
+                statut <span class="statut" th:text="${proposition.statut}"></span>.
+            </p>
+            <p class="help-text" th:if="${proposition.statut == 'EN_ATTENTE'}">
+                En attente de la réponse du candidat.
+            </p>
+            <p class="help-text" th:if="${proposition.statut == 'REFUSEE'}">
+                Le candidat a refusé cette proposition. Après négociation, vous pouvez réviser les conditions
+                et soumettre une nouvelle proposition : les anciennes conditions restent conservées.
+            </p>
+            <p class="help-text" th:if="${proposition.statut == 'EXPIREE'}">
+                La proposition a expiré. Vous pouvez soumettre une nouvelle proposition avec des conditions révisées.
+            </p>
+            <p class="help-text" th:if="${proposition.statut == 'ACCEPTEE'}">
+                Le candidat a accepté les conditions proposées.
+            </p>
+        </div>
+        <p class="help-text" th:if="${proposition == null}">
+            Générer la proposition d'embauche pour ce candidat.
+        </p>
         <div class="actions">
-            <a th:href="@{/candidatures/rh/{id}/proposition(id=${candidature.idCandidature})}" class="btn btn-primary btn-small">Gérer la proposition</a>
+            <a th:href="@{/candidatures/rh/{id}/proposition(id=${candidature.idCandidature})}"
+               class="btn btn-primary btn-small"
+               th:text="${proposition == null ? 'Créer la proposition' : (proposition.statut == 'REFUSEE' or proposition.statut == 'EXPIREE' ? 'Réviser la proposition après négociation' : 'Consulter la proposition')}">
+                Gérer la proposition
+            </a>
         </div>
     </section>
 

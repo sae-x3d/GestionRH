@@ -19,8 +19,8 @@ public class PropositionEmbauche {
     @Column(name = "id_proposition")
     private Integer idProposition;
 
-    @OneToOne
-    @JoinColumn(name = "id_candidature", nullable = false, unique = true)
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "id_candidature", nullable = false)
     private Candidature candidature;
 
     @ManyToOne(optional = false)
@@ -75,6 +75,14 @@ public class PropositionEmbauche {
 
     @Column(name = "statut", length = 20, nullable = false)
     private String statut;
+
+    // Suivi des revisions apres negociation
+    @Builder.Default
+    @Column(name = "numero_revision", nullable = false, columnDefinition = "integer default 1")
+    private Integer numeroRevision = 1;
+
+    @Column(name = "motif_revision", columnDefinition = "TEXT")
+    private String motifRevision;
 
     @Column(name = "date_reponse")
     private LocalDateTime dateReponse;

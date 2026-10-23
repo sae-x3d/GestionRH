@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -25,6 +26,9 @@ public class PropositionEmbaucheService {
     public static final String STATUT_EXPIREE = "EXPIREE";
     public static final String STATUT_ATTENTE_VALIDATION_RH_FINAL = "EN_ATTENTE_VALIDATION_RH_FINAL";
 
+    private static final String MESSAGE_PAR_DEFAUT = "Nous avons le plaisir de vous adresser notre proposition d'embauche. "
+            + "Nous vous invitons à prendre connaissance des conditions ci-dessous et à nous faire connaître votre réponse dans le délai imparti.";
+
     private final PropositionEmbaucheRepository propositionRepository;
     private final CandidatureRepository candidatureRepository;
     private final CandidatureStatusService candidatureStatusService;
@@ -34,8 +38,19 @@ public class PropositionEmbaucheService {
     @Value("${app.candidature.validation-rh-finale:false}")
     private boolean validationRhFinaleRequise;
 
+    /**
+     * Derniere proposition d'embauche d'une candidature (la plus recente).
+     */
     @Transactional(readOnly = true)
     public Optional<PropositionEmbauche> trouverParCandidature(Integer idCandidature) {
+        return listerParCandidature(idCandidature).stream().findFirst();
+    }
+
+    /**
+     * Historique complet des propositions d'une candidature, de la plus recente a la plus ancienne.
+     */
+    @Transactional(readOnly = true)
+    public List<PropositionEmbauche> listerParCandidature(Integer idCandidature) {
         return propositionRepository.findByCandidatureIdAvecDetails(idCandidature);
     }
 
@@ -44,7 +59,35 @@ public class PropositionEmbaucheService {
         if (utilisateur == null) {
             return Optional.empty();
         }
-        return propositionRepository.findByCandidatIdUserAvecDetails(utilisateur.getIdUser());
+        return propositionRepository.findByCandidatIdUserAvecDetails(utilisateur.getIdUser())
+                .stream()
+                .findFirst();
+    }
+
+    /**
+     * Indique si une nouvelle proposition peut etre soumise au candidat apres negociation.
+     * Une proposition en attente de reponse ne peut pas etre revisee, sauf si elle a expire.
+     */
+    @Transactional(readOnly = true)
+    public boolean peutEtreRevisee(PropositionEmbauche proposition) {
+        if (proposition == null || proposition.getStatut() == null || proposition.getCandidature() == null
+                || proposition.getCandidature().getStatut() == null) {
+            return false;
+        }
+
+        String statutCandidature = proposition.getCandidature().getStatut().getLibelle();
+        if (!"ACCEPTEE".equalsIgnoreCase(statutCandidature)
+                && !"REFUSEE".equalsIgnoreCase(statutCandidature)) {
+            return false;
+        }
+
+        if (STATUT_REFUSEE.equalsIgnoreCase(proposition.getStatut())
+                || STATUT_EXPIREE.equalsIgnoreCase(proposition.getStatut())) {
+            return true;
+        }
+        return STATUT_EN_ATTENTE.equalsIgnoreCase(proposition.getStatut())
+                && proposition.getDateExpiration() != null
+                && proposition.getDateExpiration().isBefore(LocalDateTime.now());
     }
 
     @Transactional
@@ -53,37 +96,49 @@ public class PropositionEmbaucheService {
                                                  Integer salairePropose, String typeContrat,
                                                  Integer periodeEssaiMois, LocalDate dateEmbaucheSouhaitee,
                                                  Integer delaiReponseJours, String avantages, String autresConditions,
-                                                 String message) {
-        if (propositionRepository.existsByCandidatureIdCandidature(idCandidature)) {
-            throw new IllegalStateException("Une proposition d'embauche existe deja pour cette candidature.");
-        }
-
+                                                 String message, String motifRevision) {
         Candidature candidature = candidatureRepository.findById(idCandidature)
                 .orElseThrow(() -> new RessourceIntrouvableException("Candidature introuvable : " + idCandidature));
 
-        if (candidature.getStatut() == null || !"ACCEPTEE".equalsIgnoreCase(candidature.getStatut().getLibelle())) {
-            throw new IllegalStateException("La proposition ne peut etre generee que pour une candidature acceptee.");
+        List<PropositionEmbauche> existantes = propositionRepository.findByCandidatureIdAvecDetails(idCandidature);
+        PropositionEmbauche precedente = existantes.isEmpty() ? null : existantes.get(0);
+        LocalDateTime now = LocalDateTime.now();
+
+        if (precedente == null) {
+            verifierCandidatureAcceptee(candidature);
+        } else {
+            verifierRevisionPossible(candidature, precedente, now);
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        Integer numeroRevision = precedente == null || precedente.getNumeroRevision() == null
+                ? 1
+                : precedente.getNumeroRevision() + 1;
+
         PropositionEmbauche proposition = PropositionEmbauche.builder()
                 .candidature(candidature)
                 .offre(candidature.getOffre())
                 .candidat(candidature.getUtilisateur())
                 .rh(rh)
-                .postePropose(postePropose != null && !postePropose.isBlank() ? postePropose.trim() : (candidature.getOffre() != null && candidature.getOffre().getPoste() != null ? candidature.getOffre().getPoste().getNomPoste() : null))
-                .departementPropose(departementPropose != null && !departementPropose.isBlank() ? departementPropose.trim() : (candidature.getOffre() != null && candidature.getOffre().getDepartement() != null ? candidature.getOffre().getDepartement().getNomDept() : null))
-                .lieuTravail(lieuTravail != null && !lieuTravail.isBlank() ? lieuTravail.trim() : null)
-                .typeContrat(typeContrat != null && !typeContrat.isBlank() ? typeContrat.trim() : (candidature.getOffre() != null ? candidature.getOffre().getTypeContrat() : null))
-                .salairePropose(salairePropose)
-                .periodeEssaiMois(periodeEssaiMois)
-                .dateEmbaucheSouhaitee(dateEmbaucheSouhaitee)
-                .avantages(avantages != null && !avantages.isBlank() ? avantages.trim() : null)
-                .autresConditions(autresConditions != null && !autresConditions.isBlank() ? autresConditions.trim() : null)
+                .postePropose(posteAvecRepli(postePropose, precedente, candidature))
+                .departementPropose(departementAvecRepli(departementPropose, precedente, candidature))
+                .lieuTravail(lieuAvecRepli(lieuTravail, precedente))
+                .typeContrat(typeContratAvecRepli(typeContrat, precedente, candidature))
+                .salairePropose(salairePropose != null ? salairePropose
+                        : (precedente != null ? precedente.getSalairePropose() : null))
+                .periodeEssaiMois(periodeEssaiMois != null ? periodeEssaiMois
+                        : (precedente != null ? precedente.getPeriodeEssaiMois() : null))
+                .dateEmbaucheSouhaitee(dateEmbaucheSouhaitee != null ? dateEmbaucheSouhaitee
+                        : (precedente != null ? precedente.getDateEmbaucheSouhaitee() : null))
+                .avantages(texteOuNull(avantages))
+                .autresConditions(texteOuNull(autresConditions))
                 .dateProposition(now)
-                .dateExpiration(delaiReponseJours == null || delaiReponseJours <= 0 ? now.plusDays(7) : now.plusDays(delaiReponseJours))
-                .message(message != null && !message.isBlank() ? message.trim() : "Nous avons le plaisir de vous adresser notre proposition d'embauche. Nous vous invitons à prendre connaissance des conditions ci-dessous et à nous faire connaître votre réponse dans le délai imparti.")
+                .dateExpiration(delaiReponseJours == null || delaiReponseJours <= 0
+                        ? now.plusDays(7)
+                        : now.plusDays(delaiReponseJours))
+                .message(message != null && !message.isBlank() ? message.trim() : MESSAGE_PAR_DEFAUT)
                 .statut(STATUT_EN_ATTENTE)
+                .numeroRevision(numeroRevision)
+                .motifRevision(texteOuNull(motifRevision))
                 .build();
 
         return propositionRepository.save(proposition);
@@ -125,33 +180,7 @@ public class PropositionEmbaucheService {
                     candidatureRepository.save(candidature);
                 }
 
-                Utilisateur utilisateurCandidat = proposition.getCandidat();
-                if (utilisateurCandidat != null) {
-                    utilisateurCandidat = utilisateurRepository.findById(utilisateurCandidat.getIdUser()).orElse(utilisateurCandidat);
-                    if (utilisateurCandidat.getEmploye() == null) {
-                        String nomEmp = utilisateurCandidat.getUsername();
-                        if (candidature.getUtilisateur() != null && candidature.getUtilisateur().getEmploye() != null) {
-                            nomEmp = candidature.getUtilisateur().getEmploye().getNomEmp();
-                        }
-
-                        LocalDateTime dateEmbauche = now;
-                        if (proposition.getDateEmbaucheSouhaitee() != null) {
-                            dateEmbauche = proposition.getDateEmbaucheSouhaitee().atStartOfDay();
-                        }
-
-                        Employe employe = Employe.builder()
-                                .nomEmp(nomEmp)
-                                .dateEmbauche(dateEmbauche)
-                                .poste(candidature.getOffre() != null ? candidature.getOffre().getPoste() : (proposition.getOffre() != null ? proposition.getOffre().getPoste() : null))
-                                .departement(candidature.getOffre() != null ? candidature.getOffre().getDepartement() : (proposition.getOffre() != null ? proposition.getOffre().getDepartement() : null))
-                                .salaireEmp(proposition.getSalairePropose())
-                                .build();
-
-                        employe = employeRepository.save(employe);
-                        utilisateurCandidat.setEmploye(employe);
-                        utilisateurRepository.save(utilisateurCandidat);
-                    }
-                }
+                creerDossierEmployeSiNecessaire(proposition, candidature, now);
             }
         }
 
@@ -186,7 +215,7 @@ public class PropositionEmbaucheService {
             throw new IllegalStateException("Cette candidature n'est pas en attente de validation RH finale.");
         }
 
-        PropositionEmbauche proposition = propositionRepository.findByCandidatureIdAvecDetails(idCandidature)
+        PropositionEmbauche proposition = trouverParCandidature(idCandidature)
                 .orElseThrow(() -> new RessourceIntrouvableException("Aucune proposition trouvee pour cette candidature."));
 
         LocalDateTime now = LocalDateTime.now();
@@ -200,33 +229,8 @@ public class PropositionEmbaucheService {
                 candidatureRepository.save(candidature);
             });
 
-            Utilisateur utilisateurCandidat = proposition.getCandidat();
-            if (utilisateurCandidat != null) {
-                utilisateurCandidat = utilisateurRepository.findById(utilisateurCandidat.getIdUser()).orElse(utilisateurCandidat);
-                if (utilisateurCandidat.getEmploye() == null) {
-                    String nomEmp = utilisateurCandidat.getUsername();
-                    if (candidature.getUtilisateur() != null && candidature.getUtilisateur().getEmploye() != null) {
-                        nomEmp = candidature.getUtilisateur().getEmploye().getNomEmp();
-                    }
+            creerDossierEmployeSiNecessaire(proposition, candidature, now);
 
-                    LocalDateTime dateEmbauche = now;
-                    if (proposition.getDateEmbaucheSouhaitee() != null) {
-                        dateEmbauche = proposition.getDateEmbaucheSouhaitee().atStartOfDay();
-                    }
-
-                    Employe employe = Employe.builder()
-                            .nomEmp(nomEmp)
-                            .dateEmbauche(dateEmbauche)
-                            .poste(candidature.getOffre() != null ? candidature.getOffre().getPoste() : proposition.getOffre().getPoste())
-                            .departement(candidature.getOffre() != null ? candidature.getOffre().getDepartement() : proposition.getOffre().getDepartement())
-                            .salaireEmp(proposition.getSalairePropose())
-                            .build();
-
-                    employe = employeRepository.save(employe);
-                    utilisateurCandidat.setEmploye(employe);
-                    utilisateurRepository.save(utilisateurCandidat);
-                }
-            }
             if (proposition.getDateReponse() == null) {
                 proposition.setDateReponse(now);
             }
@@ -286,6 +290,152 @@ public class PropositionEmbaucheService {
         }
 
         return propositionRepository.save(proposition);
+    }
+
+    private void verifierCandidatureAcceptee(Candidature candidature) {
+        if (candidature.getStatut() == null
+                || !"ACCEPTEE".equalsIgnoreCase(candidature.getStatut().getLibelle())) {
+            throw new IllegalStateException("La proposition ne peut etre generee que pour une candidature acceptee.");
+        }
+    }
+
+    /**
+     * Une nouvelle proposition ne peut remplacer que :
+     * - une proposition refusee par le candidat (negociation),
+     * - une proposition expiree,
+     * - une proposition encore en attente mais dont le delai de reponse est depasse.
+     */
+    private void verifierRevisionPossible(Candidature candidature, PropositionEmbauche precedente, LocalDateTime now) {
+        if (precedente.getStatut() == null) {
+            throw new IllegalStateException("Le statut de la proposition precedente est introuvable.");
+        }
+
+        if (STATUT_ACCEPTEE.equalsIgnoreCase(precedente.getStatut())) {
+            throw new IllegalStateException(
+                    "La proposition a deja ete acceptee par le candidat : elle ne peut plus etre revisee.");
+        }
+
+        if (STATUT_EN_ATTENTE.equalsIgnoreCase(precedente.getStatut())) {
+            if (precedente.getDateExpiration() == null || !precedente.getDateExpiration().isBefore(now)) {
+                throw new IllegalStateException(
+                        "Une proposition est deja en attente de reponse. Le candidat doit d'abord repondre avant toute revision.");
+            }
+            precedente.setStatut(STATUT_EXPIREE);
+            propositionRepository.save(precedente);
+        } else if (!STATUT_REFUSEE.equalsIgnoreCase(precedente.getStatut())
+                && !STATUT_EXPIREE.equalsIgnoreCase(precedente.getStatut())) {
+            throw new IllegalStateException("La proposition ne peut pas etre revisee dans son statut actuel.");
+        }
+
+        String statutCandidature = candidature.getStatut() == null ? "" : candidature.getStatut().getLibelle();
+
+        if ("REFUSEE".equalsIgnoreCase(statutCandidature)) {
+            // Le candidat a refuse la proposition : on reouvre le dossier pour la negociation.
+            candidatureStatusService.trouverParLibelle("ACCEPTEE").ifPresent(statutAccepte -> {
+                candidature.setStatut(statutAccepte);
+                candidature.setDateDecision(null);
+                candidatureRepository.save(candidature);
+            });
+        } else if (!"ACCEPTEE".equalsIgnoreCase(statutCandidature)) {
+            throw new IllegalStateException(
+                    "La candidature doit etre acceptee (ou refusee apres negociation) pour reviser la proposition.");
+        }
+    }
+
+    private void creerDossierEmployeSiNecessaire(PropositionEmbauche proposition, Candidature candidature,
+                                                 LocalDateTime now) {
+        Utilisateur utilisateurCandidat = proposition.getCandidat();
+        if (utilisateurCandidat == null) {
+            return;
+        }
+
+        utilisateurCandidat = utilisateurRepository.findById(utilisateurCandidat.getIdUser())
+                .orElse(utilisateurCandidat);
+        if (utilisateurCandidat.getEmploye() != null) {
+            return;
+        }
+
+        String nomEmp = utilisateurCandidat.getUsername();
+        if (candidature.getUtilisateur() != null && candidature.getUtilisateur().getEmploye() != null) {
+            nomEmp = candidature.getUtilisateur().getEmploye().getNomEmp();
+        }
+
+        LocalDateTime dateEmbauche = now;
+        if (proposition.getDateEmbaucheSouhaitee() != null) {
+            dateEmbauche = proposition.getDateEmbaucheSouhaitee().atStartOfDay();
+        }
+
+        Employe employe = Employe.builder()
+                .nomEmp(nomEmp)
+                .dateEmbauche(dateEmbauche)
+                .poste(posteOffre(candidature.getOffre()) != null ? posteOffre(candidature.getOffre())
+                        : posteOffre(proposition.getOffre()))
+                .departement(departementOffre(candidature.getOffre()) != null
+                        ? departementOffre(candidature.getOffre())
+                        : departementOffre(proposition.getOffre()))
+                .salaireEmp(proposition.getSalairePropose())
+                .build();
+
+        employe = employeRepository.save(employe);
+        utilisateurCandidat.setEmploye(employe);
+        utilisateurRepository.save(utilisateurCandidat);
+    }
+
+    private String posteAvecRepli(String postePropose, PropositionEmbauche precedente, Candidature candidature) {
+        String poste = texteOuNull(postePropose);
+        if (poste == null && precedente != null) {
+            poste = precedente.getPostePropose();
+        }
+        if (poste == null && posteOffre(candidature.getOffre()) != null) {
+            poste = posteOffre(candidature.getOffre()).getNomPoste();
+        }
+        return poste;
+    }
+
+    private String departementAvecRepli(String departementPropose, PropositionEmbauche precedente,
+                                        Candidature candidature) {
+        String departement = texteOuNull(departementPropose);
+        if (departement == null && precedente != null) {
+            departement = precedente.getDepartementPropose();
+        }
+        if (departement == null && departementOffre(candidature.getOffre()) != null) {
+            departement = departementOffre(candidature.getOffre()).getNomDept();
+        }
+        return departement;
+    }
+
+    private String lieuAvecRepli(String lieuTravail, PropositionEmbauche precedente) {
+        String lieu = texteOuNull(lieuTravail);
+        if (lieu == null && precedente != null) {
+            lieu = precedente.getLieuTravail();
+        }
+        return lieu;
+    }
+
+    private String typeContratAvecRepli(String typeContrat, PropositionEmbauche precedente, Candidature candidature) {
+        String type = texteOuNull(typeContrat);
+        if (type == null && precedente != null) {
+            type = precedente.getTypeContrat();
+        }
+        if (type == null && candidature.getOffre() != null) {
+            type = candidature.getOffre().getTypeContrat();
+        }
+        return type;
+    }
+
+    private Poste posteOffre(OffreEmploi offre) {
+        return offre != null && offre.getDemande() != null ? offre.getDemande().getPoste() : null;
+    }
+
+    private Departement departementOffre(OffreEmploi offre) {
+        return offre != null && offre.getDemande() != null ? offre.getDemande().getDepartement() : null;
+    }
+
+    private String texteOuNull(String valeur) {
+        if (valeur == null || valeur.isBlank()) {
+            return null;
+        }
+        return valeur.trim();
     }
 
     private void verifierPropositionPourCandidat(PropositionEmbauche proposition, Utilisateur candidat) {

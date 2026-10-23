@@ -28,10 +28,16 @@
 
         <div class="info-grid">
             <div><strong>Offre :</strong> <span th:text="${proposition.offre.titre}"></span></div>
+            <div><strong>Révision :</strong> <span th:text="${proposition.numeroRevision != null ? proposition.numeroRevision : 1}"></span></div>
             <div><strong>Statut :</strong> <span th:text="${proposition.statut}"></span></div>
             <div><strong>Proposée le :</strong> <span th:text="${#temporals.format(proposition.dateProposition, 'dd/MM/yyyy HH:mm')}"></span></div>
             <div><strong>À répondre avant le :</strong> <span th:text="${proposition.dateExpiration != null ? #temporals.format(proposition.dateExpiration, 'dd/MM/yyyy HH:mm') : '-'}"></span></div>
             <div><strong>Réponse le :</strong> <span th:text="${proposition.dateReponse != null ? #temporals.format(proposition.dateReponse, 'dd/MM/yyyy HH:mm') : '-'}"></span></div>
+        </div>
+
+        <div class="alert-info" th:if="${proposition.statut == 'EN_ATTENTE' and proposition.numeroRevision != null and proposition.numeroRevision > 1}">
+            La RH vous a soumis une nouvelle proposition avec des conditions révisées après négociation.
+            Veuillez en prendre connaissance et répondre dans le délai indiqué.
         </div>
 
         <h4>Conditions d'embauche</h4>
@@ -54,6 +60,11 @@
         <h4>Message de la RH</h4>
         <p th:text="${proposition.message}"></p>
 
+        <div class="form-group" th:if="${proposition.motifRevision != null}">
+            <h4>Motif de la révision</h4>
+            <p th:text="${proposition.motifRevision}"></p>
+        </div>
+
         <div class="form-group" th:if="${proposition.motifRefus != null}">
             <h4>Votre motif de refus</h4>
             <p th:text="${proposition.motifRefus}"></p>
@@ -61,7 +72,7 @@
 
         <div th:if="${proposition.statut == 'EN_ATTENTE'}">
             <h4>Votre réponse</h4>
-            <p class="help-text">En acceptant, vous confirmez votre accord sur l'intégralité des conditions proposées. En refusant, votre candidature sera clôturée.</p>
+            <p class="help-text">En acceptant, vous confirmez votre accord sur l'intégralité des conditions proposées. En refusant, indiquez les points à renégocier : la RH pourra vous soumettre une nouvelle proposition avec des conditions révisées.</p>
             <div class="actions">
                 <form th:action="@{/candidatures/proposition/{id}/accepter(id=${proposition.idProposition})}" method="post" class="inline-form">
                     <button type="submit" class="btn btn-primary btn-small">J'accepte toutes les conditions</button>
@@ -69,10 +80,10 @@
             </div>
             <div class="form-group" style="margin-top: 1rem;">
                 <form th:action="@{/candidatures/proposition/{id}/refuser(id=${proposition.idProposition})}" method="post">
-                    <label for="motifRefus">Motif de refus (facultatif)</label>
-                    <textarea id="motifRefus" name="motifRefus" class="form-control" rows="3" placeholder="Vous pouvez indiquer brièvement votre motif"></textarea>
+                    <label for="motifRefus">Motif de refus / points à renégocier (facultatif)</label>
+                    <textarea id="motifRefus" name="motifRefus" class="form-control" rows="3" placeholder="Indiquez brièvement les conditions à renégocier"></textarea>
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-outline">Je refuse la proposition (clôturer ma candidature)</button>
+                        <button type="submit" class="btn btn-outline">Je refuse la proposition (demander une négociation)</button>
                     </div>
                 </form>
             </div>
@@ -90,7 +101,37 @@
 
         <div th:if="${proposition.statut == 'REFUSEE'}">
             <h4>Réponse enregistrée</h4>
-            <p class="help-text">Vous avez refusé cette proposition le <span th:text="${#temporals.format(proposition.dateReponse, 'dd/MM/yyyy HH:mm')}"></span>. Votre candidature a été clôturée.</p>
+            <p class="help-text">
+                Vous avez refusé cette proposition le
+                <span th:text="${#temporals.format(proposition.dateReponse, 'dd/MM/yyyy HH:mm')}"></span>.
+                La RH peut vous soumettre une nouvelle proposition avec des conditions révisées.
+            </p>
+        </div>
+
+        <div th:if="${historique != null and #lists.size(historique) > 1}">
+            <h4>Historique des propositions</h4>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                    <tr>
+                        <th>Révision</th>
+                        <th>Date</th>
+                        <th>Statut</th>
+                        <th>Salaire proposé</th>
+                        <th>Motif de révision</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="h : ${historique}">
+                        <td th:text="${h.numeroRevision != null ? h.numeroRevision : 1}">1</td>
+                        <td th:text="${#temporals.format(h.dateProposition, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                        <td th:text="${h.statut}">EN_ATTENTE</td>
+                        <td th:text="${h.salairePropose != null ? h.salairePropose + ' Ar' : '-'}">-</td>
+                        <td th:text="${h.motifRevision != null ? h.motifRevision : '-'}">-</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </section>
 </div>

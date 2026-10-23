@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -30,9 +32,20 @@ public class PropositionEmbaucheController {
     public String formulaireProposition(@PathVariable("id") Integer idCandidature, Model model, Authentication authentication) {
         var candidature = candidatureService.trouverParIdAvecDetails(idCandidature);
         Optional<PropositionEmbauche> proposition = propositionService.trouverParCandidature(idCandidature);
+        boolean propositionExpiree = proposition
+                .map(p -> "EN_ATTENTE".equalsIgnoreCase(p.getStatut())
+                        && p.getDateExpiration() != null
+                        && p.getDateExpiration().isBefore(LocalDateTime.now()))
+                .orElse(false);
         model.addAttribute("pageTitle", "Proposition d'embauche");
         model.addAttribute("candidature", candidature);
         model.addAttribute("proposition", proposition.orElse(null));
+        model.addAttribute("historique", propositionService.listerParCandidature(idCandidature));
+        model.addAttribute("peutCreer", proposition.isEmpty()
+                && candidature.getStatut() != null
+                && "ACCEPTEE".equalsIgnoreCase(candidature.getStatut().getLibelle()));
+        model.addAttribute("peutReviser", propositionService.peutEtreRevisee(proposition.orElse(null)));
+        model.addAttribute("propositionExpiree", propositionExpiree);
         model.addAttribute("demandeur", utilisateurCourant(authentication));
         return "candidature/proposition-form";
     }
@@ -52,13 +65,20 @@ public class PropositionEmbaucheController {
                                      @RequestParam(value = "avantages", required = false) String avantages,
                                      @RequestParam(value = "autresConditions", required = false) String autresConditions,
                                      @RequestParam(value = "message", required = false) String message,
+                                     @RequestParam(value = "motifRevision", required = false) String motifRevision,
                                      Authentication authentication,
                                      RedirectAttributes redirectAttributes) {
         try {
-            propositionService.genererProposition(idCandidature, utilisateurCourant(authentication),
-                    postePropose, departementPropose, lieuTravail, salairePropose, typeContrat,
-                    periodeEssaiMois, dateEmbaucheSouhaitee, delaiReponseJours, avantages, autresConditions, message);
-            redirectAttributes.addFlashAttribute("succes", "Proposition d'embauche generee avec succes.");
+            PropositionEmbauche proposition = propositionService.genererProposition(idCandidature,
+                    utilisateurCourant(authentication), postePropose, departementPropose, lieuTravail,
+                    salairePropose, typeContrat, periodeEssaiMois, dateEmbaucheSouhaitee, delaiReponseJours,
+                    avantages, autresConditions, message, motifRevision);
+            if (proposition.getNumeroRevision() != null && proposition.getNumeroRevision() > 1) {
+                redirectAttributes.addFlashAttribute("succes", "Nouvelle proposition (revision "
+                        + proposition.getNumeroRevision() + ") soumise au candidat avec les conditions revisees.");
+            } else {
+                redirectAttributes.addFlashAttribute("succes", "Proposition d'embauche generee avec succes.");
+            }
         } catch (RessourceIntrouvableException | IllegalStateException ex) {
             redirectAttributes.addFlashAttribute("erreur", ex.getMessage());
         }
@@ -71,6 +91,11 @@ public class PropositionEmbaucheController {
         Optional<PropositionEmbauche> proposition = propositionService.trouverParCandidat(utilisateur);
         model.addAttribute("pageTitle", "Ma proposition d'embauche");
         model.addAttribute("proposition", proposition.orElse(null));
+        model.addAttribute("historique", proposition
+                .map(p -> p.getCandidature() != null
+                        ? propositionService.listerParCandidature(p.getCandidature().getIdCandidature())
+                        : List.<PropositionEmbauche>of())
+                .orElseGet(List::of));
         model.addAttribute("demandeur", utilisateur);
         return "candidature/ma-proposition";
     }

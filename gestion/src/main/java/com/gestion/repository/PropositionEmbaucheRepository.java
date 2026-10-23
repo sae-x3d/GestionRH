@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface PropositionEmbaucheRepository extends JpaRepository<PropositionEmbauche, Integer> {
@@ -18,8 +18,9 @@ public interface PropositionEmbaucheRepository extends JpaRepository<Proposition
             JOIN FETCH p.candidat cand
             LEFT JOIN FETCH p.rh r
             WHERE p.candidature.idCandidature = :idCandidature
+            ORDER BY p.numeroRevision DESC, p.idProposition DESC
             """)
-    Optional<PropositionEmbauche> findByCandidatureIdAvecDetails(@Param("idCandidature") Integer idCandidature);
+    List<PropositionEmbauche> findByCandidatureIdAvecDetails(@Param("idCandidature") Integer idCandidature);
 
     @Query("""
             SELECT p FROM PropositionEmbauche p
@@ -28,8 +29,7 @@ public interface PropositionEmbaucheRepository extends JpaRepository<Proposition
             JOIN FETCH p.candidat cand
             LEFT JOIN FETCH p.rh r
             WHERE p.candidat.idUser = :idUser
+            ORDER BY p.dateProposition DESC, p.idProposition DESC
             """)
-    Optional<PropositionEmbauche> findByCandidatIdUserAvecDetails(@Param("idUser") Integer idUser);
-
-    boolean existsByCandidatureIdCandidature(Integer idCandidature);
+    List<PropositionEmbauche> findByCandidatIdUserAvecDetails(@Param("idUser") Integer idUser);
 }
