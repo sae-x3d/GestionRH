@@ -46,7 +46,7 @@ public interface CandidatureRepository extends JpaRepository<Candidature, Intege
             "left join fetch p.parcours " +
             "left join fetch p.niveau " +
             "where (:idOffre is null or c.offre.idOffre = :idOffre) " +
-            "and (:statut is null or upper(c.statut.libelle) = upper(:statut)) " +
+            "and (:statut is null or upper(c.statut.libelle) = upper(cast(:statut as string))) " +
             "order by c.dateCandidature desc")
     List<Candidature> rechercherAvecDetails(@Param("idOffre") Integer idOffre,
                                             @Param("statut") String statut);
