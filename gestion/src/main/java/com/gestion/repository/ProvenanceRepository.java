@@ -10,4 +10,6 @@ import java.util.List;
 public interface ProvenanceRepository extends JpaRepository<Provenance, Integer> {
 
     List<Provenance> findAllByOrderByLibelleAsc();
+
+    java.util.Optional<Provenance> findByLibelleIgnoreCase(String libelle);
 }

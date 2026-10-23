@@ -69,7 +69,7 @@ public class ContratController {
 
     @PostMapping("/contrats/{id}/reponse")
     public String repondre(@PathVariable Integer id, @RequestParam boolean accepte, Authentication auth, RedirectAttributes flash) {
-        try { contratService.repondre(id,utilisateur(auth).getIdUser(),accepte); flash.addFlashAttribute("succes",accepte?"Acceptation enregistree. Votre fiche employe est creee.":"Refus enregistre."); }
+        try { contratService.repondre(id,utilisateur(auth).getIdUser(),accepte); flash.addFlashAttribute("succes",accepte?"Acceptation enregistree. La fiche employe est creee ou associee a votre compte.":"Refus enregistre."); }
         catch (IllegalArgumentException | IllegalStateException ex) { flash.addFlashAttribute("erreur",ex.getMessage()); }
         return "redirect:/contrats/"+id;
     }
