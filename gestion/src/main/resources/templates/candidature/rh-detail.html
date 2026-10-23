@@ -172,14 +172,20 @@
     <section class="card gestion-section" th:if="${candidature.statut.libelle == 'RETENUE'}">
         <h3>Decision finale</h3>
         <p class="help-text">
-            L'acceptation place la candidature au statut ACCEPTEE, prete pour la proposition d'embauche.
+            L'acceptation place la candidature au statut ACCEPTEE et génère automatiquement le contrat si les informations sont suffisantes.
         </p>
-        <div class="actions">
-            <form th:action="@{/candidatures/rh/{id}/decision(id=${candidature.idCandidature})}"
-                  method="post" class="inline-form">
-                <input type="hidden" name="decision" value="ACCEPTER">
-                <button type="submit" class="btn btn-primary btn-small">Accepter la candidature</button>
-            </form>
+        <form th:action="@{/candidatures/rh/{id}/decision(id=${candidature.idCandidature})}"
+              method="post" class="form-grid">
+            <input type="hidden" name="decision" value="ACCEPTER">
+            <label>Nom du salarié (pré-rempli)<input name="nomSalarie" th:value="${contrat != null ? contrat.nomSalarie : ''}" placeholder="Nom et prénoms"></label>
+            <label>Adresse du salarié<input name="adresseSalarie" th:value="${contrat != null ? contrat.adresseSalarie : ''}" placeholder="Adresse complète"></label>
+            <label>Date de fin (si CDD)<input type="date" name="dateFin"></label>
+            <label>Motif légal et caractère temporaire du besoin (CDD)<input name="motifCdd" placeholder="Ex. surcroît extraordinaire d'activité, travaux urgents de sécurité ou ouvrage déterminé"></label>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-small">Accepter la candidature et générer le contrat</button>
+            </div>
+        </form>
+        <div class="actions" style="margin-top:1rem;">
             <form th:action="@{/candidatures/rh/{id}/decision(id=${candidature.idCandidature})}"
                   method="post" class="inline-form">
                 <input type="hidden" name="decision" value="REFUSER">

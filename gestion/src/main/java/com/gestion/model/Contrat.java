@@ -14,6 +14,7 @@ public class Contrat {
     @OneToOne(optional = false) @JoinColumn(name = "id_candidature", nullable = false, unique = true)
     private Candidature candidature;
     @ManyToOne @JoinColumn(name = "id_emp") private Employe employe;
+    @Column(name = "numero_contrat", unique = true, length = 50) private String numeroContrat;
     @Column(name = "type_contrat", nullable = false, length = 20) private String typeContrat;
     @Column(name = "nom_salarie", nullable = false, length = 200) private String nomSalarie;
     @Column(name = "adresse_salarie", nullable = false, length = 500) private String adresseSalarie;
@@ -28,6 +29,8 @@ public class Contrat {
     @Column(name = "date_effet", nullable = false) private LocalDate dateEffet;
     @Column(name = "date_fin") private LocalDate dateFin;
     @Column(name = "motif_cdd", length = 500) private String motifCdd;
+    @Column(name = "lieu_signature", length = 200) private String lieuSignature;
+    @Column(name = "date_signature") private LocalDate dateSignature;
     @Column(name = "statut", nullable = false, length = 30) private String statut;
     @Column(name = "date_generation") private LocalDateTime dateGeneration;
     @Column(name = "date_acceptation") private LocalDateTime dateAcceptation;

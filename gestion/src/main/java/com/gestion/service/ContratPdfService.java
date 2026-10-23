@@ -8,63 +8,172 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.springframework.stereotype.Service;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.Normalizer;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 @Service
 public class ContratPdfService {
-    public byte[] generer(Contrat c) {
-        try (PDDocument doc = new PDDocument(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            PDPage page = new PDPage(PDRectangle.A4); doc.addPage(page);
-            try (PDPageContentStream s = new PDPageContentStream(doc, page)) {
-                float y = 790;
-                y = line(s, "CONTRAT DE TRAVAIL " + c.getTypeContrat(), 50, y, 18, true) - 26;
-                y = line(s, "Document genere le " + DateTimeFormatter.ofPattern("dd/MM/yyyy").format(c.getDateGeneration().toLocalDate()), 50, y, 10, false) - 24;
-                y = section(s, "ENTRE LES SOUSSIGNES", y);
-                y = paragraph(s, "Employeur : " + c.getNomEmployeur() + " — " + c.getAdresseEmployeur(), y);
-                y = paragraph(s, "Salarie(e) : " + c.getNomSalarie() + " — " + c.getAdresseSalarie(), y) - 12;
-                y = section(s, "CONDITIONS D'EMPLOI", y);
-                y = paragraph(s, "Fonction : " + c.getFonction(), y);
-                y = paragraph(s, "Categorie professionnelle : " + c.getCategorieProfessionnelle(), y);
-                y = paragraph(s, "Indice minimum de classification : " + c.getIndiceClassification(), y);
-                y = paragraph(s, "Remuneration brute : " + NumberFormat.getIntegerInstance(Locale.FRANCE).format(c.getSalaire()) + " Ariary par mois", y);
-                y = paragraph(s, "Duree du travail : " + c.getDureeTravail(), y);
-                y = paragraph(s, "Lieu de travail : " + c.getLieuTravail(), y);
-                y = paragraph(s, "Date d'effet : " + c.getDateEffet().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), y);
-                if (c.getDateFin() != null) y = paragraph(s, "Terme : " + c.getDateFin().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), y);
-                if (c.getMotifCdd() != null && !c.getMotifCdd().isBlank()) y = paragraph(s, "Motif du CDD : " + c.getMotifCdd(), y);
-                y -= 14;
-                y = paragraph(s, "Le present contrat est soumis au Code du travail de Madagascar (loi n° 2024-014).", y);
-                y = paragraph(s, "Il est etabli en deux exemplaires. Chaque partie conserve un exemplaire apres signature.", y) - 28;
-                y = line(s, "Fait a ____________________, le ____ / ____ / ______", 50, y, 11, false) - 42;
-                line(s, "L'EMPLOYEUR                                         LE / LA SALARIE(E)", 50, y, 11, true);
-                line(s, "Signature precedee de la mention                 Signature precedee de la mention", 50, y-18, 9, false);
-                line(s, "Lu et approuve                                         Lu et approuve", 50, y-32, 9, false);
+
+    private static final float MARGE = 52;
+    private static final float LARGEUR = PDRectangle.A4.getWidth() - MARGE * 2;
+    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final PDType1Font NORMAL = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
+    private static final PDType1Font GRAS = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
+
+    public byte[] generer(Contrat contrat) {
+        try (PDDocument document = new PDDocument(); ByteArrayOutputStream sortie = new ByteArrayOutputStream()) {
+            PdfWriter pdf = new PdfWriter(document);
+            String statut = "ACCEPTE".equalsIgnoreCase(contrat.getStatut())
+                    ? "CONTRAT DE TRAVAIL " : "PROPOSITION DE CONTRAT DE TRAVAIL ";
+            pdf.titre(statut + contrat.getTypeContrat() + " - " + contrat.getNumeroContrat());
+            if (!"ACCEPTE".equalsIgnoreCase(contrat.getStatut())) {
+                pdf.texte("En attente de l'acceptation du/de la salarie(e).", 10);
+            } else if (contrat.getDateAcceptation() != null) {
+                pdf.texte("Acceptation enregistree le " + DATE.format(contrat.getDateAcceptation().toLocalDate()), 10);
             }
-            doc.save(out); return out.toByteArray();
-        } catch (IOException e) { throw new IllegalStateException("Impossible de generer le PDF du contrat.", e); }
-    }
-    private float section(PDPageContentStream s, String t, float y) throws IOException { return line(s, t, 50, y, 12, true)-18; }
-    private float paragraph(PDPageContentStream s, String t, float y) throws IOException {
-        String remaining = t;
-        while (remaining.length() > 92) {
-            int cut = remaining.lastIndexOf(' ', 92);
-            if (cut < 1) cut = 92;
-            line(s, remaining.substring(0, cut), 50, y, 11, false);
-            remaining = remaining.substring(cut).trim(); y -= 16;
+            pdf.texte("Document genere le " + DATE.format(contrat.getDateGeneration().toLocalDate()), 9);
+            pdf.espace(12);
+            pdf.section("ENTRE LES SOUSSIGNES");
+            pdf.paragraphe("L'employeur : " + contrat.getNomEmployeur() + ", dont l'adresse est "
+                    + contrat.getAdresseEmployeur() + ".");
+            pdf.paragraphe("Et le/la salarie(e) : " + contrat.getNomSalarie() + ", demeurant a "
+                    + contrat.getAdresseSalarie() + ".");
+            pdf.paragraphe("Les parties conviennent des conditions de travail suivantes.");
+
+            pdf.section("POSTE ET CLASSIFICATION");
+            pdf.paragraphe("Fonction : " + contrat.getFonction() + ".");
+            pdf.paragraphe("Categorie professionnelle : " + contrat.getCategorieProfessionnelle() + ".");
+            pdf.paragraphe("Indice minimum de classification : " + contrat.getIndiceClassification() + ".");
+            pdf.paragraphe("Lieu de travail : " + contrat.getLieuTravail() + ".");
+
+            pdf.section("DUREE ET DATE D'EFFET");
+            if ("CDD".equalsIgnoreCase(contrat.getTypeContrat())) {
+                pdf.paragraphe("Le present contrat est conclu a duree determinee, du "
+                        + DATE.format(contrat.getDateEffet()) + " au " + DATE.format(contrat.getDateFin()) + ".");
+                pdf.paragraphe("Motif et nature temporaire du besoin : " + contrat.getMotifCdd() + ".");
+            } else {
+                pdf.paragraphe("Le present contrat est conclu a duree indeterminee a compter du "
+                        + DATE.format(contrat.getDateEffet()) + ".");
+            }
+
+            pdf.section("REMUNERATION ET TEMPS DE TRAVAIL");
+            pdf.paragraphe("Salaire mensuel brut : "
+                    + NumberFormat.getIntegerInstance(Locale.FRANCE).format(contrat.getSalaire())
+                    + " Ariary, payable mensuellement selon les dispositions applicables.");
+            pdf.paragraphe("Duree du travail : " + contrat.getDureeTravail() + ".");
+            pdf.paragraphe("Les conditions d'execution du travail sont soumises au Code du travail malgache, "
+                    + "a la convention collective applicable et aux dispositions plus favorables convenues entre les parties.");
+
+            pdf.section("PRISE D'EFFET ET EXEMPLAIRES");
+            pdf.paragraphe("Le contrat prend effet a la date indiquee ci-dessus, sous reserve de son acceptation "
+                    + "par les deux parties. Il est etabli en deux exemplaires originaux, un pour chaque partie.");
+            pdf.espace(18);
+            String lieuSignature = contrat.getLieuSignature() == null || contrat.getLieuSignature().isBlank()
+                    ? "______________________________" : contrat.getLieuSignature();
+            pdf.paragraphe("Fait a " + lieuSignature + ", le ____ / ____ / ______");
+            pdf.espace(12);
+            pdf.paragraphe("L'EMPLOYEUR                                             LE / LA SALARIE(E)");
+            pdf.paragraphe("Nom : _____________________________       Nom : _____________________________");
+            pdf.paragraphe("Signature precedee de la mention                  Signature precedee de la mention");
+            pdf.paragraphe("Lu et approuve                                            Lu et approuve");
+            pdf.fermer();
+            document.save(sortie);
+            return sortie.toByteArray();
+        } catch (IOException e) {
+            throw new IllegalStateException("Impossible de generer le PDF du contrat.", e);
         }
-        line(s, remaining, 50, y, 11, false);
-        return y - 18;
     }
-    private float line(PDPageContentStream s, String t, float x, float y, int size, boolean bold) throws IOException {
-        var font = new PDType1Font(bold ? Standard14Fonts.FontName.HELVETICA_BOLD : Standard14Fonts.FontName.HELVETICA);
-        String safe = t.replace("’", "'").replace("—", "-").replace("°", "o")
-                .replace('\u202F', ' ').replace('\u00A0', ' ')
-                .replace("é", "e").replace("è", "e").replace("ê", "e").replace("à", "a")
-                .replace("ù", "u").replace("ç", "c").replace("ô", "o").replace("î", "i").replace("É", "E");
-        s.beginText(); s.setFont(font, size); s.newLineAtOffset(x,y); s.showText(safe); s.endText(); return y;
+
+    private static final class PdfWriter {
+        private final PDDocument document;
+        private PDPageContentStream contenu;
+        private float y;
+
+        private PdfWriter(PDDocument document) throws IOException {
+            this.document = document;
+            nouvellePage();
+        }
+
+        private void titre(String texte) throws IOException {
+            ecrire(texte, GRAS, 15);
+            espace(7);
+        }
+
+        private void section(String texte) throws IOException {
+            espace(8);
+            ecrire(texte, GRAS, 11);
+            espace(3);
+        }
+
+        private void paragraphe(String texte) throws IOException {
+            String restant = nettoyer(texte);
+            while (!restant.isEmpty()) {
+                verifierPlace(14);
+                int fin = dernierMotDansLargeur(restant, NORMAL, 10.5f, LARGEUR);
+                ecrire(restant.substring(0, fin), NORMAL, 10.5f);
+                restant = restant.substring(fin).stripLeading();
+            }
+            espace(5);
+        }
+
+        private void texte(String texte, float taille) throws IOException {
+            ecrire(texte, NORMAL, taille);
+        }
+
+        private void ecrire(String texte, PDType1Font police, float taille) throws IOException {
+            String propre = nettoyer(texte);
+            verifierPlace(taille + 5);
+            contenu.beginText();
+            contenu.setFont(police, taille);
+            contenu.newLineAtOffset(MARGE, y);
+            contenu.showText(propre);
+            contenu.endText();
+            y -= taille + 5;
+        }
+
+        private void espace(float hauteur) {
+            y -= hauteur;
+        }
+
+        private void verifierPlace(float hauteur) throws IOException {
+            if (y - hauteur < 48) nouvellePage();
+        }
+
+        private int dernierMotDansLargeur(String texte, PDType1Font police, float taille,
+                                          float largeur) throws IOException {
+            int fin = texte.length();
+            while (fin > 1 && police.getStringWidth(texte.substring(0, fin)) / 1000 * taille > largeur) {
+                fin--;
+            }
+            if (fin < texte.length()) {
+                int espace = texte.lastIndexOf(' ', fin);
+                if (espace > 0) fin = espace;
+            }
+            return Math.max(1, fin);
+        }
+
+        private void nouvellePage() throws IOException {
+            if (contenu != null) contenu.close();
+            PDPage page = new PDPage(PDRectangle.A4);
+            document.addPage(page);
+            contenu = new PDPageContentStream(document, page);
+            y = PDRectangle.A4.getHeight() - 52;
+        }
+
+        private void fermer() throws IOException {
+            if (contenu != null) contenu.close();
+        }
+    }
+
+    private static String nettoyer(String valeur) {
+        return Normalizer.normalize(valeur == null ? "" : valeur, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .replace("’", "'").replace("—", "-").replace("°", "o")
+                .replace('\u202F', ' ').replace('\u00A0', ' ');
     }
 }
