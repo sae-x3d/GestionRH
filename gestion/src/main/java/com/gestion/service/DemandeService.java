@@ -88,6 +88,12 @@ public class DemandeService {
     }
 
     @Transactional(readOnly = true)
+    public Demande trouverParId(Integer id) {
+        return demandeRepository.findById(id)
+                .orElseThrow(() -> new RessourceIntrouvableException("Demande introuvable : " + id));
+    }
+
+    @Transactional(readOnly = true)
     public Demande trouverPourUtilisateur(Integer id, Utilisateur utilisateur) {
         Demande demande = demandeRepository.findById(id)
                 .orElseThrow(() -> new RessourceIntrouvableException("Demande introuvable : " + id));
@@ -128,7 +134,7 @@ public class DemandeService {
         return demandeRepository.save(demande);
     }
 
-    private boolean peutConsulter(Demande demande, Utilisateur utilisateur) {
+    public boolean peutConsulter(Demande demande, Utilisateur utilisateur) {
         if (estAdminOuRh(utilisateur)) {
             return true;
         }
