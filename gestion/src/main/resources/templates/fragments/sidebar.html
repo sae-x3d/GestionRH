@@ -4,7 +4,7 @@
     </div>
 
     <nav>
-        <a th:href="@{/demandes}">Demandes</a>
+        <a sec:authorize="!hasAuthority('ROLE_UTILISATEUR')" th:href="@{/demandes}">Demandes</a>
         <a sec:authorize="hasAuthority('ROLE_RH')"
            th:href="@{/demandes/validation-rh}">Validation RH</a>
         <a sec:authorize="hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMINISTRATEUR')"
