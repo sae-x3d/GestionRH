@@ -14,6 +14,13 @@
 
     <div class="page-header">
         <h2>Candidatures recues</h2>
+        <div class="page-actions">
+            <a th:href="@{/candidatures/rh(statut='RETENUE')}"
+               th:classappend="${statut != null and statut.equalsIgnoreCase('RETENUE')} ? 'btn btn-primary' : 'btn btn-outline'">
+                À statuer (après entretiens/tests)
+            </a>
+            <a th:href="@{/candidatures/rh}" class="btn btn-outline">Toutes les candidatures</a>
+        </div>
     </div>
 
     <div class="alert-success" th:if="${succes}" th:text="${succes}">Action enregistree</div>
@@ -38,7 +45,7 @@
                         <option value="">Tous les statuts</option>
                         <option th:each="s : ${statuts}" th:value="${s.libelle}"
                                 th:text="${s.libelle}"
-                                th:selected="${statut != null and statut == s.libelle}">Statut</option>
+                                th:selected="${statut != null and statut.equalsIgnoreCase(s.libelle)}">Statut</option>
                     </select>
                 </div>
             </div>

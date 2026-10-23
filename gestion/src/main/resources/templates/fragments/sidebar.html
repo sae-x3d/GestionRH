@@ -7,14 +7,16 @@
         <a th:href="@{/demandes}">Demandes</a>
         <a sec:authorize="hasAuthority('ROLE_RH')"
            th:href="@{/demandes/validation-rh}">Validation RH</a>
-        <a sec:authorize="hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMINISTRATEUR')"
+        <a sec:authorize="hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMINISTRATEUR', 'ROLE_RH')"
            th:href="@{/demandes/nouvelle}">Nouvelle demande</a>
         <a th:href="@{/offres}">Offres d'emploi</a>
         <a sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')" th:href="@{/offres/gestion}">Gerer les offres</a>
+        <a sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')" th:href="@{/candidatures/rh/validation-embauche}">Validation embauche</a>
         <a th:href="@{/candidatures}">Mes candidatures</a>
         <a sec:authorize="hasAnyRole('UTILISATEUR', 'EMPLOYE', 'MANAGER')" th:href="@{/candidatures/postuler}">Postuler</a>
+        <a sec:authorize="hasAnyRole('UTILISATEUR', 'EMPLOYE', 'MANAGER')" th:href="@{/candidatures/proposition}">Ma proposition</a>
 
-        <a th:if="${estFinance or estAdministrateur}" th:href="@{/demandes/validation/finance}">Validation Finance</a>
+        <a th:if="${estFinance or estAdministrateur or estRh}" th:href="@{/demandes/validation/finance}">Validation Finance</a>
         <a th:if="${estAdministrateur}" th:href="@{/demandes/validation/direction}">Validation Direction</a>
         <a th:if="${estRh or estAdministrateur}" th:href="@{/candidatures/rh}">Candidatures RH</a>
     </nav>

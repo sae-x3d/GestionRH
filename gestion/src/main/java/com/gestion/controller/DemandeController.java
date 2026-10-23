@@ -225,10 +225,10 @@ public class DemandeController {
         boolean autorise = authentication.getAuthorities().stream()
                 .anyMatch(authority -> {
                     String a = authority.getAuthority();
-                    return "ROLE_ADMINISTRATEUR".equals(a) || "ROLE_MANAGER".equals(a);
+                    return "ROLE_ADMINISTRATEUR".equals(a) || "ROLE_MANAGER".equals(a) || "ROLE_RH".equals(a);
                 });
         if (!autorise) {
-            throw new AccessDeniedException("Seuls les managers et l'administration peuvent creer une demande de recrutement.");
+            throw new AccessDeniedException("Seuls les managers, la RH et l'administration peuvent creer une demande de recrutement.");
         }
     }
 }

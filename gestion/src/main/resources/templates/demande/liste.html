@@ -17,7 +17,7 @@
             <div class="page-actions">
                 <a sec:authorize="hasAuthority('ROLE_RH')"
                    th:href="@{/demandes/validation-rh}" class="btn btn-outline">Validation RH</a>
-                <a sec:authorize="hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMINISTRATEUR')"
+                <a sec:authorize="hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMINISTRATEUR', 'ROLE_RH')"
                    th:href="@{/demandes/nouvelle}" class="btn btn-primary">Nouvelle demande</a>
             </div>
         </div>

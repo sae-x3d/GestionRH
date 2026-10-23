@@ -104,8 +104,12 @@ public class ValidationDemandeController {
             throw new AccessDeniedException("Utilisateur non authentifie.");
         }
         boolean autorise = authentication.getAuthorities().stream()
-                .anyMatch(authority -> "ROLE_ADMINISTRATEUR".equals(authority.getAuthority())
-                        || "ROLE_RH".equals(authority.getAuthority()));
+                .anyMatch(authority -> {
+                    String a = authority.getAuthority();
+                    return "ROLE_ADMINISTRATEUR".equals(a)
+                            || "ROLE_RH".equals(a)
+                            || "ROLE_FINANCE".equals(a);
+                });
         if (autorise) {
             return;
         }
@@ -117,7 +121,7 @@ public class ValidationDemandeController {
                 return;
             }
         }
-        throw new AccessDeniedException("Seuls les membres du departement Finance peuvent valider un budget.");
+        throw new AccessDeniedException("Seuls les membres du departement Finance ou les utilisateurs avec le role Finance peuvent valider un budget.");
     }
 
     private void verifierDirection(Authentication authentication) {

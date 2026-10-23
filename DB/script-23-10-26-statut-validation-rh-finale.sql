@@ -1,0 +1,9 @@
+BEGIN;
+
+INSERT INTO candidature_status (libelle)
+SELECT 'EN_ATTENTE_VALIDATION_RH_FINAL'
+WHERE NOT EXISTS (
+    SELECT 1 FROM candidature_status WHERE UPPER(libelle) = 'EN_ATTENTE_VALIDATION_RH_FINAL'
+);
+
+COMMIT;

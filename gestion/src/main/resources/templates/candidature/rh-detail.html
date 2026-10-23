@@ -188,6 +188,14 @@
         </div>
     </section>
 
+    <section class="card gestion-section" th:if="${candidature.statut.libelle == 'ACCEPTEE'}">
+        <h3>Proposition d'embauche</h3>
+        <p class="help-text">Générer ou consulter la proposition d'embauche pour ce candidat.</p>
+        <div class="actions">
+            <a th:href="@{/candidatures/rh/{id}/proposition(id=${candidature.idCandidature})}" class="btn btn-primary btn-small">Gérer la proposition</a>
+        </div>
+    </section>
+
 </div>
 </body>
 

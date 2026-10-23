@@ -80,7 +80,7 @@ public class DemandeService {
     }
 
     public boolean peutCreer(Utilisateur utilisateur) {
-        return estManager(utilisateur) || estAdmin(utilisateur);
+        return estManager(utilisateur) || estAdmin(utilisateur) || estRole(utilisateur, "RH");
     }
 
     public boolean peutFiltrerParDepartement(Utilisateur utilisateur) {

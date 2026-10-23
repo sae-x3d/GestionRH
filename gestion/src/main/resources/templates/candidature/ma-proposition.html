@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+<head>
+    <title>Ma proposition d'embauche</title>
+    <link rel="stylesheet" th:href="@{/css/candidature.css}">
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="page-header">
+        <h2>Ma proposition d'embauche</h2>
+        <div class="page-actions">
+            <a th:href="@{/candidatures}" class="btn btn-outline">Mes candidatures</a>
+        </div>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}"></div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}"></div>
+
+    <section class="card gestion-section" th:if="${proposition == null}">
+        <p class="empty-state">Aucune proposition d'embauche pour le moment.</p>
+    </section>
+
+    <section class="card gestion-section" th:if="${proposition != null}">
+        <h3>Proposition reçue</h3>
+        <p class="help-text">Veuillez prendre connaissance attentivement des conditions ci-dessous et répondre dans les délais indiqués.</p>
+
+        <div class="info-grid">
+            <div><strong>Offre :</strong> <span th:text="${proposition.offre.titre}"></span></div>
+            <div><strong>Statut :</strong> <span th:text="${proposition.statut}"></span></div>
+            <div><strong>Proposée le :</strong> <span th:text="${#temporals.format(proposition.dateProposition, 'dd/MM/yyyy HH:mm')}"></span></div>
+            <div><strong>À répondre avant le :</strong> <span th:text="${proposition.dateExpiration != null ? #temporals.format(proposition.dateExpiration, 'dd/MM/yyyy HH:mm') : '-'}"></span></div>
+            <div><strong>Réponse le :</strong> <span th:text="${proposition.dateReponse != null ? #temporals.format(proposition.dateReponse, 'dd/MM/yyyy HH:mm') : '-'}"></span></div>
+        </div>
+
+        <h4>Conditions d'embauche</h4>
+        <div class="info-grid">
+            <div><strong>Poste proposé :</strong> <span th:text="${proposition.postePropose != null ? proposition.postePropose : '-'}"></span></div>
+            <div><strong>Département :</strong> <span th:text="${proposition.departementPropose != null ? proposition.departementPropose : '-'}"></span></div>
+            <div><strong>Lieu de travail :</strong> <span th:text="${proposition.lieuTravail != null ? proposition.lieuTravail : '-'}"></span></div>
+            <div><strong>Type de contrat :</strong> <span th:text="${proposition.typeContrat != null ? proposition.typeContrat : '-'}"></span></div>
+            <div><strong>Salaire brut proposé :</strong> <span th:text="${proposition.salairePropose != null ? proposition.salairePropose + ' Ar' : '-'}"></span></div>
+            <div><strong>Période d'essai :</strong> <span th:text="${proposition.periodeEssaiMois != null ? proposition.periodeEssaiMois + ' mois' : '-'}"></span></div>
+            <div><strong>Date d'embauche souhaitée :</strong> <span th:text="${proposition.dateEmbaucheSouhaitee != null ? #temporals.format(proposition.dateEmbaucheSouhaitee, 'dd/MM/yyyy') : '-'}"></span></div>
+        </div>
+
+        <h4>Avantages</h4>
+        <p th:text="${proposition.avantages != null and !#strings.isEmpty(proposition.avantages) ? proposition.avantages : 'Aucun avantage précisé.'}"></p>
+
+        <h4>Autres conditions</h4>
+        <p th:text="${proposition.autresConditions != null and !#strings.isEmpty(proposition.autresConditions) ? proposition.autresConditions : 'Aucune condition particulière précisée.'}"></p>
+
+        <h4>Message de la RH</h4>
+        <p th:text="${proposition.message}"></p>
+
+        <div class="form-group" th:if="${proposition.motifRefus != null}">
+            <h4>Votre motif de refus</h4>
+            <p th:text="${proposition.motifRefus}"></p>
+        </div>
+
+        <div th:if="${proposition.statut == 'EN_ATTENTE'}">
+            <h4>Votre réponse</h4>
+            <p class="help-text">En acceptant, vous confirmez votre accord sur l'intégralité des conditions proposées. En refusant, votre candidature sera clôturée.</p>
+            <div class="actions">
+                <form th:action="@{/candidatures/proposition/{id}/accepter(id=${proposition.idProposition})}" method="post" class="inline-form">
+                    <button type="submit" class="btn btn-primary btn-small">J'accepte toutes les conditions</button>
+                </form>
+            </div>
+            <div class="form-group" style="margin-top: 1rem;">
+                <form th:action="@{/candidatures/proposition/{id}/refuser(id=${proposition.idProposition})}" method="post">
+                    <label for="motifRefus">Motif de refus (facultatif)</label>
+                    <textarea id="motifRefus" name="motifRefus" class="form-control" rows="3" placeholder="Vous pouvez indiquer brièvement votre motif"></textarea>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-outline">Je refuse la proposition (clôturer ma candidature)</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div th:if="${proposition.statut == 'ACCEPTEE' and proposition.candidature != null and proposition.candidature.statut != null and proposition.candidature.statut.libelle == 'EN_ATTENTE_VALIDATION_RH_FINAL'}">
+            <h4>Réponse enregistrée</h4>
+            <p class="help-text">Vous avez accepté l'intégralité des conditions proposées le <span th:text="${#temporals.format(proposition.dateReponse, 'dd/MM/yyyy HH:mm')}"></span>. Votre dossier est en attente de validation finale par la RH.</p>
+        </div>
+
+        <div th:if="${proposition.statut == 'ACCEPTEE' and (proposition.candidature == null or proposition.candidature.statut == null or proposition.candidature.statut.libelle != 'EN_ATTENTE_VALIDATION_RH_FINAL')}">
+            <h4>Réponse enregistrée</h4>
+            <p class="help-text">Vous avez accepté l'intégralité des conditions proposées le <span th:text="${#temporals.format(proposition.dateReponse, 'dd/MM/yyyy HH:mm')}"></span>. Votre embauche a été finalisée.</p>
+        </div>
+
+        <div th:if="${proposition.statut == 'REFUSEE'}">
+            <h4>Réponse enregistrée</h4>
+            <p class="help-text">Vous avez refusé cette proposition le <span th:text="${#temporals.format(proposition.dateReponse, 'dd/MM/yyyy HH:mm')}"></span>. Votre candidature a été clôturée.</p>
+        </div>
+    </section>
+</div>
+</body>
+</html>

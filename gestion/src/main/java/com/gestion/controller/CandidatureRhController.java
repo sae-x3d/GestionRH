@@ -8,9 +8,11 @@ import com.gestion.model.Utilisateur;
 import com.gestion.service.CandidatureService;
 import com.gestion.service.CandidatureStatusService;
 import com.gestion.service.OffreEmploiService;
+import com.gestion.service.PropositionEmbaucheService;
 import com.gestion.service.UtilisateurDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -33,6 +35,7 @@ public class CandidatureRhController {
     private final CandidatureService candidatureService;
     private final OffreEmploiService offreEmploiService;
     private final CandidatureStatusService candidatureStatusService;
+    private final PropositionEmbaucheService propositionEmbaucheService;
 
     @GetMapping
     public String liste(@RequestParam(name = "offreId", required = false) Integer offreId,
@@ -114,6 +117,44 @@ public class CandidatureRhController {
         }
         return executer(id, "Candidature refusee apres decision finale.",
                 () -> candidatureService.refuser(id), redirectAttributes);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMINISTRATEUR', 'ROLE_RH')")
+    @GetMapping("/validation-embauche")
+    public String listeValidationEmbauche(Model model, Authentication authentication) {
+        model.addAttribute("pageTitle", "Validation finale embauche");
+        model.addAttribute("candidatures", candidatureService.rechercherPourRh(null, "EN_ATTENTE_VALIDATION_RH_FINAL"));
+        model.addAttribute("offres", offreEmploiService.listerToutes());
+        model.addAttribute("statuts", candidatureStatusService.listerTous());
+        model.addAttribute("demandeur", utilisateurCourant(authentication));
+        return "candidature/rh-validation-embauche";
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMINISTRATEUR', 'ROLE_RH')")
+    @PostMapping("/{id}/valider-embauche")
+    public String validerEmbauche(@PathVariable Integer id, Authentication authentication, RedirectAttributes redirectAttributes) {
+        try {
+            propositionEmbaucheService.validerEmbaucheApresAcceptationCandidat(id, utilisateurCourant(authentication));
+            redirectAttributes.addFlashAttribute("succes", "Embauche validee. Le dossier est finalise et l'employe a ete cree.");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("erreur", ex.getMessage());
+        }
+        return "redirect:/candidatures/rh/validation-embauche";
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMINISTRATEUR', 'ROLE_RH')")
+    @PostMapping("/{id}/refuser-embauche")
+    public String refuserEmbauche(@PathVariable Integer id,
+                                  @RequestParam(value = "motifRefus", required = false) String motifRefus,
+                                  Authentication authentication,
+                                  RedirectAttributes redirectAttributes) {
+        try {
+            propositionEmbaucheService.refuserEmbaucheApresAcceptationCandidat(id, utilisateurCourant(authentication), motifRefus);
+            redirectAttributes.addFlashAttribute("succes", "Embauche refusee par la RH. Le dossier est cloture.");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("erreur", ex.getMessage());
+        }
+        return "redirect:/candidatures/rh/validation-embauche";
     }
 
     private String executer(Integer id, String message, Runnable action,

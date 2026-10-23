@@ -22,6 +22,10 @@
         Vous n'avez encore postule a aucune offre.
     </p>
 
+    <div style="margin-bottom: 1rem;">
+        <a th:href="@{/candidatures/proposition}" class="btn btn-outline">Ma proposition d'embauche</a>
+    </div>
+
     <div class="table-wrapper" th:unless="${#lists.isEmpty(candidatures)}">
         <table class="data-table">
             <thead>

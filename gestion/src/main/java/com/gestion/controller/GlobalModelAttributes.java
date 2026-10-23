@@ -39,13 +39,21 @@ public class GlobalModelAttributes {
 
     @ModelAttribute("estFinance")
     public boolean estFinance(Authentication authentication) {
-        if (!(authentication != null && authentication.getPrincipal() instanceof UtilisateurDetails details)) {
+        if (authentication == null) {
             return false;
         }
-        Utilisateur utilisateur = details.getUtilisateur();
-        return utilisateur.getEmploye() != null
-                && utilisateur.getEmploye().getDepartement() != null
-                && "Finance".equalsIgnoreCase(utilisateur.getEmploye().getDepartement().getNomDept());
+        boolean hasRoleFinance = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_FINANCE".equals(authority.getAuthority()));
+        if (hasRoleFinance) {
+            return true;
+        }
+        if (authentication.getPrincipal() instanceof UtilisateurDetails details) {
+            Utilisateur utilisateur = details.getUtilisateur();
+            return utilisateur.getEmploye() != null
+                    && utilisateur.getEmploye().getDepartement() != null
+                    && "Finance".equalsIgnoreCase(utilisateur.getEmploye().getDepartement().getNomDept());
+        }
+        return false;
     }
 
     private boolean aRole(Authentication authentication, String role) {
