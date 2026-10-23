@@ -26,3 +26,19 @@
     margin-top: 0.3rem;
     margin-bottom: 1.5rem;
 }
+
+.login-back {
+    text-align: center;
+    margin: 1.4rem 0 0;
+    font-size: 0.9rem;
+    color: var(--muted-color);
+}
+
+.login-back a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.login-back a:hover {
+    text-decoration: underline;
+}

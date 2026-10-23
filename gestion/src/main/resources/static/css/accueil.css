@@ -1,0 +1,249 @@
+.accueil-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--background-color);
+}
+
+.accueil-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 2rem;
+    background: #fff;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.accueil-brand {
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--primary-color);
+}
+
+.accueil-topnav {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+}
+
+.accueil-topnav a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.accueil-topnav a:hover {
+    color: var(--primary-color);
+}
+
+.accueil-topnav .topnav-cta {
+    background: var(--primary-color);
+    color: #fff;
+    padding: 0.45rem 1rem;
+    border-radius: 4px;
+}
+
+.accueil-topnav .topnav-cta:hover {
+    color: #fff;
+    background: #17395a;
+}
+
+.accueil-main {
+    flex: 1;
+    width: 100%;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 2rem 3rem;
+}
+
+.hero {
+    margin: 2rem 0 2.5rem;
+    border-radius: 12px;
+    background: linear-gradient(120deg, #1f4e79 0%, #2f6ea6 100%);
+    color: #fff;
+    padding: 3.2rem 2.5rem;
+}
+
+.hero-eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.78rem;
+    opacity: 0.85;
+    margin: 0 0 0.8rem;
+}
+
+.hero-title {
+    margin: 0;
+    font-size: 2.4rem;
+    line-height: 1.15;
+}
+
+.hero-text {
+    max-width: 620px;
+    margin: 1rem 0 1.8rem;
+    font-size: 1.05rem;
+    opacity: 0.95;
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.hero-actions .btn-primary {
+    background: #fff;
+    color: var(--primary-color);
+}
+
+.hero-actions .btn-primary:hover {
+    background: #eaf1f8;
+}
+
+.hero-actions .btn-outline {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.7);
+    color: #fff;
+}
+
+.hero-actions .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.accueil-section {
+    margin-bottom: 2.5rem;
+}
+
+.section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.section-head h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--text-color);
+}
+
+.section-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.section-link:hover {
+    text-decoration: underline;
+}
+
+.offre-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.2rem;
+}
+
+.offre-card {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1.3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.offre-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.8rem;
+}
+
+.offre-card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--primary-color);
+}
+
+.offre-type {
+    background: var(--primary-light);
+    color: var(--primary-color);
+    border-radius: 999px;
+    padding: 0.15rem 0.7rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.offre-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.9rem;
+    margin: 0;
+    color: var(--muted-color);
+    font-size: 0.88rem;
+}
+
+.offre-excerpt {
+    margin: 0;
+    color: var(--text-color);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: pre-line;
+}
+
+.offre-card-footer {
+    margin-top: auto;
+    padding-top: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+}
+
+.offre-salaire {
+    color: var(--muted-color);
+    font-size: 0.9rem;
+}
+
+.valeur-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.2rem;
+}
+
+.valeur-card {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--primary-color);
+    border-radius: var(--radius);
+    padding: 1.3rem;
+}
+
+.valeur-card h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.05rem;
+    color: var(--primary-color);
+}
+
+.valeur-card p {
+    margin: 0;
+    color: var(--muted-color);
+    font-size: 0.92rem;
+}
+
+.accueil-footer {
+    border-top: 1px solid var(--border-color);
+    background: #fff;
+    padding: 1.2rem 2rem;
+    text-align: center;
+    color: var(--muted-color);
+    font-size: 0.85rem;
+}

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accueil - GestionRH</title>
+    <link rel="stylesheet" th:href="@{/css/variables.css}">
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/components.css}">
+    <link rel="stylesheet" th:href="@{/css/accueil.css}">
+</head>
+
+<body class="accueil-page">
+
+<header class="accueil-topbar">
+    <div class="accueil-brand"></div>
+    <nav class="accueil-topnav">
+        <a th:href="@{/offres}">Offres d'emploi</a>
+        <a th:if="${estAuthentifie}" th:href="@{/candidatures}">Mes candidatures</a>
+        <a th:if="${estAuthentifie}" th:href="@{/candidatures/postuler}">Postuler</a>
+        <a th:if="${estAuthentifie}" th:href="@{/demandes}">Mon espace</a>
+        <a th:unless="${estAuthentifie}" th:href="@{/connexion}" class="topnav-cta">Se connecter</a>
+    </nav>
+</header>
+
+<main class="accueil-main">
+
+    <section class="hero">
+        <div class="hero-inner">
+            <p class="hero-eyebrow">Portail carriere</p>
+            <h1 class="hero-title">Rejoignez notre equipe</h1>
+            <p class="hero-text">
+                Decouvrez nos offres d'emploi, postulez en quelques minutes et suivez
+                l'avancement de vos candidatures depuis un espace unique.
+            </p>
+            <div class="hero-actions">
+                <a th:href="@{/offres}" class="btn btn-primary">Voir les offres</a>
+                <a th:if="${estAuthentifie}" th:href="@{/candidatures/postuler}" class="btn btn-outline">
+                    Postuler maintenant
+                </a>
+                <a th:unless="${estAuthentifie}" th:href="@{/connexion}" class="btn btn-outline">
+                    Se connecter
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="accueil-section">
+        <div class="section-head">
+            <h2>Nos offres a la une</h2>
+            <a th:href="@{/offres}" class="section-link">Voir toutes les offres</a>
+        </div>
+
+        <div class="alert-info" th:if="${#lists.isEmpty(offres)}">
+            Aucune offre d'emploi n'est publiee pour le moment. Revenez bientot.
+        </div>
+
+        <div class="offre-list" th:unless="${#lists.isEmpty(offres)}">
+            <article class="offre-card" th:each="offre : ${offres}">
+                <div class="offre-card-header">
+                    <h3 th:text="${offre.titre}">Titre de l'offre</h3>
+                    <span class="offre-type" th:if="${offre.typeContrat}" th:text="${offre.typeContrat}">CDI</span>
+                </div>
+
+                <p class="offre-meta">
+                    <span th:if="${offre.demande != null and offre.demande.poste != null}"
+                          th:text="${offre.demande.poste.nomPoste}">Poste</span>
+                    <span th:if="${offre.demande != null and offre.demande.departement != null}"
+                          th:text="${offre.demande.departement.nomDept}">Departement</span>
+                    <span th:if="${offre.lieu}" th:text="${offre.lieu}">Lieu</span>
+                </p>
+
+                <p class="offre-excerpt" th:text="${offre.description}">Description de l'offre</p>
+
+                <div class="offre-card-footer">
+                    <span class="offre-salaire" th:if="${offre.salaire != null}"
+                          th:text="${#numbers.formatInteger(offre.salaire, 1, 'POINT')} + ' Ar'">Salaire</span>
+                    <a th:href="@{/offres/{id}(id=${offre.idOffre})}" class="btn btn-primary">Voir l'offre</a>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="accueil-section valeur-section">
+        <article class="valeur-card">
+            <h3>Offres verifiees</h3>
+            <p>Chaque offre publiee correspond a un besoin valide par nos equipes RH, budget et direction.</p>
+        </article>
+        <article class="valeur-card">
+            <h3>Candidature simplifiee</h3>
+            <p>Postulez en quelques clics avec votre CV et suivez l'etat de votre dossier a tout moment.</p>
+        </article>
+        <article class="valeur-card">
+            <h3>Suivi transparent</h3>
+            <p>Recevez les etapes cles de votre parcours, de l'examen du dossier a la proposition d'embauche.</p>
+        </article>
+    </section>
+
+</main>
+
+<footer class="accueil-footer">
+    <span>GestionRH - Plateforme de gestion des recrutements</span>
+</footer>
+
+</body>
+
+</html>

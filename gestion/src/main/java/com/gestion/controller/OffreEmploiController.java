@@ -205,6 +205,6 @@ public class OffreEmploiController {
         if (authentication != null && authentication.getPrincipal() instanceof UtilisateurDetails details) {
             return details.getUtilisateur();
         }
-        throw new IllegalStateException("Aucun utilisateur authentifie");
+        return null;
     }
 }
