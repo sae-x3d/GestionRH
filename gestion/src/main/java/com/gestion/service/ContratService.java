@@ -104,19 +104,12 @@ public class ContratService {
         }
         Utilisateur user = utilisateurRepository.verrouillerParId(userId)
                 .orElseThrow(() -> new IllegalStateException("Candidat introuvable."));
-        Employe emp = user.getEmploye();
+        Employe emp = user.getEmploye() != null ? user.getEmploye() : c.getEmploye();
         if (emp == null) {
-            var demande = c.getCandidature().getOffre().getDemande();
-            Provenance provenance = provenanceRepository.findAll().stream()
-                    .filter(p -> "Recrutement externe".equalsIgnoreCase(p.getLibelle()))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException(
-                            "La provenance 'Recrutement externe' manque dans la base."));
-            emp = Employe.builder().nomEmp(c.getNomSalarie())
-                    .dateEmbauche(c.getDateEffet().atStartOfDay())
-                    .poste(demande.getPoste()).departement(demande.getDepartement())
-                    .salaireEmp(c.getSalaire()).provenance(provenance).build();
+            emp = creerEmployeDepuisContrat(c);
             emp = employeRepository.save(emp);
+        }
+        if (user.getEmploye() == null) {
             user.setEmploye(emp);
             utilisateurRepository.save(user);
         }
@@ -125,6 +118,32 @@ public class ContratService {
         c.setStatut("ACCEPTE");
         c.setPdf(pdfService.generer(c));
         return contratRepository.save(c);
+    }
+
+    private Employe creerEmployeDepuisContrat(Contrat contrat) {
+        OffreEmploi offre = contrat.getCandidature().getOffre();
+        Demande demande = offre == null ? null : offre.getDemande();
+        if (demande == null || demande.getPoste() == null || demande.getDepartement() == null) {
+            throw new IllegalStateException(
+                    "Le poste et le departement valides de la demande sont requis pour creer la fiche employe.");
+        }
+        if (contrat.getNomSalarie() == null || contrat.getNomSalarie().isBlank()
+                || contrat.getDateEffet() == null || contrat.getSalaire() == null || contrat.getSalaire() <= 0) {
+            throw new IllegalStateException(
+                    "Le nom, la date d'embauche et le salaire du contrat doivent etre valides.");
+        }
+        Provenance provenance = provenanceRepository.findByLibelleIgnoreCase("Recrutement externe")
+                .orElseThrow(() -> new IllegalStateException(
+                        "La provenance 'Recrutement externe' manque dans la base."));
+
+        return Employe.builder()
+                .nomEmp(contrat.getNomSalarie().trim())
+                .dateEmbauche(contrat.getDateEffet().atStartOfDay())
+                .poste(demande.getPoste())
+                .departement(demande.getDepartement())
+                .salaireEmp(contrat.getSalaire())
+                .provenance(provenance)
+                .build();
     }
 
     private Contrat creer(Candidature candidature, CreerContratDTO dto) {
