@@ -769,6 +769,9 @@ WHERE NOT EXISTS (
 -- n'existe encore (les anciennes versions avaient une structure incomplete).
 DROP TABLE IF EXISTS reponse CASCADE;
 DROP TABLE IF EXISTS entretien CASCADE;
+DROP TABLE IF EXISTS reponse_contrat CASCADE;
+DROP TABLE IF EXISTS question_contrat CASCADE;
+DROP TABLE IF EXISTS notification CASCADE;
 DROP TABLE IF EXISTS question CASCADE;
 DROP TABLE IF EXISTS info CASCADE;
 DROP TABLE IF EXISTS candidature CASCADE;
@@ -810,6 +813,7 @@ CREATE TABLE candidature (
     cv_num VARCHAR(255),
     date_candidature TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     date_decision TIMESTAMP,
+    salaire_convenu INT,
     id_candidature_status INT NOT NULL REFERENCES candidature_status(id_candidature_status),
     CONSTRAINT uk_candidature_user_offre UNIQUE (id_user, id_offre)
 );
@@ -877,6 +881,52 @@ CREATE TABLE entretien (
 CREATE INDEX idx_entretien_candidature
     ON entretien(id_candidature);
 
+-- Questionnaire global du contrat, commun a toutes les candidatures.
+CREATE TABLE question_contrat (
+    id_question_contrat SERIAL PRIMARY KEY,
+    libelle VARCHAR(255) NOT NULL,
+    ordre INT NOT NULL DEFAULT 1,
+    actif BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- Reponses et propositions successives sur le contrat.
+CREATE TABLE reponse_contrat (
+    id_reponse_contrat SERIAL PRIMARY KEY,
+    id_candidature INT NOT NULL REFERENCES candidature(id_candidature) ON DELETE CASCADE,
+    id_question_contrat INT REFERENCES question_contrat(id_question_contrat) ON DELETE SET NULL,
+    code VARCHAR(30),
+    accepte BOOLEAN NOT NULL DEFAULT FALSE,
+    proposition TEXT,
+    numero_tour INT NOT NULL,
+    auteur VARCHAR(20) NOT NULL,
+    date_reponse TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_reponse_contrat_auteur CHECK (auteur IN ('CANDIDAT', 'RH'))
+);
+
+CREATE INDEX idx_reponse_contrat_candidature
+    ON reponse_contrat(id_candidature);
+
+CREATE INDEX idx_reponse_contrat_tour
+    ON reponse_contrat(id_candidature, numero_tour);
+
+-- Notifications in-app.
+CREATE TABLE notification (
+    id_notification SERIAL PRIMARY KEY,
+    id_user INT NOT NULL REFERENCES utilisateur(id_user) ON DELETE CASCADE,
+    type VARCHAR(50),
+    message VARCHAR(500) NOT NULL,
+    lien VARCHAR(500),
+    date_creation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date_lecture TIMESTAMP,
+    lu BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX idx_notification_user
+    ON notification(id_user);
+
+CREATE INDEX idx_notification_user_lu
+    ON notification(id_user, lu);
+
 
 -- Niveaux diplomes : Bacc+1 a Bacc+7 (reserves au parcours "Etude")
 INSERT INTO niveau (libelle, categorie)
@@ -906,9 +956,23 @@ WHERE NOT EXISTS (
 
 INSERT INTO candidature_status (libelle)
 SELECT t.libelle
-FROM (VALUES ('RECUE'), ('EN_EXAMEN'), ('RETENUE'), ('REFUSEE'), ('ACCEPTEE')) AS t(libelle)
+FROM (VALUES ('RECUE'), ('EN_EXAMEN'), ('CONVOQUE'), ('RETENU'), ('RETENUE'),
+             ('PROPOSITION'), ('REFUSEE'), ('ACCEPTEE'), ('CONTRAT_REFUSE')) AS t(libelle)
 WHERE NOT EXISTS (
     SELECT 1 FROM candidature_status c WHERE c.libelle = t.libelle
+);
+
+-- Questions par defaut du questionnaire contrat (modifiables par les RH).
+INSERT INTO question_contrat (libelle, ordre, actif)
+SELECT t.libelle, t.ordre, TRUE
+FROM (VALUES
+    ('J accepte le type de contrat propose.', 1),
+    ('J accepte la date d effet proposee.', 2),
+    ('J accepte le lieu de travail propose.', 3),
+    ('J accepte la duree du travail proposee.', 4)
+) AS t(libelle, ordre)
+WHERE NOT EXISTS (
+    SELECT 1 FROM question_contrat q WHERE q.libelle = t.libelle
 );
 
 
