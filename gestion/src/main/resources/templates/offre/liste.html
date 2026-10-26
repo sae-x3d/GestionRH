@@ -33,7 +33,6 @@
         <article class="offre-card" th:each="offre : ${offres}">
             <div class="offre-card-header">
                 <h3 th:text="${offre.titre}">Titre de l'offre</h3>
-                <span class="offre-type" th:if="${offre.typeContrat}" th:text="${offre.typeContrat}">CDI</span>
             </div>
 
             <p class="offre-meta">

@@ -75,18 +75,6 @@
                        th:errorclass="is-invalid">
                 <span class="field-error" th:if="${#fields.hasErrors('lieu')}" th:errors="*{lieu}"></span>
             </div>
-
-            <div class="form-group">
-                <label for="typeContrat">Type de contrat <span class="required">*</span></label>
-                <select id="typeContrat" class="form-select" th:field="*{typeContrat}" th:errorclass="is-invalid">
-                    <option value="CDI">CDI</option>
-                    <option value="CDD">CDD</option>
-                    <option value="Stage">Stage</option>
-                    <option value="Alternance">Alternance</option>
-                    <option value="Freelance">Freelance</option>
-                </select>
-                <span class="field-error" th:if="${#fields.hasErrors('typeContrat')}" th:errors="*{typeContrat}"></span>
-            </div>
         </div>
 
         <div class="form-group">
