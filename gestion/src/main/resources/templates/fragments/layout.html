@@ -17,21 +17,22 @@
 
 <div class="app">
 
-    <!-- Barre de navigation laterale -->
     <aside class="sidebar" th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <div class="sidebar-backdrop" aria-hidden="true"></div>
 
     <div class="main">
 
-        <!-- En-tete de page -->
         <header class="header" th:replace="~{fragments/header :: header}"></header>
 
-        <!-- Contenu specifique a la page -->
         <main class="content" layout:fragment="content">
         </main>
 
     </div>
 
 </div>
+
+<script th:src="@{/js/app.js}" defer></script>
 
 </body>
 

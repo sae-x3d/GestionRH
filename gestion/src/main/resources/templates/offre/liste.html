@@ -13,7 +13,11 @@
 <div layout:fragment="content">
 
     <div class="page-header">
-        <h2>Fil d'actualite</h2>
+        <div>
+            <span class="eyebrow">Opportunites</span>
+            <h2>Offres d'emploi</h2>
+            <p>Decouvrez les postes ouverts et les conditions proposees par nos equipes.</p>
+        </div>
         <a sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')" th:href="@{/offres/gestion}" class="btn btn-outline">
             Gerer les offres
         </a>

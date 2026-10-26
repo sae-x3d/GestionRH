@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Notifications</title>
+    <link rel="stylesheet" th:href="@{/css/espace.css}">
+</head>
+
+<body>
+<div layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Centre d'activite</span>
+            <h2>Notifications</h2>
+            <p>Suivez les evenements importants de vos demandes, candidatures et contrats.</p>
+        </div>
+        <form th:if="${!#lists.isEmpty(notifications)}" th:action="@{/notifications/lues}" method="post">
+            <button type="submit" class="btn btn-outline btn-sm">Tout marquer comme lu</button>
+        </form>
+    </div>
+
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <section class="card">
+        <ul class="notification-list" th:unless="${#lists.isEmpty(notifications)}">
+            <li th:each="notification : ${notifications}"
+                th:classappend="${!notification.lu} ? ' notification-non-lue'">
+                <span class="notification-dot" th:if="${!notification.lu}" aria-hidden="true"></span>
+                <div class="notification-body">
+                    <a th:if="${notification.lien != null}"
+                       th:href="@{${notification.lien}}"
+                       th:text="${notification.message}">Notification</a>
+                    <span th:unless="${notification.lien != null}" th:text="${notification.message}">Notification</span>
+                    <small th:text="${#temporals.format(notification.dateCreation, 'dd/MM/yyyy HH:mm')}">01/01/2026</small>
+                </div>
+                <form th:if="${!notification.lu}"
+                      th:action="@{/notifications/{id}/lue(id=${notification.idNotification})}" method="post">
+                    <button type="submit" class="btn btn-ghost btn-sm">Marquer comme lu</button>
+                </form>
+            </li>
+        </ul>
+        <div class="empty-state" th:if="${#lists.isEmpty(notifications)}">
+            Aucune notification pour le moment.
+        </div>
+    </section>
+
+</div>
+</body>
+
+</html>

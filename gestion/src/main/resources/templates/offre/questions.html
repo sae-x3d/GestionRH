@@ -12,7 +12,11 @@
 <div layout:fragment="content">
 
     <div class="page-header">
-        <h2 th:text="${'Questionnaire - ' + offre.titre}">Questionnaire</h2>
+        <div>
+            <span class="eyebrow">Questionnaire</span>
+            <h2 th:text="${'Questionnaire - ' + offre.titre}">Questionnaire</h2>
+            <p>Ajoutez les questions posees aux candidats pour cette offre.</p>
+        </div>
         <a th:href="@{/offres/gestion}" class="btn btn-outline">Retour a la gestion</a>
     </div>
 

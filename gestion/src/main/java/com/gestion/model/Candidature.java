@@ -39,6 +39,9 @@ public class Candidature {
     @Column(name = "date_decision")
     private LocalDateTime dateDecision;
 
+    @Column(name = "salaire_convenu")
+    private Integer salaireConvenu;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_candidature_status", nullable = false)
     private CandidatureStatus statut;
@@ -60,4 +63,10 @@ public class Candidature {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<Entretien> entretiens = new HashSet<>();
+
+    @OneToMany(mappedBy = "candidature", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<ReponseContrat> reponsesContrat = new ArrayList<>();
 }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
     <meta charset="UTF-8">
@@ -14,12 +15,19 @@
 <body class="accueil-page">
 
 <header class="accueil-topbar">
-    <div class="accueil-brand"></div>
+    <a th:href="@{/}" class="accueil-brand">
+        <span class="accueil-brand-mark" aria-hidden="true">GR</span>
+        <span class="accueil-brand-text">
+            <strong>GestionRH</strong>
+            <small>Portail carriere</small>
+        </span>
+    </a>
     <nav class="accueil-topnav">
         <a th:href="@{/offres}">Offres d'emploi</a>
-        <a th:if="${estAuthentifie}" th:href="@{/candidatures}">Mes candidatures</a>
-        <a th:if="${estAuthentifie}" th:href="@{/candidatures/postuler}">Postuler</a>
-        <a th:if="${estAuthentifie}" th:href="@{/demandes}">Mon espace</a>
+        <a sec:authorize="hasAnyAuthority('ROLE_UTILISATEUR', 'ROLE_EMPLOYE', 'ROLE_MANAGER')"
+           th:href="@{/candidatures}">Mes candidatures</a>
+        <a sec:authorize="isAuthenticated()"
+           th:href="@{/tableau-de-bord}">Tableau de bord</a>
         <a th:unless="${estAuthentifie}" th:href="@{/connexion}" class="topnav-cta">Se connecter</a>
     </nav>
 </header>
@@ -28,7 +36,7 @@
 
     <section class="hero">
         <div class="hero-inner">
-            <p class="hero-eyebrow">Portail carriere</p>
+            <span class="hero-eyebrow">Portail carriere</span>
             <h1 class="hero-title">Rejoignez notre equipe</h1>
             <p class="hero-text">
                 Decouvrez nos offres d'emploi, postulez en quelques minutes et suivez
@@ -36,19 +44,44 @@
             </p>
             <div class="hero-actions">
                 <a th:href="@{/offres}" class="btn btn-primary">Voir les offres</a>
-                <a th:if="${estAuthentifie}" th:href="@{/candidatures/postuler}" class="btn btn-outline">
-                    Postuler maintenant
+                <a sec:authorize="isAuthenticated()" th:href="@{/tableau-de-bord}" class="btn btn-outline">
+                    Mon espace
                 </a>
                 <a th:unless="${estAuthentifie}" th:href="@{/connexion}" class="btn btn-outline">
                     Se connecter
                 </a>
             </div>
+            <div class="hero-proof">
+                <span>Offres verifiees</span>
+                <span>Candidature simplifiee</span>
+                <span>Suivi transparent</span>
+            </div>
+        </div>
+        <div class="hero-panel">
+            <span class="hero-panel-label">Votre parcours</span>
+            <ol class="hero-steps">
+                <li>
+                    <span class="hero-step-number">01</span>
+                    <span><strong>Postulez</strong><small>Choisissez une offre et envoyez votre CV.</small></span>
+                </li>
+                <li>
+                    <span class="hero-step-number">02</span>
+                    <span><strong>Echangez</strong><small>Suivez les entretiens et les tests planifies.</small></span>
+                </li>
+                <li>
+                    <span class="hero-step-number">03</span>
+                    <span><strong>Avancez</strong><small>Consultez votre proposition et votre contrat.</small></span>
+                </li>
+            </ol>
         </div>
     </section>
 
     <section class="accueil-section">
         <div class="section-head">
-            <h2>Nos offres a la une</h2>
+            <div>
+                <span class="eyebrow">Opportunites</span>
+                <h2>Nos offres a la une</h2>
+            </div>
             <a th:href="@{/offres}" class="section-link">Voir toutes les offres</a>
         </div>
 
@@ -82,19 +115,30 @@
         </div>
     </section>
 
-    <section class="accueil-section valeur-section">
-        <article class="valeur-card">
-            <h3>Offres verifiees</h3>
-            <p>Chaque offre publiee correspond a un besoin valide par nos equipes RH, budget et direction.</p>
-        </article>
-        <article class="valeur-card">
-            <h3>Candidature simplifiee</h3>
-            <p>Postulez en quelques clics avec votre CV et suivez l'etat de votre dossier a tout moment.</p>
-        </article>
-        <article class="valeur-card">
-            <h3>Suivi transparent</h3>
-            <p>Recevez les etapes cles de votre parcours, de l'examen du dossier a la proposition d'embauche.</p>
-        </article>
+    <section class="accueil-section">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Pourquoi nous</span>
+                <h2>Un recrutement simple et lisible</h2>
+            </div>
+        </div>
+        <div class="valeur-section">
+            <article class="valeur-card">
+                <span class="valeur-index">01</span>
+                <h3>Offres verifiees</h3>
+                <p>Chaque offre publiee correspond a un besoin valide par nos equipes RH, budget et direction.</p>
+            </article>
+            <article class="valeur-card">
+                <span class="valeur-index">02</span>
+                <h3>Candidature simplifiee</h3>
+                <p>Postulez en quelques clics avec votre CV et suivez l'etat de votre dossier a tout moment.</p>
+            </article>
+            <article class="valeur-card">
+                <span class="valeur-index">03</span>
+                <h3>Suivi transparent</h3>
+                <p>Recevez les etapes cles de votre parcours, de l'examen du dossier a la proposition d'embauche.</p>
+            </article>
+        </div>
     </section>
 
 </main>

@@ -1,1 +1,47 @@
-<!DOCTYPE html><html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{fragments/layout}"><section layout:fragment="content" class="page-content"><h1>Mes contrats</h1><div th:if="${#lists.isEmpty(contrats)}">Aucun contrat disponible.</div><div th:each="c : ${contrats}" class="card"><h2 th:text="${c.fonction}"></h2><p th:text="${c.typeContrat + ' · ' + c.statut}"></p><a th:href="@{/contrats/{id}(id=${c.idContrat})}">Consulter</a></div></section></html>
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Mes contrats</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="page-content">
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Documents</span>
+            <h2>Mes contrats</h2>
+            <p>Consultez vos contrats et suivez leur statut de signature.</p>
+        </div>
+        <a sec:authorize="hasAnyAuthority('ROLE_RH', 'ROLE_ADMINISTRATEUR')" class="btn btn-outline"
+           th:href="@{/contrats/questionnaire}">Gerer le questionnaire du contrat</a>
+    </div>
+
+    <div class="alert-info" th:if="${#lists.isEmpty(contrats)}">
+        Aucun contrat disponible pour le moment.
+    </div>
+
+    <div class="contract-grid" th:unless="${#lists.isEmpty(contrats)}">
+        <article class="card contract-card" th:each="c : ${contrats}">
+            <div class="contract-card-head">
+                <span class="offre-type" th:text="${c.typeContrat}">CDI</span>
+                <span class="statut"
+                      th:classappend="${c.statut == 'ACCEPTE' ? ' statut-acceptee'
+                                      : (c.statut == 'REFUSE' ? ' statut-refusee' : ' statut-en-examen')}"
+                      th:text="${c.statut}">Statut</span>
+            </div>
+            <div>
+                <span class="eyebrow">Contrat n° <span th:text="${c.numeroContrat}">1</span></span>
+                <h3 th:text="${c.fonction}">Fonction</h3>
+            </div>
+            <p class="help-text" th:text="${'Signe a ' + (c.lieuSignature != null ? c.lieuSignature : '-')}">Lieu</p>
+            <a class="btn btn-outline btn-block" th:href="@{/contrats/{id}(id=${c.idContrat})}">Consulter</a>
+        </article>
+    </div>
+</section>
+</body>
+
+</html>

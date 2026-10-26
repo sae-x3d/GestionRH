@@ -13,7 +13,11 @@
     <div layout:fragment="content">
 
         <div class="page-header">
-            <h2>Liste des demandes</h2>
+            <div>
+                <span class="eyebrow">Demandes</span>
+                <h2>Liste des demandes</h2>
+                <p>Suivez les demandes de recrutement et leur avancement dans le circuit de validation.</p>
+            </div>
             <div class="page-actions">
                 <a sec:authorize="hasAuthority('ROLE_RH')"
                    th:href="@{/demandes/validation-rh}" class="btn btn-outline">Validation RH</a>

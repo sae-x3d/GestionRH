@@ -1,0 +1,88 @@
+.error-page {
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    padding: 2rem 1.15rem;
+    background:
+        radial-gradient(circle at 18% 12%, rgba(37, 99, 235, 0.14), transparent 24rem),
+        radial-gradient(circle at 82% 88%, rgba(99, 102, 241, 0.16), transparent 26rem),
+        var(--background-color);
+}
+
+.error-card {
+    width: 100%;
+    max-width: 560px;
+    padding: 2.4rem;
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: 26px;
+    box-shadow: 0 28px 70px rgba(15, 23, 42, 0.12);
+    text-align: center;
+}
+
+.error-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 1.6rem;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.error-brand-mark {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
+    color: #fff;
+    font-size: 0.66rem;
+    font-weight: 800;
+}
+
+.error-code {
+    display: block;
+    margin-bottom: 0.35rem;
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-size: clamp(3.5rem, 10vw, 5.5rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.06em;
+}
+
+.error-card h1 {
+    margin: 0 0 0.6rem;
+    font-size: 1.5rem;
+    letter-spacing: -0.03em;
+}
+
+.error-card p {
+    margin: 0 auto 1.6rem;
+    max-width: 420px;
+    color: var(--muted-color);
+    font-size: 0.9rem;
+    line-height: 1.65;
+}
+
+.error-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.7rem;
+}
+
+@media (max-width: 520px) {
+    .error-card {
+        padding: 1.8rem 1.4rem;
+    }
+
+    .error-actions {
+        flex-direction: column;
+    }
+}

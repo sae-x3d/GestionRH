@@ -40,6 +40,8 @@ class ContratServiceEmployeTests {
     @Mock private ProvenanceRepository provenanceRepository;
     @Mock private ContratPdfService pdfService;
     @Mock private ParametresContrat parametresContrat;
+    @Mock private CandidatureStatusService candidatureStatusService;
+    @Mock private NotificationService notificationService;
 
     private ContratService service;
     private Utilisateur utilisateur;
@@ -51,7 +53,8 @@ class ContratServiceEmployeTests {
     @BeforeEach
     void setUp() {
         service = new ContratService(contratRepository, candidatureRepository, employeRepository,
-                utilisateurRepository, provenanceRepository, pdfService, parametresContrat);
+                utilisateurRepository, provenanceRepository, pdfService, parametresContrat,
+                candidatureStatusService, notificationService);
 
         utilisateur = Utilisateur.builder().idUser(7).username("candidat").build();
         poste = Poste.builder().idPoste(3).nomPoste("Developpeur").build();

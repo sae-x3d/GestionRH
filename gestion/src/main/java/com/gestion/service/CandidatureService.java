@@ -41,6 +41,7 @@ public class CandidatureService {
     private final StockageCvService stockageCvService;
     private final QuestionRepository questionRepository;
     private final EntretienRepository entretienRepository;
+    private final NotificationService notificationService;
 
     public CandidatureService(CandidatureRepository candidatureRepository,
                               OffreEmploiRepository offreEmploiRepository,
@@ -49,7 +50,8 @@ public class CandidatureService {
                               CandidatureStatusService candidatureStatusService,
                               StockageCvService stockageCvService,
                               QuestionRepository questionRepository,
-                              EntretienRepository entretienRepository) {
+                              EntretienRepository entretienRepository,
+                              NotificationService notificationService) {
         this.candidatureRepository = candidatureRepository;
         this.offreEmploiRepository = offreEmploiRepository;
         this.parcoursRepository = parcoursRepository;
@@ -58,6 +60,7 @@ public class CandidatureService {
         this.stockageCvService = stockageCvService;
         this.questionRepository = questionRepository;
         this.entretienRepository = entretienRepository;
+        this.notificationService = notificationService;
     }
 
     @Transactional(readOnly = true)
@@ -95,30 +98,38 @@ public class CandidatureService {
 
     @Transactional
     public Candidature retenir(Integer idCandidature) {
-        return transitionner(idCandidature, Set.of("RECUE", "EN_EXAMEN"), "RETENUE", false);
+        Candidature candidature = transitionner(idCandidature, Set.of("CONVOQUE"), "RETENU", false);
+        notificationService.envoyer(candidature.getUtilisateur(), "CANDIDATURE",
+                "Vous etes retenu apres l'entretien. Consultez le questionnaire du contrat.",
+                "/candidatures/" + idCandidature + "/questionnaire-contrat");
+        return candidature;
     }
 
     @Transactional
     public Candidature refuser(Integer idCandidature) {
-        return transitionner(idCandidature, Set.of("RECUE", "EN_EXAMEN", "RETENUE"), "REFUSEE", true);
-    }
-
-    @Transactional
-    public Candidature accepter(Integer idCandidature) {
-        return transitionner(idCandidature, Set.of("RETENUE"), "ACCEPTEE", true);
+        Candidature candidature = transitionner(idCandidature,
+                Set.of("RECUE", "EN_EXAMEN", "CONVOQUE", "RETENU", "PROPOSITION"),
+                "REFUSEE", true);
+        notificationService.envoyer(candidature.getUtilisateur(), "CANDIDATURE",
+                "Votre candidature est close.", "/candidatures");
+        return candidature;
     }
 
     @Transactional
     public Entretien planifierEntretien(Integer idCandidature, TypeEntretien type,
                                         LocalDateTime dateHeure, String lieu, String participants) {
         Candidature candidature = trouverParIdAvecDetails(idCandidature);
-        String statut = candidature.getStatut().getLibelle();
-        if (!"EN_EXAMEN".equalsIgnoreCase(statut) && !"RETENUE".equalsIgnoreCase(statut)) {
+        String statut = candidature.getStatut().getLibelle().toUpperCase();
+        if (!Set.of("RECUE", "EN_EXAMEN", "CONVOQUE").contains(statut)) {
             throw new IllegalStateException(
-                    "Un entretien ou un test ne peut etre planifie que pour une candidature en examen ou retenue.");
+                    "Un entretien ou un test ne peut etre planifie que pour une candidature recue, "
+                            + "en examen ou convoquee.");
         }
         if (type == null || dateHeure == null) {
             throw new IllegalStateException("Le type et la date de l'entretien/test sont obligatoires.");
+        }
+        if (dateHeure.isBefore(LocalDateTime.now())) {
+            throw new IllegalStateException("La date de l'entretien/test ne peut pas etre dans le passe.");
         }
 
         Entretien entretien = Entretien.builder()
@@ -128,7 +139,16 @@ public class CandidatureService {
                 .lieu(texteOuNull(lieu))
                 .participants(texteOuNull(participants))
                 .build();
-        return entretienRepository.save(entretien);
+        Entretien enregistre = entretienRepository.save(entretien);
+        if (!"CONVOQUE".equals(statut)) {
+            transitionner(idCandidature, Set.of("RECUE", "EN_EXAMEN"), "CONVOQUE", false);
+        }
+        notificationService.envoyer(candidature.getUtilisateur(), "CANDIDATURE",
+                "Vous etes convoque a un " + type.name().toLowerCase().replace('_', ' ')
+                        + " le " + dateHeure.toString().replace('T', ' ').substring(0, 16)
+                        + (texteOuNull(lieu) == null ? "." : " au lieu : " + texteOuNull(lieu) + "."),
+                "/candidatures");
+        return enregistre;
     }
 
     @Transactional

@@ -19,6 +19,7 @@ public interface CandidatureRepository extends JpaRepository<Candidature, Intege
             "left join fetch c.parcours p " +
             "left join fetch p.parcours " +
             "left join fetch p.niveau " +
+            "left join fetch c.entretiens " +
             "where c.utilisateur.idUser = :idUser " +
             "order by c.dateCandidature desc")
     List<Candidature> findByUtilisateurIdUserOrderByDateCandidatureDesc(@Param("idUser") Integer idUser);

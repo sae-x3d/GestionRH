@@ -13,47 +13,79 @@
 <div layout:fragment="content">
 
     <div class="page-header">
-        <h2 th:text="${offre.titre}">Titre de l'offre</h2>
+        <div>
+            <span class="eyebrow">Fil des offres</span>
+            <h2>Detail de l'offre</h2>
+        </div>
         <a th:href="@{/offres}" class="btn btn-outline">Retour au fil</a>
     </div>
 
-    <div class="card card-info">
-        <p><strong>Statut :</strong> <span th:text="${offre.statut.libelle}">Publiee</span></p>
-        <p th:if="${offre.demande != null and offre.demande.poste != null}">
-            <strong>Poste :</strong> <span th:text="${offre.demande.poste.nomPoste}">Poste</span>
-        </p>
-        <p th:if="${offre.demande != null and offre.demande.departement != null}">
-            <strong>Departement :</strong> <span th:text="${offre.demande.departement.nomDept}">Departement</span>
-        </p>
-        <p th:if="${offre.lieu}"><strong>Lieu :</strong> <span th:text="${offre.lieu}">Lieu</span></p>
-        <p th:if="${offre.typeContrat}"><strong>Type de contrat :</strong> <span th:text="${offre.typeContrat}">CDI</span></p>
-        <p th:if="${offre.salaire != null}">
-            <strong>Salaire propose :</strong>
-            <span th:text="${#numbers.formatInteger(offre.salaire, 1, 'POINT')} + ' Ar'">3 500 000 Ar</span>
-        </p>
-        <p th:if="${offre.datePublication}">
-            <strong>Publiee le :</strong>
-            <span th:text="${#temporals.format(offre.datePublication, 'dd/MM/yyyy')}">01/01/2026</span>
-        </p>
-        <p th:if="${offre.dateCloture}">
-            <strong>Date de cloture :</strong>
-            <span th:text="${#temporals.format(offre.dateCloture, 'dd/MM/yyyy')}">01/01/2026</span>
-        </p>
+    <section class="offre-hero">
+        <div>
+            <span class="eyebrow">Offre d'emploi</span>
+            <h2 th:text="${offre.titre}">Titre de l'offre</h2>
+            <p class="offre-meta">
+                <span th:if="${offre.demande != null and offre.demande.poste != null}"
+                      th:text="${offre.demande.poste.nomPoste}">Poste</span>
+                <span th:if="${offre.demande != null and offre.demande.departement != null}"
+                      th:text="${offre.demande.departement.nomDept}">Departement</span>
+                <span th:if="${offre.lieu}" th:text="${offre.lieu}">Lieu</span>
+            </p>
+        </div>
+        <span class="offre-type" th:if="${offre.typeContrat}" th:text="${offre.typeContrat}">CDI</span>
+    </section>
+
+    <div class="offre-meta-grid">
+        <div class="offre-meta-card">
+            <span>Statut</span>
+            <strong>
+                <span class="statut"
+                      th:classappend="${' statut-' + #strings.toLowerCase(offre.statut.name())}"
+                      th:text="${offre.statut.libelle}">Publiee</span>
+            </strong>
+        </div>
+        <div class="offre-meta-card" th:if="${offre.salaire != null}">
+            <span>Salaire propose</span>
+            <strong th:text="${#numbers.formatInteger(offre.salaire, 1, 'POINT')} + ' Ar'">3 500 000 Ar</strong>
+        </div>
+        <div class="offre-meta-card" th:if="${offre.datePublication}">
+            <span>Publiee le</span>
+            <strong th:text="${#temporals.format(offre.datePublication, 'dd/MM/yyyy')}">01/01/2026</strong>
+        </div>
+        <div class="offre-meta-card" th:if="${offre.dateCloture}">
+            <span>Cloture</span>
+            <strong th:text="${#temporals.format(offre.dateCloture, 'dd/MM/yyyy')}">01/01/2026</strong>
+        </div>
     </div>
 
     <section class="card offre-description">
-        <h3>Description du poste</h3>
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Mission</span>
+                <h3>Description du poste</h3>
+            </div>
+        </div>
         <p th:text="${offre.description}">Description</p>
     </section>
 
     <div class="form-actions">
-        <a th:if="${offre.statut.name() == 'PUBLIEE'}"
+        <a sec:authorize="hasAnyAuthority('ROLE_UTILISATEUR', 'ROLE_EMPLOYE', 'ROLE_MANAGER')"
+           th:if="${offre.statut.name() == 'PUBLIEE'}"
            th:href="@{/candidatures/postuler(offreId=${offre.idOffre})}" class="btn btn-primary">
             Postuler a cette offre
+        </a>
+        <a sec:authorize="isAnonymous()"
+           th:if="${offre.statut.name() == 'PUBLIEE'}"
+           th:href="@{/connexion}" class="btn btn-primary">
+            Se connecter pour postuler
         </a>
         <a sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')"
            th:href="@{/offres/{id}/modifier(id=${offre.idOffre})}" class="btn btn-outline">
             Modifier l'offre
+        </a>
+        <a sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')"
+           th:href="@{/candidatures/rh(offreId=${offre.idOffre})}" class="btn btn-outline">
+            Voir les candidatures
         </a>
         <form sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')"
               th:if="${offre.statut.name() == 'BROUILLON'}"

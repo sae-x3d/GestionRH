@@ -13,7 +13,11 @@
 <div layout:fragment="content">
 
     <div class="page-header">
-        <h2 th:text="${titre}">Validation des demandes</h2>
+        <div>
+            <span class="eyebrow">Validation</span>
+            <h2 th:text="${titre}">Validation des demandes</h2>
+            <p>Examinez les demandes en attente et enregistrez votre decision.</p>
+        </div>
     </div>
 
     <div class="alert-success" th:if="${succes}" th:text="${succes}">Decision enregistree</div>

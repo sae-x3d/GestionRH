@@ -3,12 +3,13 @@ package com.gestion.controller;
 import com.gestion.enums.TypeEntretien;
 import com.gestion.exception.RessourceIntrouvableException;
 import com.gestion.model.Candidature;
-import com.gestion.model.Contrat;
 import com.gestion.model.Entretien;
+import com.gestion.model.ReponseContrat;
 import com.gestion.model.Utilisateur;
 import com.gestion.service.CandidatureService;
 import com.gestion.service.CandidatureStatusService;
 import com.gestion.service.ContratService;
+import com.gestion.service.NegociationContratService;
 import com.gestion.service.OffreEmploiService;
 import com.gestion.service.UtilisateurDetails;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -39,6 +39,7 @@ public class CandidatureRhController {
     private final OffreEmploiService offreEmploiService;
     private final CandidatureStatusService candidatureStatusService;
     private final ContratService contratService;
+    private final NegociationContratService negociationContratService;
 
     @GetMapping
     public String liste(@RequestParam(name = "offreId", required = false) Integer offreId,
@@ -61,11 +62,15 @@ public class CandidatureRhController {
         List<Entretien> entretiens = candidature.getEntretiens().stream()
                 .sorted(Comparator.comparing(Entretien::getDateHeure))
                 .toList();
+        List<ReponseContrat> dernierTourContrat = negociationContratService.dernierTour(id);
         model.addAttribute("pageTitle", "Dossier de candidature");
         model.addAttribute("candidature", candidature);
         model.addAttribute("entretiens", entretiens);
         model.addAttribute("typesEntretien", TypeEntretien.values());
         model.addAttribute("contrat", contratService.contratCandidature(id));
+        model.addAttribute("dernierTourContrat", dernierTourContrat);
+        model.addAttribute("salaireCourant", negociationContratService
+                .salaireCourant(candidature, dernierTourContrat));
         model.addAttribute("demandeur", utilisateurCourant(authentication));
         return "candidature/rh-detail";
     }
@@ -78,7 +83,7 @@ public class CandidatureRhController {
 
     @PostMapping("/{id}/retenir")
     public String retenir(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
-        return executer(id, "Le candidat est retenu pour l'entretien/les tests.",
+        return executer(id, "Le candidat est retenu. Il peut repondre au questionnaire du contrat.",
                 () -> candidatureService.retenir(id), redirectAttributes);
     }
 
@@ -96,7 +101,7 @@ public class CandidatureRhController {
                                      @RequestParam(name = "lieu", required = false) String lieu,
                                      @RequestParam(name = "participants", required = false) String participants,
                                      RedirectAttributes redirectAttributes) {
-        return executer(id, "Entretien/test planifie.", () -> candidatureService
+        return executer(id, "Convocation envoyee : entretien/test planifie.", () -> candidatureService
                 .planifierEntretien(id, type, dateHeure, lieu, participants), redirectAttributes);
     }
 
@@ -111,41 +116,10 @@ public class CandidatureRhController {
                 redirectAttributes);
     }
 
-    @PostMapping("/{id}/decision")
-    public String decision(@PathVariable Integer id,
-                           @RequestParam("decision") String decision,
-                           @RequestParam(name = "nomSalarie", required = false) String nomSalarie,
-                           @RequestParam(name = "adresseSalarie", required = false) String adresseSalarie,
-                           @RequestParam(name = "dateFin", required = false)
-                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
-                           @RequestParam(name = "motifCdd", required = false) String motifCdd,
-                           RedirectAttributes redirectAttributes) {
-        if ("ACCEPTER".equalsIgnoreCase(decision)) {
-            try {
-                candidatureService.accepter(id);
-            } catch (RessourceIntrouvableException | IllegalStateException ex) {
-                redirectAttributes.addFlashAttribute("erreur", ex.getMessage());
-                return "redirect:/candidatures/rh/" + id;
-            }
-            try {
-                Contrat contrat = contratService.genererAutomatiquement(
-                        id, nomSalarie, adresseSalarie, dateFin, motifCdd);
-                redirectAttributes.addFlashAttribute("succes",
-                        "Candidature acceptee et contrat " + contrat.getNumeroContrat() + " genere.");
-                return "redirect:/contrats/" + contrat.getIdContrat();
-            } catch (RessourceIntrouvableException | IllegalStateException ex) {
-                redirectAttributes.addFlashAttribute("erreur",
-                        "Candidature acceptee, mais le contrat n'a pas pu etre genere automatiquement : "
-                                + ex.getMessage() + " Completez le formulaire ci-dessous.");
-                redirectAttributes.addFlashAttribute("nomSalarie", nomSalarie);
-                redirectAttributes.addFlashAttribute("adresseSalarie", adresseSalarie);
-                redirectAttributes.addFlashAttribute("dateFin", dateFin);
-                redirectAttributes.addFlashAttribute("motifCdd", motifCdd);
-                return "redirect:/candidatures/rh/" + id + "/contrat/nouveau";
-            }
-        }
-        return executer(id, "Candidature refusee apres decision finale.",
-                () -> candidatureService.refuser(id), redirectAttributes);
+    @PostMapping("/{id}/questionnaire-contrat/envoyer")
+    public String envoyerQuestionnaire(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+        return executer(id, "Questionnaire du contrat envoye au candidat.",
+                () -> negociationContratService.envoyerQuestionnaire(id), redirectAttributes);
     }
 
     private String executer(Integer id, String message, Runnable action,

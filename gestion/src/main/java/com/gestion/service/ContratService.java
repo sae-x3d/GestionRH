@@ -35,6 +35,8 @@ public class ContratService {
     private final ProvenanceRepository provenanceRepository;
     private final ContratPdfService pdfService;
     private final ParametresContrat parametres;
+    private final CandidatureStatusService candidatureStatusService;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public List<Contrat> contratsCandidat(Integer userId) {
@@ -100,7 +102,19 @@ public class ContratService {
         }
         if (!accepte) {
             c.setStatut("REFUSE");
-            return contratRepository.save(c);
+            Contrat refuse = contratRepository.save(c);
+            Candidature candidature = c.getCandidature();
+            candidatureStatusService.trouverParLibelle("CONTRAT_REFUSE").ifPresent(statut -> {
+                candidature.setStatut(statut);
+                candidature.setDateDecision(LocalDateTime.now());
+                candidatureRepository.save(candidature);
+            });
+            for (Utilisateur gestionnaire : utilisateurRepository.trouverGestionnairesCandidatures()) {
+                notificationService.envoyer(gestionnaire, "CONTRAT",
+                        "Le candidat a refuse le contrat " + c.getNumeroContrat() + ".",
+                        "/candidatures/rh/" + candidature.getIdCandidature());
+            }
+            return refuse;
         }
         Utilisateur user = utilisateurRepository.verrouillerParId(userId)
                 .orElseThrow(() -> new IllegalStateException("Candidat introuvable."));
@@ -117,7 +131,13 @@ public class ContratService {
         c.setDateAcceptation(LocalDateTime.now());
         c.setStatut("ACCEPTE");
         c.setPdf(pdfService.generer(c));
-        return contratRepository.save(c);
+        Contrat accepteContrat = contratRepository.save(c);
+        for (Utilisateur gestionnaire : utilisateurRepository.trouverGestionnairesCandidatures()) {
+            notificationService.envoyer(gestionnaire, "CONTRAT",
+                    "Le candidat a accepte le contrat " + c.getNumeroContrat() + ".",
+                    "/contrats/" + c.getIdContrat());
+        }
+        return accepteContrat;
     }
 
     private Employe creerEmployeDepuisContrat(Contrat contrat) {
@@ -181,8 +201,11 @@ public class ContratService {
         if (offre == null || texteOuNull(offre.getTitre()) == null) {
             throw new IllegalStateException("Le titre du poste de l'offre est manquant.");
         }
-        if (offre.getSalaire() == null || offre.getSalaire() <= 0) {
-            throw new IllegalStateException("Le salaire valide de l'offre est manquant.");
+        Integer salaire = candidature.getSalaireConvenu() != null && candidature.getSalaireConvenu() > 0
+                ? candidature.getSalaireConvenu()
+                : offre.getSalaire();
+        if (salaire == null || salaire <= 0) {
+            throw new IllegalStateException("Le salaire convenu du candidat est manquant.");
         }
 
         String nomSalarie = obligatoire(dto.getNomSalarie(), "Le nom du salarie est obligatoire.");
@@ -207,7 +230,7 @@ public class ContratService {
                 .fonction(offre.getTitre().trim())
                 .categorieProfessionnelle(categorie)
                 .indiceClassification(indice)
-                .salaire(offre.getSalaire())
+                .salaire(salaire)
                 .dureeTravail(duree)
                 .lieuTravail(lieu)
                 .dateEffet(dateEffet)
@@ -219,7 +242,12 @@ public class ContratService {
                 .dateGeneration(LocalDateTime.now())
                 .build();
         contrat.setPdf(pdfService.generer(contrat));
-        return contratRepository.save(contrat);
+        Contrat enregistre = contratRepository.save(contrat);
+        notificationService.envoyer(candidature.getUtilisateur(), "CONTRAT",
+                "Votre contrat " + enregistre.getNumeroContrat()
+                        + " est disponible. Consultez-le et indiquez votre decision.",
+                "/contrats/" + enregistre.getIdContrat());
+        return enregistre;
     }
 
     private CreerContratDTO preparerFormulaire(Candidature candidature) {

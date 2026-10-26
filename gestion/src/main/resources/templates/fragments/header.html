@@ -1,5 +1,35 @@
 <header class="header" th:fragment="header">
-    <div class="page-title">
-        <h1 th:text="${pageTitle != null ? pageTitle : 'GestionRH'}">GestionRH</h1>
+    <div class="header-left">
+        <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="Ouvrir le menu"
+                aria-controls="sidebar" aria-expanded="false">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 aria-hidden="true">
+                <path d="M4 6h16"></path>
+                <path d="M4 12h16"></path>
+                <path d="M4 18h16"></path>
+            </svg>
+        </button>
+        <div class="header-heading">
+            <div class="breadcrumb">
+                <span>GestionRH</span>
+                <span aria-hidden="true">/</span>
+                <span th:text="${pageTitle != null ? pageTitle : 'Espace'}">Espace</span>
+            </div>
+            <div class="page-title">
+                <h1 th:text="${pageTitle != null ? pageTitle : 'GestionRH'}">GestionRH</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-right">
+        <span class="header-date" th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy')}">01/01/2026</span>
+        <div class="user-chip" th:if="${demandeur != null}">
+            <span class="avatar avatar-sm" th:text="${#strings.toUpperCase(#strings.substring(demandeur.username, 0, 1))}">U</span>
+            <span class="user-chip-text">
+                <strong th:text="${demandeur.username}">utilisateur</strong>
+                <small th:text="${demandeur.role != null ? demandeur.role.nomRole : ''}">role</small>
+            </span>
+        </div>
     </div>
 </header>

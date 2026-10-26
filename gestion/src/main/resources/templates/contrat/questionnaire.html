@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Questionnaire du contrat</title>
+    <link rel="stylesheet" th:href="@{/css/offre.css}">
+    <link rel="stylesheet" th:href="@{/css/candidature.css}">
+</head>
+
+<body>
+<div layout:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Contrats</span>
+            <h2>Questionnaire du contrat</h2>
+            <p>Gerez les questions communes proposees au candidat apres sa retenue.</p>
+        </div>
+        <a th:href="@{/contrats}" class="btn btn-outline">Retour aux contrats</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Action enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <section class="card gestion-section">
+        <h3>Ajouter une question</h3>
+        <p class="help-text">
+            Ces questions sont communes a tous les contrats. Elles sont proposees au candidat
+            apres sa retenue, avec le salaire de l'offre.
+        </p>
+        <form th:action="@{/contrats/questionnaire}" method="post" class="form-grid">
+            <label>Libelle de la question
+                <input type="text" name="libelle" class="form-control" maxlength="255" required>
+            </label>
+            <label>Ordre d'affichage
+                <input type="number" name="ordre" class="form-control" min="1" step="1">
+            </label>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Ajouter la question</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card gestion-section">
+        <h3>Questions existantes</h3>
+        <p class="empty-state" th:if="${#lists.isEmpty(questions)}">Aucune question.</p>
+
+        <div class="question-contrat" th:each="question : ${questions}">
+            <form th:action="@{/contrats/questionnaire/{id}/modifier(id=${question.idQuestionContrat})}"
+                  method="post">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Libelle
+                            <input type="text" name="libelle" class="form-control"
+                                   th:value="${question.libelle}" maxlength="255" required>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>Ordre
+                            <input type="number" name="ordre" class="form-control"
+                                   th:value="${question.ordre}" min="1" step="1">
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" name="actif" th:checked="${question.actif}">
+                            Active
+                        </label>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-outline btn-small">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+</div>
+</body>
+
+</html>

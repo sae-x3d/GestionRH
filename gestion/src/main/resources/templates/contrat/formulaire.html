@@ -1,12 +1,135 @@
-<!DOCTYPE html><html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{fragments/layout}"><section layout:fragment="content" class="page-content">
-<h1>Émettre le contrat</h1><p>Les données du poste et le salaire proviennent de l'offre validée. Pré-remplissage automatique disponible depuis l'acceptation RH.</p>
-<div class="alert alert-danger" th:if="${erreur}" th:text="${erreur}"></div>
-<form th:action="@{/candidatures/rh/{id}/contrat(id=${candidature})}" th:object="${form}" method="post" class="form-grid">
-<label>Nom légal du salarié<input th:field="*{nomSalarie}" required maxlength="200"></label><label>Adresse du salarié<input th:field="*{adresseSalarie}" required maxlength="500"></label>
-<label>Employeur<input th:field="*{nomEmployeur}" required maxlength="200"></label><label>Adresse de l'employeur<input th:field="*{adresseEmployeur}" required maxlength="500"></label>
-<label>Type<select th:field="*{typeContrat}"><option value="CDI">CDI</option><option value="CDD">CDD</option></select></label><label>Catégorie professionnelle<input th:field="*{categorieProfessionnelle}" required></label>
-<label>Indice minimum de classification<input th:field="*{indiceClassification}" required></label><label>Durée du travail<input th:field="*{dureeTravail}" placeholder="Ex. 40 heures par semaine" required></label>
-<label>Lieu de travail<input th:field="*{lieuTravail}" required></label><label>Date d'effet<input type="date" th:field="*{dateEffet}" required></label>
-<label>Date de fin (obligatoire pour CDD)<input type="date" th:field="*{dateFin}"></label><label>Motif légal et caractère temporaire du besoin (CDD)<input th:field="*{motifCdd}" placeholder="Ex. surcroît extraordinaire d'activité, travaux urgents de sécurité ou ouvrage déterminé"></label>
-<p>Le salaire mensuel brut repris du budget de l'offre sera intégré au contrat.</p><button class="btn btn-primary" type="submit">Générer le contrat PDF</button></form>
-</section></html>
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Emettre le contrat</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Finalisation</span>
+            <h2>Emettre le contrat</h2>
+            <p>Les donnees du poste proviennent de l'offre validee. Le salaire repris est le salaire convenu lors de la negociation, ou a defaut celui de l'offre.</p>
+        </div>
+        <a th:href="@{/candidatures/rh/{id}(id=${candidature})}" class="btn btn-outline">Retour au dossier</a>
+    </div>
+
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <form th:action="@{/candidatures/rh/{id}/contrat(id=${candidature})}" th:object="${form}" method="post"
+          class="card card-form" novalidate>
+
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Parties du contrat</span>
+                <h3>Informations generales</h3>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="nomSalarie">Nom legal du salarie <span class="required">*</span></label>
+                <input th:field="*{nomSalarie}" class="form-control" required maxlength="200"
+                       th:errorclass="is-invalid">
+                <span class="field-error" th:if="${#fields.hasErrors('nomSalarie')}" th:errors="*{nomSalarie}"></span>
+            </div>
+            <div class="form-group">
+                <label for="adresseSalarie">Adresse du salarie <span class="required">*</span></label>
+                <input th:field="*{adresseSalarie}" class="form-control" required maxlength="500"
+                       th:errorclass="is-invalid">
+                <span class="field-error" th:if="${#fields.hasErrors('adresseSalarie')}" th:errors="*{adresseSalarie}"></span>
+            </div>
+            <div class="form-group">
+                <label for="nomEmployeur">Employeur <span class="required">*</span></label>
+                <input th:field="*{nomEmployeur}" class="form-control" required maxlength="200"
+                       th:errorclass="is-invalid">
+                <span class="field-error" th:if="${#fields.hasErrors('nomEmployeur')}" th:errors="*{nomEmployeur}"></span>
+            </div>
+            <div class="form-group">
+                <label for="adresseEmployeur">Adresse de l'employeur <span class="required">*</span></label>
+                <input th:field="*{adresseEmployeur}" class="form-control" required maxlength="500"
+                       th:errorclass="is-invalid">
+                <span class="field-error" th:if="${#fields.hasErrors('adresseEmployeur')}" th:errors="*{adresseEmployeur}"></span>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Conditions</span>
+                <h3>Poste et remuneration</h3>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="typeContrat">Type <span class="required">*</span></label>
+                <select th:field="*{typeContrat}" class="form-select" th:errorclass="is-invalid">
+                    <option value="CDI">CDI</option>
+                    <option value="CDD">CDD</option>
+                </select>
+                <span class="field-error" th:if="${#fields.hasErrors('typeContrat')}" th:errors="*{typeContrat}"></span>
+            </div>
+            <div class="form-group">
+                <label for="categorieProfessionnelle">Categorie professionnelle <span class="required">*</span></label>
+                <input th:field="*{categorieProfessionnelle}" class="form-control" required
+                       th:errorclass="is-invalid">
+                <span class="field-error" th:if="${#fields.hasErrors('categorieProfessionnelle')}" th:errors="*{categorieProfessionnelle}"></span>
+            </div>
+            <div class="form-group">
+                <label for="indiceClassification">Indice minimum de classification <span class="required">*</span></label>
+                <input th:field="*{indiceClassification}" class="form-control" required
+                       th:errorclass="is-invalid">
+                <span class="field-error" th:if="${#fields.hasErrors('indiceClassification')}" th:errors="*{indiceClassification}"></span>
+            </div>
+            <div class="form-group">
+                <label for="dureeTravail">Duree du travail <span class="required">*</span></label>
+                <input th:field="*{dureeTravail}" class="form-control" placeholder="Ex. 40 heures par semaine"
+                       required th:errorclass="is-invalid">
+                <span class="field-error" th:if="${#fields.hasErrors('dureeTravail')}" th:errors="*{dureeTravail}"></span>
+            </div>
+            <div class="form-group">
+                <label for="lieuTravail">Lieu de travail <span class="required">*</span></label>
+                <input th:field="*{lieuTravail}" class="form-control" required th:errorclass="is-invalid">
+                <span class="field-error" th:if="${#fields.hasErrors('lieuTravail')}" th:errors="*{lieuTravail}"></span>
+            </div>
+            <div class="form-group">
+                <label for="dateEffet">Date d'effet <span class="required">*</span></label>
+                <input type="date" th:field="*{dateEffet}" class="form-control" required
+                       th:errorclass="is-invalid">
+                <span class="field-error" th:if="${#fields.hasErrors('dateEffet')}" th:errors="*{dateEffet}"></span>
+            </div>
+            <div class="form-group">
+                <label for="dateFin">Date de fin (obligatoire pour CDD)</label>
+                <input type="date" th:field="*{dateFin}" class="form-control" th:errorclass="is-invalid">
+                <span class="field-error" th:if="${#fields.hasErrors('dateFin')}" th:errors="*{dateFin}"></span>
+            </div>
+            <div class="form-group">
+                <label for="motifCdd">Motif legal et caractere temporaire du besoin (CDD)</label>
+                <input th:field="*{motifCdd}" class="form-control"
+                       placeholder="Ex. surcroit extraordinaire d'activite, travaux urgents de securite ou ouvrage determine"
+                       th:errorclass="is-invalid">
+                <span class="field-error" th:if="${#fields.hasErrors('motifCdd')}" th:errors="*{motifCdd}"></span>
+            </div>
+        </div>
+
+        <div class="alert-info">
+            Le salaire mensuel brut repris du budget de l'offre sera integre au contrat.
+        </div>
+
+        <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Generer le contrat PDF</button>
+            <a th:href="@{/candidatures/rh/{id}(id=${candidature})}" class="btn btn-outline">Annuler</a>
+        </div>
+    </form>
+
+</section>
+</body>
+
+</html>

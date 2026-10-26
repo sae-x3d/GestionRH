@@ -3,21 +3,30 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accès refusé - GestionRH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Acces refuse - GestionRH</title>
     <link rel="stylesheet" th:href="@{/css/variables.css}">
     <link rel="stylesheet" th:href="@{/css/layout.css}">
     <link rel="stylesheet" th:href="@{/css/components.css}">
+    <link rel="stylesheet" th:href="@{/css/erreur.css}">
 </head>
 
-<body>
-    <main class="content">
-        <div class="card">
-            <h1>Accès refusé</h1>
-            <p>Vous n'avez pas les droits nécessaires pour accéder à cette page.</p>
-            <a th:href="@{/demandes}" class="btn btn-primary">Retour aux demandes</a>
-        </div>
-    </main>
+<body class="error-page">
+<main class="error-card">
+    <a th:href="@{/}" class="error-brand">
+        <span class="error-brand-mark" aria-hidden="true">GR</span>
+        <span>GestionRH</span>
+    </a>
+
+    <span class="error-code">403</span>
+    <h1>Acces refuse</h1>
+    <p>Vous n'avez pas les droits necessaires pour consulter cette page. Si vous pensez qu'il s'agit d'une erreur, contactez un administrateur.</p>
+
+    <div class="error-actions">
+        <a th:href="@{/}" class="btn btn-primary">Retour a l'accueil</a>
+        <a th:href="@{/tableau-de-bord}" class="btn btn-outline">Tableau de bord</a>
+    </div>
+</main>
 </body>
 
 </html>

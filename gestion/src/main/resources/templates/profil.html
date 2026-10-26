@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Mon profil</title>
+    <link rel="stylesheet" th:href="@{/css/espace.css}">
+</head>
+
+<body>
+<div layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Compte</span>
+            <h2>Mon profil</h2>
+            <p>Retrouvez les informations associees a votre compte et a votre poste.</p>
+        </div>
+    </div>
+
+    <div class="alert-info" th:if="${demandeur == null}">
+        Aucun utilisateur connecte.
+    </div>
+
+    <th:block th:if="${demandeur != null}">
+        <section class="profile-hero">
+            <span class="avatar avatar-xl" th:text="${#strings.toUpperCase(#strings.substring(demandeur.username, 0, 1))}">U</span>
+            <div class="profile-hero-main">
+                <span class="eyebrow">Utilisateur</span>
+                <h3 th:text="${demandeur.username}">utilisateur</h3>
+                <div class="profile-hero-meta">
+                    <span class="badge-role" th:text="${demandeur.role != null ? demandeur.role.nomRole : 'Role non defini'}">Role</span>
+                    <span th:if="${demandeur.employe != null}" th:text="${demandeur.employe.nomEmp}">Nom</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="profile-grid">
+            <section class="card">
+                <div class="section-head">
+                    <div>
+                        <span class="eyebrow">Compte</span>
+                        <h3>Identifiants</h3>
+                    </div>
+                </div>
+                <dl class="profile-list">
+                    <div>
+                        <dt>Identifiant</dt>
+                        <dd th:text="${demandeur.username}">utilisateur</dd>
+                    </div>
+                    <div>
+                        <dt>Role</dt>
+                        <dd th:text="${demandeur.role != null ? demandeur.role.nomRole : 'Non defini'}">role</dd>
+                    </div>
+                    <div th:if="${demandeur.employe != null}">
+                        <dt>Employe</dt>
+                        <dd th:text="${demandeur.employe.nomEmp}">Nom</dd>
+                    </div>
+                </dl>
+            </section>
+
+            <section class="card" th:if="${demandeur.employe != null}">
+                <div class="section-head">
+                    <div>
+                        <span class="eyebrow">Poste</span>
+                        <h3>Informations professionnelles</h3>
+                    </div>
+                </div>
+                <dl class="profile-list">
+                    <div th:if="${demandeur.employe.poste != null}">
+                        <dt>Poste</dt>
+                        <dd th:text="${demandeur.employe.poste.nomPoste}">Poste</dd>
+                    </div>
+                    <div th:if="${demandeur.employe.departement != null}">
+                        <dt>Departement</dt>
+                        <dd th:text="${demandeur.employe.departement.nomDept}">Departement</dd>
+                    </div>
+                    <div th:if="${demandeur.employe.dateEmbauche != null}">
+                        <dt>Date d'embauche</dt>
+                        <dd th:text="${#temporals.format(demandeur.employe.dateEmbauche, 'dd/MM/yyyy')}">01/01/2020</dd>
+                    </div>
+                </dl>
+            </section>
+        </div>
+    </th:block>
+
+</div>
+</body>
+
+</html>

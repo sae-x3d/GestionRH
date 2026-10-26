@@ -6,31 +6,48 @@
 <head>
     <title>Mes candidatures</title>
     <link rel="stylesheet" th:href="@{/css/offre.css}">
+    <link rel="stylesheet" th:href="@{/css/candidature.css}">
 </head>
 
 <body>
 <div layout:fragment="content">
 
     <div class="page-header">
-        <h2>Mes candidatures</h2>
-        <a th:href="@{/candidatures/postuler}" class="btn btn-primary">Nouvelle candidature</a>
+        <div>
+            <span class="eyebrow">Suivi</span>
+            <h2>Mes candidatures</h2>
+            <p>Retrouvez vos dossiers, les etapes planifiees et les actions attendues.</p>
+        </div>
+        <a th:href="@{/offres}" class="btn btn-primary">Parcourir les offres</a>
     </div>
 
     <div class="alert-success" th:if="${succes}" th:text="${succes}">Candidature enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
 
-    <p class="empty-state" th:if="${#lists.isEmpty(candidatures)}">
-        Vous n'avez encore postule a aucune offre.
-    </p>
+    <div class="card" th:if="${#lists.isEmpty(candidatures)}">
+        <p class="empty-state">
+            Vous n'avez encore postule a aucune offre.
+        </p>
+    </div>
 
-    <div class="table-wrapper" th:unless="${#lists.isEmpty(candidatures)}">
+    <section class="card" th:unless="${#lists.isEmpty(candidatures)}">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Suivi</span>
+                <h3>Vos dossiers</h3>
+            </div>
+        </div>
+        <div class="table-wrapper">
         <table class="data-table">
             <thead>
             <tr>
                 <th>Offre</th>
                 <th>Date</th>
                 <th>Statut</th>
+                <th>Entretien / test</th>
                 <th>CV</th>
                 <th>Parcours</th>
+                <th>Action</th>
             </tr>
             </thead>
             <tbody>
@@ -38,7 +55,20 @@
                 <td th:text="${candidature.offre.titre}">Titre</td>
                 <td th:text="${#temporals.format(candidature.dateCandidature, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
                 <td>
-                    <span class="statut" th:text="${candidature.statut.libelle}">RECUE</span>
+                    <span class="statut"
+                          th:classappend="${' statut-' + #strings.toLowerCase(#strings.replace(candidature.statut.libelle, '_', '-'))}"
+                          th:text="${candidature.statut.libelle}">RECUE</span>
+                </td>
+                <td>
+                    <span th:if="${candidature.entretiens.isEmpty()}">-</span>
+                    <ul class="parcours-liste" th:unless="${candidature.entretiens.isEmpty()}">
+                        <li th:each="entretien : ${candidature.entretiens}"
+                            th:text="${entretien.type.libelle + ' : '
+                                    + #temporals.format(entretien.dateHeure, 'dd/MM/yyyy HH:mm')
+                                    + (entretien.lieu != null ? ' - ' + entretien.lieu : '')}">
+                            Entretien
+                        </li>
+                    </ul>
                 </td>
                 <td th:text="${candidature.cvNum}">CV</td>
                 <td>
@@ -50,10 +80,24 @@
                         </li>
                     </ul>
                 </td>
+                <td>
+                    <a th:if="${candidature.statut.libelle == 'RETENU'}"
+                       class="btn btn-primary btn-small"
+                       th:href="@{/candidatures/{id}/questionnaire-contrat(id=${candidature.idCandidature})}">
+                        Questionnaire contrat
+                    </a>
+                    <span th:if="${candidature.statut.libelle == 'PROPOSITION'}" class="help-text">
+                        En attente des RH
+                    </span>
+                    <span th:if="${candidature.statut.libelle == 'ACCEPTEE'}" class="help-text">
+                        Contrat en preparation
+                    </span>
+                </td>
             </tr>
             </tbody>
         </table>
-    </div>
+        </div>
+    </section>
 
 </div>
 </body>

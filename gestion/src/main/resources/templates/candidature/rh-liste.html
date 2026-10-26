@@ -14,6 +14,7 @@
 
     <div class="page-header">
         <h2>Candidatures recues</h2>
+        <a th:href="@{/contrats/questionnaire}" class="btn btn-outline">Questionnaire du contrat</a>
     </div>
 
     <div class="alert-success" th:if="${succes}" th:text="${succes}">Action enregistree</div>
@@ -50,7 +51,12 @@
     </section>
 
     <section class="card gestion-section">
-        <h3>Resultats</h3>
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Suivi</span>
+                <h3>Resultats</h3>
+            </div>
+        </div>
 
         <p class="empty-state" th:if="${#lists.isEmpty(candidatures)}">
             Aucune candidature ne correspond aux filtres.
@@ -71,14 +77,22 @@
                 <tbody>
                 <tr th:each="candidature : ${candidatures}">
                     <td>
-                        <span th:text="${candidature.utilisateur.username}">candidat</span>
-                        <span th:if="${candidature.utilisateur.employe != null}"
-                              th:text="${' (' + candidature.utilisateur.employe.nomEmp + ')'}"></span>
+                        <div class="candidate-cell">
+                            <span class="avatar avatar-xs"
+                                  th:text="${#strings.toUpperCase(#strings.substring(candidature.utilisateur.username, 0, 1))}">U</span>
+                            <span>
+                                <span class="candidate-name" th:text="${candidature.utilisateur.username}">candidat</span>
+                                <small th:if="${candidature.utilisateur.employe != null}"
+                                       th:text="${candidature.utilisateur.employe.nomEmp}"></small>
+                            </span>
+                        </div>
                     </td>
                     <td th:text="${candidature.offre.titre}">Offre</td>
                     <td th:text="${#temporals.format(candidature.dateCandidature, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
                     <td>
-                        <span class="statut" th:text="${candidature.statut.libelle}">RECUE</span>
+                        <span class="statut"
+                              th:classappend="${' statut-' + #strings.toLowerCase(#strings.replace(candidature.statut.libelle, '_', '-'))}"
+                              th:text="${candidature.statut.libelle}">RECUE</span>
                     </td>
                     <td th:text="${candidature.cvNum != null ? candidature.cvNum : '-'}">CV</td>
                     <td class="actions">

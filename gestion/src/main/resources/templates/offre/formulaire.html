@@ -12,7 +12,11 @@
 <div layout:fragment="content">
 
     <div class="page-header">
-        <h2 th:text="${offre != null ? 'Modifier l''offre' : 'Nouvelle offre d''emploi'}">Offre d'emploi</h2>
+        <div>
+            <span class="eyebrow">Offre d'emploi</span>
+            <h2 th:text="${offre != null ? 'Modifier l''offre' : 'Nouvelle offre d''emploi'}">Offre d'emploi</h2>
+            <p>Definissez le contenu de l'offre et les conditions proposees aux candidats.</p>
+        </div>
         <a th:href="@{/offres/gestion}" class="btn btn-outline">Annuler</a>
     </div>
 

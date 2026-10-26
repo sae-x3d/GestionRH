@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.Lock;
 import jakarta.persistence.LockModeType;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -23,4 +24,11 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Intege
             WHERE u.username = :username
             """)
     Optional<Utilisateur> findByUsernameWithRole(@Param("username") String username);
+
+    @Query("""
+            SELECT u FROM Utilisateur u
+            JOIN FETCH u.role r
+            WHERE UPPER(r.nomRole) IN ('RH', 'ADMINISTRATEUR', 'ROLE_RH', 'ROLE_ADMINISTRATEUR')
+            """)
+    List<Utilisateur> trouverGestionnairesCandidatures();
 }

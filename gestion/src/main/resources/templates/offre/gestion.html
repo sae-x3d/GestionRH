@@ -12,7 +12,11 @@
 <div layout:fragment="content">
 
     <div class="page-header">
-        <h2>Gestion des offres d'emploi</h2>
+        <div>
+            <span class="eyebrow">Pilotage</span>
+            <h2>Gestion des offres d'emploi</h2>
+            <p>Creez, publiez et suivez les offres issues des demandes validees.</p>
+        </div>
         <a th:href="@{/offres/nouvelle}" class="btn btn-primary">Nouvelle offre</a>
     </div>
 
@@ -55,6 +59,8 @@
                            class="btn btn-outline btn-small">Modifier</a>
                         <a th:href="@{/offres/{id}/questions(id=${offre.idOffre})}"
                            class="btn btn-outline btn-small">Questionnaire</a>
+                        <a th:href="@{/candidatures/rh(offreId=${offre.idOffre})}"
+                           class="btn btn-outline btn-small">Candidatures</a>
                         <form th:if="${offre.statut.name() == 'BROUILLON'}"
                               th:action="@{/offres/{id}/publier(id=${offre.idOffre})}" method="post" class="inline-form">
                             <button type="submit" class="btn btn-primary btn-small">Publier</button>

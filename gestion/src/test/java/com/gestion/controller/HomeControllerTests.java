@@ -9,6 +9,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -71,6 +72,8 @@ class HomeControllerTests {
         mockMvc.perform(get("/").with(user(userDetailsService.loadUserByUsername("user.simple"))))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("estAuthentifie", true))
-                .andExpect(content().string(containsString("Postuler maintenant")));
+                .andExpect(content().string(containsString("Mon espace")))
+                .andExpect(content().string(containsString("Mes candidatures")))
+                .andExpect(content().string(not(containsString("Postuler maintenant"))));
     }
 }

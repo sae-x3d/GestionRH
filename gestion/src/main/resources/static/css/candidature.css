@@ -1,15 +1,15 @@
 .ligne-parcours {
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-    padding: 1rem;
     margin-bottom: 1rem;
-    background: #fafbfd;
+    padding: 1rem;
+    background: var(--surface-alt);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
 }
 
 .ligne-parcours hr {
-    border: none;
-    border-top: 1px solid var(--border-color);
     margin: 0.8rem 0 0;
+    border: 0;
+    border-top: 1px solid var(--border-color);
 }
 
 .ligne-parcours .retirer-ligne {
@@ -19,8 +19,126 @@
 .parcours-liste {
     margin: 0;
     padding-left: 1.1rem;
+    color: var(--text-soft);
 }
 
 .parcours-liste li {
+    margin: 0.12rem 0;
+    font-size: 0.82rem;
+}
+
+.detail-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+    padding: 1.35rem;
+    background:
+        radial-gradient(circle at 92% 10%, rgba(37, 99, 235, 0.08), transparent 16rem),
+        var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-xs);
+}
+
+.detail-hero-main {
+    display: flex;
+    align-items: center;
+    gap: 0.95rem;
+    min-width: 0;
+}
+
+.detail-hero-main h3 {
+    margin: 0;
+    font-size: 1.14rem;
+}
+
+.detail-hero-main p {
+    margin: 0.18rem 0 0;
+    color: var(--muted-color);
+    font-size: 0.86rem;
+}
+
+.detail-hero-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.55rem;
+}
+
+.detail-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 0.8rem;
+    margin-top: 1rem;
+}
+
+.detail-info {
+    padding: 0.8rem 0.9rem;
+    background: var(--surface-alt);
+    border: 1px solid var(--border-color);
+    border-radius: 11px;
+}
+
+.detail-info dt {
+    color: var(--muted-color);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.detail-info dd {
+    margin: 0.2rem 0 0;
+    color: var(--text-color);
     font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.candidature-note {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--muted-color);
+    font-size: 0.82rem;
+}
+
+.candidate-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+}
+
+.candidate-cell > span:last-child {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.25;
+}
+
+.candidate-name {
+    overflow: hidden;
+    color: var(--text-color);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.candidate-cell small {
+    color: var(--muted-color);
+    font-size: 0.72rem;
+}
+
+@media (max-width: 700px) {
+    .detail-hero {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .detail-hero-meta {
+        justify-content: flex-start;
+    }
 }
