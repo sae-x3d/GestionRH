@@ -32,9 +32,6 @@ public class OffreEmploi {
     @Column(name = "lieu", length = 150)
     private String lieu;
 
-    @Column(name = "type_contrat", length = 50)
-    private String typeContrat;
-
     @Column(name = "salaire")
     private Integer salaire;
 

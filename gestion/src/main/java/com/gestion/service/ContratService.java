@@ -259,7 +259,7 @@ public class ContratService {
         Demande demande = offre == null ? null : offre.getDemande();
 
         CreerContratDTO dto = new CreerContratDTO();
-        dto.setTypeContrat(normaliserType(offre == null ? null : offre.getTypeContrat()));
+        dto.setTypeContrat("CDI");
         dto.setNomSalarie(nomParDefaut(candidature));
         dto.setAdresseSalarie("");
         dto.setNomEmployeur(parametres.getEmployeurNom());
