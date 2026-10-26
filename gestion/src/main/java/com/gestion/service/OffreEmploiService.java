@@ -72,7 +72,6 @@ public class OffreEmploiService {
     public CreateOffreDTO preparerFormulaire(Integer idDemande) {
         CreateOffreDTO dto = new CreateOffreDTO();
         if (idDemande == null) {
-            dto.setTypeContrat("CDI");
             return dto;
         }
 
@@ -88,7 +87,6 @@ public class OffreEmploiService {
         dto.setDescription("Nous recherchons un(e) " + nomPoste
                 + (nomDepartement.isEmpty() ? "" : " pour le departement " + nomDepartement) + ".");
         dto.setLieu(nomDepartement);
-        dto.setTypeContrat("CDI");
         dto.setSalaire(demande.getBudget());
         return dto;
     }
@@ -100,7 +98,6 @@ public class OffreEmploiService {
         dto.setTitre(offre.getTitre());
         dto.setDescription(offre.getDescription());
         dto.setLieu(offre.getLieu());
-        dto.setTypeContrat(offre.getTypeContrat());
         dto.setSalaire(offre.getSalaire());
         dto.setDateCloture(offre.getDateCloture());
         return dto;
@@ -117,7 +114,6 @@ public class OffreEmploiService {
                 .titre(dto.getTitre().trim())
                 .description(dto.getDescription().trim())
                 .lieu(texteOuNull(dto.getLieu()))
-                .typeContrat(dto.getTypeContrat().trim())
                 .salaire(dto.getSalaire())
                 .dateCreation(LocalDateTime.now())
                 .dateCloture(dto.getDateCloture())
@@ -142,7 +138,6 @@ public class OffreEmploiService {
         offre.setTitre(dto.getTitre().trim());
         offre.setDescription(dto.getDescription().trim());
         offre.setLieu(texteOuNull(dto.getLieu()));
-        offre.setTypeContrat(dto.getTypeContrat().trim());
         offre.setSalaire(dto.getSalaire());
         offre.setDateCloture(dto.getDateCloture());
 

@@ -26,10 +26,6 @@ public class CreateOffreDTO {
     @Size(max = 150, message = "Le lieu ne peut pas depasser 150 caracteres")
     private String lieu;
 
-    @NotBlank(message = "Le type de contrat est obligatoire")
-    @Size(max = 50, message = "Le type de contrat ne peut pas depasser 50 caracteres")
-    private String typeContrat;
-
     @PositiveOrZero(message = "Le salaire ne peut pas etre negatif")
     private Integer salaire;
 
@@ -70,14 +66,6 @@ public class CreateOffreDTO {
 
     public void setLieu(String lieu) {
         this.lieu = lieu;
-    }
-
-    public String getTypeContrat() {
-        return typeContrat;
-    }
-
-    public void setTypeContrat(String typeContrat) {
-        this.typeContrat = typeContrat;
     }
 
     public Integer getSalaire() {
