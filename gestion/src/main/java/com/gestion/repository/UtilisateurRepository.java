@@ -25,6 +25,10 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Intege
             """)
     Optional<Utilisateur> findByUsernameWithRole(@Param("username") String username);
 
+    boolean existsByUsernameIgnoreCase(String username);
+
+    boolean existsByEmailIgnoreCase(String email);
+
     @Query("""
             SELECT u FROM Utilisateur u
             JOIN FETCH u.role r

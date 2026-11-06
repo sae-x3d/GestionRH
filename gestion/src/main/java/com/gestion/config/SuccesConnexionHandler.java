@@ -19,13 +19,17 @@ public class SuccesConnexionHandler implements AuthenticationSuccessHandler {
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
-        response.sendRedirect(destination(authentication));
+        response.sendRedirect(destination(request, authentication));
     }
 
-    private String destination(Authentication authentication) {
+    private String destination(HttpServletRequest request, Authentication authentication) {
         if (authentication != null && authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .anyMatch(ROLE_CANDIDAT::equals)) {
+            String offreId = request.getParameter("offreId");
+            if (offreId != null && offreId.matches("\\d+")) {
+                return "/candidatures/postuler?offreId=" + offreId;
+            }
             return "/offres";
         }
         return "/demandes";

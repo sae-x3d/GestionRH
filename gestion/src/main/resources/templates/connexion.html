@@ -44,8 +44,10 @@
 
         <div class="alert-error" th:if="${param.error}">Identifiants invalides.</div>
         <div class="alert-info" th:if="${param.deconnexion}">Vous avez ete deconnecte.</div>
+        <div class="alert-success" th:if="${succes}" th:text="${succes}">Compte cree.</div>
 
         <form th:action="@{/connexion}" method="post" novalidate>
+            <input type="hidden" name="offreId" th:if="${param.offreId != null}" th:value="${param.offreId[0]}">
             <div class="form-group">
                 <label for="username">Identifiant</label>
                 <input type="text" id="username" name="username" class="form-control" autocomplete="username"
@@ -54,12 +56,35 @@
 
             <div class="form-group">
                 <label for="password">Mot de passe</label>
-                <input type="password" id="password" name="password" class="form-control"
-                       autocomplete="current-password" required>
+                <div class="password-field">
+                    <input type="password" id="password" name="password" class="form-control"
+                           autocomplete="current-password" required>
+                    <button type="button" class="password-toggle" data-password-toggle="password"
+                            aria-label="Afficher le mot de passe" aria-pressed="false" aria-controls="password">
+                        <svg class="password-toggle-show" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        <svg class="password-toggle-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
+                            <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/>
+                            <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/>
+                            <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/>
+                            <path d="m2 2 20 20"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
         </form>
+
+        <p class="login-back">
+            <span>Pas encore de compte ?</span>
+            <a th:if="${param.offreId != null}" th:href="@{/inscription(offreId=${param.offreId[0]})}">Creer un compte</a>
+            <a th:if="${param.offreId == null}" th:href="@{/inscription}">Creer un compte</a>
+        </p>
 
         <p class="login-back">
             <a th:href="@{/}">Retour a l'accueil</a>
@@ -69,6 +94,7 @@
     </main>
 
 </div>
+<script th:src="@{/js/password-toggle.js}" defer></script>
 </body>
 
 </html>
