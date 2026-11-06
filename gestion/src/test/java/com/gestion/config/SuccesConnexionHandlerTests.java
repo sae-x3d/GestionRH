@@ -27,6 +27,18 @@ class SuccesConnexionHandlerTests {
     }
 
     @Test
+    void unCandidatQuiVientDUneOffreEstRedirigeVersLeFormulaireDePostulation() throws Exception {
+        assertThat(redirectionPour("user.simple", "7"))
+                .isEqualTo("/candidatures/postuler?offreId=7");
+    }
+
+    @Test
+    void unOffreIdInvalideNeDetournePasLaRedirection() throws Exception {
+        assertThat(redirectionPour("user.simple", "https://example.com"))
+                .isEqualTo("/offres");
+    }
+
+    @Test
     void lePersonnelEstRedirigeVersLesDemandes() throws Exception {
         assertThat(redirectionPour("rh.sophie")).isEqualTo("/demandes");
         assertThat(redirectionPour("manager.it")).isEqualTo("/demandes");
@@ -34,10 +46,17 @@ class SuccesConnexionHandlerTests {
     }
 
     private String redirectionPour(String username) throws Exception {
+        return redirectionPour(username, null);
+    }
+
+    private String redirectionPour(String username, String offreId) throws Exception {
         UserDetails details = userDetailsService.loadUserByUsername(username);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 details, details.getPassword(), details.getAuthorities());
         MockHttpServletRequest request = new MockHttpServletRequest();
+        if (offreId != null) {
+            request.setParameter("offreId", offreId);
+        }
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         handler.onAuthenticationSuccess(request, response, authentication);

@@ -1,18 +1,19 @@
 -- ============================================================
--- GESTIONRH - SCRIPT UNIQUE DE CREATION ET D ALIMENTATION
+-- GESTIONRH - SCRIPT GLOBAL UNIQUE DE REINITIALISATION ET D ALIMENTATION
 -- ============================================================
--- Fichier canonique a importer pour obtenir une base complete.
--- Il remplace l import manuel successif des scripts :
---   1. script-19-10-26-sae-tables.sql
---   2. script-22-10-26-L-donnes.sql
---   3. script-22-10-2026-Jo.sql
---   4. script-22-10-26-L-views.sql
+-- Fichier canonique unique a importer pour reinitialiser et obtenir une base complete.
+-- Il contient l ensemble du schema, des donnees de reference, des
+-- donnees de demonstration et des evolutions recentes :
+--   - socle SAE, offres, candidatures, parcours et questionnaires ;
+--   - validation RH, role Finance et compte de test ;
+--   - contrats, signatures et PDF ;
+--   - notifications et questionnaire contrat ;
+--   - inscription des candidats (profil utilisateur).
 --
--- Ne pas appliquer script-23-10-26-migration-validation-rh.sql
--- sur une base creee avec ce fichier : le statut 5 est deja present.
+-- Il remplace l import manuel successif de tous les scripts dates du dossier DB.
 --
 -- Usage :
---   psql -h localhost -U postgres -d gestionrh -f DB/gestionrh.sql
+--   psql -h localhost -U postgres -d gestionrh -f DB/script-06-11-26-global.sql
 --
 -- ATTENTION : ce script supprime et recree le schema public.
 -- ============================================================
@@ -89,9 +90,16 @@ CREATE TABLE utilisateur (
     id_user SERIAL PRIMARY KEY,
     id_emp INT REFERENCES emp(id_emp),
     id_role INT NOT NULL REFERENCES role(id_role),
+    prenom VARCHAR(100),
+    nom VARCHAR(100),
+    email VARCHAR(255),
+    telephone VARCHAR(30),
     username VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL
 );
+
+CREATE UNIQUE INDEX idx_utilisateur_email_unique
+    ON utilisateur (LOWER(email)) WHERE email IS NOT NULL;
 
 CREATE TABLE poste_par_dept (
     id SERIAL PRIMARY KEY,
@@ -659,6 +667,27 @@ ON CONFLICT (username) DO NOTHING;
 
 
 -- ==========================================
+-- 3 BIS. BLOC 1 : ROLE FINANCE ET COMPTE DE TEST
+-- ==========================================
+
+-- Le role Finance est distinct du role Manager : il autorise la validation
+-- du budget.
+INSERT INTO role (nom_role)
+VALUES ('Finance')
+ON CONFLICT (nom_role) DO NOTHING;
+
+-- Compte de test rattache a Claire Ravel (employe 8, departement Finance).
+-- Mot de passe commun aux comptes de demonstration : MotDePasse2026
+INSERT INTO utilisateur (id_emp, id_role, username, password_hash)
+SELECT 8, r.id_role, 'finance.claire',
+       '$2a$10$1nm2BgnvH3qKcaVrDRx3XOPJrg0.ANPQwOFlQNVjn8zusD2pD/HcO'
+FROM role r
+WHERE r.nom_role = 'Finance'
+  AND EXISTS (SELECT 1 FROM emp WHERE id_emp = 8)
+ON CONFLICT (username) DO NOTHING;
+
+
+-- ==========================================
 -- 4. OFFRES DE DEMONSTRATION
 -- ==========================================
 
@@ -803,6 +832,7 @@ CREATE TABLE candidature (
     cv_num VARCHAR(255),
     date_candidature TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     date_decision TIMESTAMP,
+    salaire_convenu INT,
     id_candidature_status INT NOT NULL REFERENCES candidature_status(id_candidature_status),
     CONSTRAINT uk_candidature_user_offre UNIQUE (id_user, id_offre)
 );
@@ -870,6 +900,84 @@ CREATE TABLE entretien (
 CREATE INDEX idx_entretien_candidature
     ON entretien(id_candidature);
 
+-- Contrat de travail issu d'une candidature retenue.
+CREATE TABLE contrat (
+    id_contrat SERIAL PRIMARY KEY,
+    id_candidature INT NOT NULL UNIQUE REFERENCES candidature(id_candidature),
+    id_emp INT REFERENCES emp(id_emp),
+    numero_contrat VARCHAR(50),
+    type_contrat VARCHAR(20) NOT NULL CHECK (type_contrat IN ('CDI','CDD')),
+    nom_salarie VARCHAR(200) NOT NULL,
+    adresse_salarie VARCHAR(500) NOT NULL,
+    nom_employeur VARCHAR(200) NOT NULL,
+    adresse_employeur VARCHAR(500) NOT NULL,
+    fonction VARCHAR(200) NOT NULL,
+    categorie_professionnelle VARCHAR(150) NOT NULL,
+    indice_classification VARCHAR(100) NOT NULL,
+    salaire INT NOT NULL CHECK (salaire > 0),
+    duree_travail VARCHAR(150) NOT NULL,
+    lieu_travail VARCHAR(200) NOT NULL,
+    date_effet DATE NOT NULL,
+    date_fin DATE,
+    motif_cdd VARCHAR(500),
+    lieu_signature VARCHAR(200),
+    date_signature DATE,
+    statut VARCHAR(30) NOT NULL,
+    date_generation TIMESTAMP,
+    date_acceptation TIMESTAMP,
+    pdf BYTEA,
+    CONSTRAINT ck_contrat_cdd_dates CHECK (type_contrat <> 'CDD' OR date_fin IS NOT NULL),
+    CONSTRAINT ck_contrat_cdi_sans_fin CHECK (type_contrat <> 'CDI' OR date_fin IS NULL)
+);
+
+CREATE UNIQUE INDEX idx_contrat_numero_unique
+    ON contrat(numero_contrat);
+
+CREATE INDEX idx_contrat_statut
+    ON contrat(statut);
+
+-- Notifications envoyees aux utilisateurs.
+CREATE TABLE notification (
+    id_notification SERIAL PRIMARY KEY,
+    id_user INT NOT NULL REFERENCES utilisateur(id_user) ON DELETE CASCADE,
+    type VARCHAR(50),
+    message VARCHAR(500) NOT NULL,
+    lien VARCHAR(500),
+    date_creation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date_lecture TIMESTAMP,
+    lu BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX idx_notification_user
+    ON notification(id_user);
+
+CREATE INDEX idx_notification_lu
+    ON notification(id_user, lu);
+
+-- Questions du questionnaire de proposition de contrat.
+CREATE TABLE question_contrat (
+    id_question_contrat SERIAL PRIMARY KEY,
+    libelle VARCHAR(255) NOT NULL,
+    ordre INT NOT NULL DEFAULT 1,
+    actif BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- Reponses et propositions echangees autour d'un contrat.
+CREATE TABLE reponse_contrat (
+    id_reponse_contrat SERIAL PRIMARY KEY,
+    id_candidature INT NOT NULL REFERENCES candidature(id_candidature) ON DELETE CASCADE,
+    id_question_contrat INT REFERENCES question_contrat(id_question_contrat) ON DELETE SET NULL,
+    code VARCHAR(30),
+    accepte BOOLEAN NOT NULL DEFAULT FALSE,
+    proposition TEXT,
+    numero_tour INT NOT NULL,
+    auteur VARCHAR(20) NOT NULL,
+    date_reponse TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_reponse_contrat_candidature
+    ON reponse_contrat(id_candidature, numero_tour);
+
 
 -- Niveaux diplomes : Bacc+1 a Bacc+7 (reserves au parcours "Etude")
 INSERT INTO niveau (libelle, categorie)
@@ -897,12 +1005,17 @@ WHERE NOT EXISTS (
     SELECT 1 FROM parcours p WHERE p.type = t.type
 );
 
-INSERT INTO candidature_status (libelle)
-SELECT t.libelle
-FROM (VALUES ('RECUE'), ('EN_EXAMEN'), ('RETENUE'), ('REFUSEE'), ('ACCEPTEE')) AS t(libelle)
-WHERE NOT EXISTS (
-    SELECT 1 FROM candidature_status c WHERE c.libelle = t.libelle
-);
+INSERT INTO candidature_status (id_candidature_status, libelle) VALUES
+(1, 'RETENUE'),
+(2, 'RECUE'),
+(3, 'EN_EXAMEN'),
+(4, 'ACCEPTEE'),
+(5, 'REFUSEE'),
+(6, 'CONVOQUE'),
+(7, 'RETENU'),
+(8, 'CONTRAT_REFUSE'),
+(9, 'PROPOSITION')
+ON CONFLICT DO NOTHING;
 
 
 -- ==========================================
@@ -930,6 +1043,13 @@ INSERT INTO question (id_question, id_offre, libelle, ordre) VALUES
 (1, 1, 'Combien d''annees d''experience avez-vous en developpement backend ?', 1),
 (2, 1, 'Quels langages et frameworks maitrisez-vous ?', 2);
 
+INSERT INTO question_contrat (id_question_contrat, libelle, ordre, actif) VALUES
+(1, 'J accepte le type de contrat propose.', 1, TRUE),
+(2, 'J accepte la date d effet proposee.', 2, TRUE),
+(3, 'J accepte le lieu de travail propose.', 3, TRUE),
+(4, 'J accepte la duree du travail proposee.', 4, TRUE)
+ON CONFLICT DO NOTHING;
+
 INSERT INTO reponse (id_candidature, id_question, valeur) VALUES
 (1, 1, '4 ans'),
 (1, 2, 'Java, Spring Boot, PostgreSQL');
@@ -944,6 +1064,10 @@ SELECT setval(pg_get_serial_sequence('info', 'id_info'),
               (SELECT MAX(id_info) FROM info));
 SELECT setval(pg_get_serial_sequence('question', 'id_question'),
               (SELECT MAX(id_question) FROM question));
+SELECT setval(pg_get_serial_sequence('candidature_status', 'id_candidature_status'),
+              (SELECT MAX(id_candidature_status) FROM candidature_status));
+SELECT setval(pg_get_serial_sequence('question_contrat', 'id_question_contrat'),
+              (SELECT MAX(id_question_contrat) FROM question_contrat));
 
 
 -- ==========================================
@@ -1067,6 +1191,6 @@ GROUP BY s.id_demande_status, s.libelle_status
 ORDER BY s.id_demande_status;
 -- ============================================================
 
--- FIN DU SCRIPT UNIQUE
+-- FIN DU SCRIPT GLOBAL
 
 -- ============================================================

@@ -24,6 +24,18 @@ public class Utilisateur {
     @JoinColumn(name = "id_role")
     private Role role;
 
+    @Column(name = "prenom", length = 100)
+    private String prenom;
+
+    @Column(name = "nom", length = 100)
+    private String nom;
+
+    @Column(name = "email", length = 255)
+    private String email;
+
+    @Column(name = "telephone", length = 30)
+    private String telephone;
+
     @Column(name = "username", length = 100)
     private String username;
 
