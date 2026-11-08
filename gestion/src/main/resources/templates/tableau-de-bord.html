@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Tableau de bord</title>
+    <link rel="stylesheet" th:href="@{/css/espace.css}">
+</head>
+
+<body>
+<div layout:fragment="content">
+
+    <section class="dashboard-hero" th:if="${demandeur != null}">
+        <div class="dashboard-hero-content">
+            <span class="eyebrow">Votre espace</span>
+            <h2 th:text="|Bonjour, ${demandeur.username}|">Bonjour</h2>
+            <p>Retrouvez vos accès rapides et pilotez vos activités depuis un espace unique.</p>
+            <div class="dashboard-hero-meta">
+                <span class="badge badge-role" th:if="${demandeur.role != null}"
+                      th:text="${demandeur.role.nomRole}">role</span>
+                <span class="dashboard-date"
+                      th:text="${#temporals.format(#temporals.createNow(), 'EEEE dd MMMM yyyy')}">date</span>
+            </div>
+        </div>
+        <div class="dashboard-avatar" aria-hidden="true"
+             th:text="${#strings.toUpperCase(#strings.substring(demandeur.username, 0, 1))}">U</div>
+    </section>
+
+    <div class="section-head dashboard-section-head">
+        <div>
+            <span class="eyebrow">Navigation</span>
+            <h2>Accès rapides</h2>
+        </div>
+        <span class="help-text">Toutes vos actions essentielles, au même endroit.</span>
+    </div>
+
+    <div class="quick-grid">
+        <th:block th:each="section : ${menu}">
+            <a class="quick-link" th:each="lien : ${section.liens}"
+               th:if="${lien.url != '/tableau-de-bord'}"
+               th:href="@{${lien.url}}">
+                <span class="quick-icon" th:replace="~{fragments/icons :: icone(${lien.url})}"></span>
+                <span class="quick-content">
+                    <span class="quick-section" th:text="${section.titre}">Section</span>
+                    <span class="quick-label" th:text="${lien.libelle}">Lien</span>
+                </span>
+                <span class="quick-arrow" aria-hidden="true">→</span>
+            </a>
+        </th:block>
+    </div>
+
+</div>
+</body>
+
+</html>

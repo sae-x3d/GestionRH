@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Contrat de travail</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Document contractuel</span>
+            <h2>Contrat de travail</h2>
+            <p>Consultez les termes du contrat avant de prendre votre decision.</p>
+        </div>
+        <a th:href="@{/contrats}" class="btn btn-outline">Retour aux contrats</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Action enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <section class="detail-hero">
+        <div class="detail-hero-main">
+            <span class="avatar avatar-lg" th:text="${#strings.toUpperCase(#strings.substring(contrat.nomSalarie, 0, 1))}">S</span>
+            <div>
+                <span class="eyebrow">Contrat n° <span th:text="${contrat.numeroContrat}">1</span></span>
+                <h3 th:text="${contrat.fonction}">Fonction</h3>
+                <p th:text="${contrat.nomSalarie + ' · ' + contrat.typeContrat}">Salarie</p>
+            </div>
+        </div>
+        <div class="detail-hero-meta">
+            <span class="statut"
+                  th:classappend="${contrat.statut == 'ACCEPTE' ? ' statut-acceptee'
+                                  : (contrat.statut == 'REFUSE' ? ' statut-refusee' : ' statut-en-examen')}"
+                  th:text="${contrat.statut}">Statut</span>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Informations</span>
+                <h3>Termes du contrat</h3>
+            </div>
+        </div>
+
+        <dl class="detail-info-grid">
+            <div class="detail-info">
+                <dt>Salarie</dt>
+                <dd th:text="${contrat.nomSalarie}">Nom</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Adresse du salarie</dt>
+                <dd th:text="${contrat.adresseSalarie}">Adresse</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Employeur</dt>
+                <dd th:text="${contrat.nomEmployeur}">Employeur</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Adresse de l'employeur</dt>
+                <dd th:text="${contrat.adresseEmployeur}">Adresse</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Fonction</dt>
+                <dd th:text="${contrat.fonction}">Fonction</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Categorie / indice</dt>
+                <dd th:text="${contrat.categorieProfessionnelle + ' / ' + contrat.indiceClassification}">Categorie</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Type de contrat</dt>
+                <dd th:text="${contrat.typeContrat}">CDI</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Lieu de travail</dt>
+                <dd th:text="${contrat.lieuTravail}">Lieu</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Duree du travail</dt>
+                <dd th:text="${contrat.dureeTravail}">40 heures</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Salaire brut mensuel</dt>
+                <dd th:text="${#numbers.formatInteger(contrat.salaire, 1, 'WHITESPACE') + ' Ar'}">0 Ar</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Date d'effet</dt>
+                <dd th:text="${contrat.dateEffet}">Date</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Date de fin</dt>
+                <dd th:text="${contrat.dateFin != null ? contrat.dateFin : '-'}">-</dd>
+            </div>
+            <div class="detail-info" th:if="${contrat.typeContrat == 'ESSAI'}">
+                <dt>Periode d'essai</dt>
+                <dd th:text="${(contrat.dureeEssaiMois != null ? contrat.dureeEssaiMois + ' mois - ' : '')
+                               + 'fin le ' + (contrat.dateFinEssai != null ? contrat.dateFinEssai : '-')}">-</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Motif CDD</dt>
+                <dd th:text="${contrat.motifCdd != null ? contrat.motifCdd : '-'}">-</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Lieu / date de signature</dt>
+                <dd th:text="${(contrat.lieuSignature != null ? contrat.lieuSignature : '') + (contrat.dateSignature != null ? ' le ' + contrat.dateSignature : '')}">-</dd>
+            </div>
+        </dl>
+
+        <div class="alert-info" th:if="${contrat.pdf == null}">
+            Le PDF officiel sera disponible apres la validation Manager, RH puis Direction.
+        </div>
+
+        <div class="form-actions" th:if="${contrat.pdf != null}">
+            <a class="btn btn-primary" th:href="@{/contrats/{id}/pdf(id=${contrat.idContrat})}">Telecharger le PDF</a>
+            <a class="btn btn-outline" th:href="@{/contrats/{id}/pdf(id=${contrat.idContrat},inline=true)}"
+               target="_blank" rel="noopener">Ouvrir pour imprimer</a>
+        </div>
+    </section>
+
+    <form th:if="${contrat.statut == 'EN_ATTENTE_ACCEPTATION'
+                   and demandeur != null
+                   and contrat.candidature.utilisateur.idUser == demandeur.idUser}"
+          th:action="@{/contrats/{id}/reponse(id=${contrat.idContrat})}" method="post" class="card">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Votre decision</span>
+                <h3>Acceptation du contrat</h3>
+            </div>
+        </div>
+        <p class="help-text">
+            Apres consultation du contrat, choisissez d'accepter ou de refuser. L'acceptation dans l'application
+            enregistre votre accord et cree votre fiche employe. Imprimez et signez aussi les deux exemplaires papier.
+        </p>
+        <div class="form-actions">
+            <button name="accepte" value="true" type="submit" class="btn btn-primary">J'accepte le contrat</button>
+            <button name="accepte" value="false" type="submit" class="btn btn-outline"
+                    onclick="return confirm('Confirmez-vous le refus du contrat ?');">Je refuse</button>
+        </div>
+    </form>
+
+
+    <section class="card" th:if="${dossier != null}">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Workflow</span>
+                <h3>Validation du contrat</h3>
+            </div>
+            <a class="btn btn-outline btn-small" th:if="${dossier.statut.name() == 'EN_COURS'}"
+               th:href="@{/validations/bloc4/{id}(id=${dossier.idDossier})}">Ouvrir la validation</a>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Ordre</th>
+                    <th>Role</th>
+                    <th>Statut</th>
+                    <th>Decideur</th>
+                    <th>Date</th>
+                    <th>Commentaire</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="e : ${dossier.etapes}">
+                    <td th:text="${e.ordre}">1</td>
+                    <td th:text="${e.roleRequis.libelle}">Manager</td>
+                    <td th:text="${e.statut.libelle}">En attente</td>
+                    <td th:text="${e.decideur != null ? e.decideur.username : '-'}">-</td>
+                    <td th:text="${e.dateDecision != null ? #temporals.format(e.dateDecision, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                    <td th:text="${e.commentaire != null ? e.commentaire : '-'}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card" th:if="${not #lists.isEmpty(historique)}">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Historique</span>
+                <h3>Tentatives precedentes</h3>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Tentative</th>
+                    <th>Statut</th>
+                    <th>Deposee le</th>
+                    <th>Cloturee le</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="h : ${historique}">
+                    <td th:text="${h.numeroTentative}">1</td>
+                    <td th:text="${h.statut.libelle}">Statut</td>
+                    <td th:text="${#temporals.format(h.dateCreation, 'dd/MM/yyyy HH:mm')}">-</td>
+                    <td th:text="${h.dateCloture != null ? #temporals.format(h.dateCloture, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card" sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')"
+             th:if="${contrat.statut == 'ACCEPTE'}">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Cycle de vie</span>
+                <h3>Renouvellement, avenant et conversion</h3>
+            </div>
+        </div>
+
+        <div th:if="${contrat.typeContrat == 'CDD' or contrat.typeContrat == 'ESSAI'}">
+            <h4>Renouveler</h4>
+            <form th:action="@{/contrats/{id}/renouveler(id=${contrat.idContrat})}" method="post" class="form-row">
+                <div class="form-group">
+                    <label for="typeCible">Nouveau type</label>
+                    <select id="typeCible" name="typeCible" class="form-select">
+                        <option value="CDD">CDD</option>
+                        <option value="ESSAI">ESSAI</option>
+                        <option value="CDI">CDI</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="dateFinRenouvellement">Nouvelle date de fin</label>
+                    <input type="date" id="dateFinRenouvellement" name="dateFin" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="salaireRenouvellement">Salaire</label>
+                    <input type="number" id="salaireRenouvellement" name="salaire" class="form-control"
+                           th:value="${contrat.salaire}">
+                </div>
+                <div class="form-group">
+                    <label for="motifRenouvellement">Motif</label>
+                    <input type="text" id="motifRenouvellement" name="motif" class="form-control" maxlength="500">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Renouveler</button>
+                </div>
+            </form>
+        </div>
+
+        <div th:if="${contrat.typeContrat != 'CDI'}">
+            <h4>Convertir en CDI</h4>
+            <form th:action="@{/contrats/{id}/convertir-cdi(id=${contrat.idContrat})}" method="post" class="form-row">
+                <div class="form-group">
+                    <label for="salaireConversion">Salaire</label>
+                    <input type="number" id="salaireConversion" name="salaire" class="form-control"
+                           th:value="${contrat.salaire}">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Convertir en CDI</button>
+                </div>
+            </form>
+        </div>
+
+        <h4>Avenant</h4>
+        <form th:action="@{/contrats/{id}/avenant(id=${contrat.idContrat})}" method="post" class="form-row">
+            <div class="form-group">
+                <label for="salaireAvenant">Nouveau salaire</label>
+                <input type="number" id="salaireAvenant" name="salaire" class="form-control"
+                       th:value="${contrat.salaire}">
+            </div>
+            <div class="form-group">
+                <label for="lieuAvenant">Lieu de travail</label>
+                <input type="text" id="lieuAvenant" name="lieuTravail" class="form-control"
+                       th:value="${contrat.lieuTravail}" maxlength="255">
+            </div>
+            <div class="form-group">
+                <label for="commentaireAvenant">Commentaire</label>
+                <input type="text" id="commentaireAvenant" name="commentaire" class="form-control" maxlength="1000">
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-outline">Enregistrer l'avenant</button>
+            </div>
+        </form>
+    </section>
+</section>
+</body>
+
+</html>

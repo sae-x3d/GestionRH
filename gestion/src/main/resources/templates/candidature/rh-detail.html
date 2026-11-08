@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Dossier de candidature</title>
+    <link rel="stylesheet" th:href="@{/css/offre.css}">
+    <link rel="stylesheet" th:href="@{/css/candidature.css}">
+</head>
+
+<body>
+<div layout:fragment="content">
+
+    <div class="page-header">
+        <h2>Dossier de candidature</h2>
+        <a th:href="@{/candidatures/rh}" class="btn btn-outline">Retour aux candidatures</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Action enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <section class="detail-hero">
+        <div class="detail-hero-main">
+            <span class="avatar avatar-lg"
+                  th:text="${#strings.toUpperCase(#strings.substring(candidature.utilisateur.username, 0, 1))}">U</span>
+            <div>
+                <span class="eyebrow">Candidat</span>
+                <h3 th:text="${candidature.utilisateur.username}">candidat</h3>
+                <p th:text="${candidature.offre.titre}">Offre</p>
+            </div>
+        </div>
+        <div class="detail-hero-meta">
+            <span class="statut"
+                  th:classappend="${' statut-' + #strings.toLowerCase(#strings.replace(candidature.statut.libelle, '_', '-'))}"
+                  th:text="${candidature.statut.libelle}">RECUE</span>
+            <span class="help-text"
+                  th:text="${'Depuis le ' + #temporals.format(candidature.dateCandidature, 'dd/MM/yyyy')}">Date</span>
+        </div>
+    </section>
+
+    <section class="card gestion-section">
+        <dl class="detail-info-grid">
+            <div class="detail-info">
+                <dt>Compte</dt>
+                <dd th:text="${candidature.utilisateur.username}">candidat</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Employe</dt>
+                <dd th:text="${candidature.utilisateur.employe != null
+                        ? candidature.utilisateur.employe.nomEmp
+                          + (candidature.utilisateur.employe.departement != null
+                             ? ' · ' + candidature.utilisateur.employe.departement.nomDept : '')
+                        : '-'}">-</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Offre</dt>
+                <dd th:text="${candidature.offre.titre}">Offre</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Date de candidature</dt>
+                <dd th:text="${#temporals.format(candidature.dateCandidature, 'dd/MM/yyyy HH:mm')}">01/01/2026</dd>
+            </div>
+            <div class="detail-info">
+                <dt>CV</dt>
+                <dd th:text="${candidature.cvNum != null ? candidature.cvNum : '-'}">CV</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Date de decision</dt>
+                <dd th:text="${candidature.dateDecision != null ? #temporals.format(candidature.dateDecision, 'dd/MM/yyyy HH:mm') : '-'}">-</dd>
+            </div>
+        </dl>
+    </section>
+
+    <section class="card gestion-section">
+        <h3>Parcours</h3>
+        <p class="empty-state" th:if="${#lists.isEmpty(candidature.parcours)}">Aucun parcours renseigne.</p>
+        <ul class="parcours-liste" th:unless="${#lists.isEmpty(candidature.parcours)}">
+            <li th:each="info : ${candidature.parcours}"
+                th:text="${info.parcours.type + ' - ' + info.niveau.libelle
+                        + (info.domaine != null ? ' (' + info.domaine + ')' : '')
+                        + (info.commentaire != null ? ' : ' + info.commentaire : '')}">
+                Parcours
+            </li>
+        </ul>
+    </section>
+
+    <section class="card gestion-section" th:if="${!candidature.reponses.isEmpty()}">
+        <h3>Reponses au questionnaire</h3>
+        <ul class="parcours-liste">
+            <li th:each="reponse : ${candidature.reponses}">
+                <strong th:text="${reponse.question.libelle}">Question</strong>
+                <span th:text="${' : ' + reponse.valeur}">Reponse</span>
+            </li>
+        </ul>
+    </section>
+
+    <section class="card gestion-section">
+        <h3>Preselection et decision</h3>
+        <div class="actions">
+            <form th:if="${candidature.statut.libelle == 'RECUE'}"
+                  th:action="@{/candidatures/rh/{id}/examen(id=${candidature.idCandidature})}"
+                  method="post" class="inline-form">
+                <button type="submit" class="btn btn-outline btn-small">Passer en examen</button>
+            </form>
+            <form th:if="${candidature.statut.libelle == 'CONVOQUE'}"
+                  th:action="@{/candidatures/rh/{id}/retenir(id=${candidature.idCandidature})}"
+                  method="post" class="inline-form">
+                <button type="submit" class="btn btn-primary btn-small">Retenir apres entretien</button>
+            </form>
+            <form th:if="${candidature.statut.libelle == 'RECUE' or candidature.statut.libelle == 'EN_EXAMEN'
+                          or candidature.statut.libelle == 'CONVOQUE' or candidature.statut.libelle == 'RETENU'
+                          or candidature.statut.libelle == 'PROPOSITION'}"
+                  th:action="@{/candidatures/rh/{id}/refuser(id=${candidature.idCandidature})}"
+                  method="post" class="inline-form">
+                <button type="submit" class="btn btn-outline btn-small">Refuser la candidature</button>
+            </form>
+        </div>
+        <p class="help-text" th:if="${candidature.statut.libelle == 'RECUE' or candidature.statut.libelle == 'EN_EXAMEN'}">
+            Planifiez un entretien ou un test pour convoquer le candidat.
+        </p>
+        <p class="help-text" th:if="${candidature.statut.libelle == 'CONVOQUE'}">
+            Le candidat est convoque. Apres l'entretien/les tests, retenez-le ou refusez sa candidature.
+        </p>
+    </section>
+
+    <section class="card gestion-section">
+        <h3>Entretiens et tests</h3>
+
+        <p class="empty-state" th:if="${#lists.isEmpty(entretiens)}">
+            Aucun entretien ou test planifie.
+        </p>
+
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(entretiens)}">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Lieu</th>
+                    <th>Participants</th>
+                    <th>Disponibilites</th>
+                    <th>Resultat</th>
+                    <th>Evaluation</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="entretien : ${entretiens}">
+                    <td th:text="${entretien.type.libelle}">Entretien</td>
+                    <td th:text="${#temporals.format(entretien.dateHeure, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                    <td th:text="${entretien.lieu != null ? entretien.lieu : '-'}">-</td>
+                    <td th:text="${entretien.participants != null ? entretien.participants : '-'}">-</td>
+                    <td th:text="${entretien.disponibilites != null ? entretien.disponibilites : '-'}">-</td>
+                    <td th:text="${entretien.resultat != null ? entretien.resultat : 'En attente'}">En attente</td>
+                    <td th:text="${entretien.evaluation != null ? entretien.evaluation : '-'}">-</td>
+                    <td>
+                        <form th:if="${!entretien.realise}"
+                              th:action="@{/candidatures/rh/{id}/entretiens/{idEntretien}/resultat(id=${candidature.idCandidature}, idEntretien=${entretien.idEntretien})}"
+                              method="post" class="resultat-form">
+                            <textarea name="resultat" class="form-control" rows="2" placeholder="Resultat" required></textarea>
+                            <input type="text" name="evaluation" class="form-control" maxlength="255"
+                                   placeholder="Evaluation / note">
+                            <button type="submit" class="btn btn-primary btn-small">Enregistrer</button>
+                        </form>
+                        <form th:action="@{/candidatures/rh/{id}/entretiens/{idEntretien}/evaluations(id=${candidature.idCandidature}, idEntretien=${entretien.idEntretien})}"
+                              method="post" class="resultat-form" style="margin-top:.5rem;">
+                            <input type="number" name="note" class="form-control" min="0" max="100"
+                                   placeholder="Note /100" required>
+                            <input type="text" name="grille" class="form-control" maxlength="2000"
+                                   placeholder="Grille d'evaluation">
+                            <input type="text" name="commentaire" class="form-control" maxlength="1000"
+                                   placeholder="Commentaire">
+                            <button type="submit" class="btn btn-outline btn-small">Ajouter une evaluation</button>
+                        </form>
+                        <span th:if="${entretien.realise}" class="help-text">Termine</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(evaluations)}">
+            <h4>Evaluations ({#numbers.formatDecimal(moyenneEvaluation, 1, 1)}/100 en moyenne)</h4>
+            <ul>
+                <li th:each="eval : ${evaluations}">
+                    <strong th:text="${eval.note} + '/100'">0/100</strong>
+                    <span th:text="${eval.grille != null ? ' - ' + eval.grille : ''}"></span>
+                    <span th:text="${eval.commentaire != null ? ' (' + eval.commentaire + ')' : ''}"></span>
+                </li>
+            </ul>
+        </div>
+
+        <div th:if="${candidature.statut.libelle == 'RECUE' or candidature.statut.libelle == 'EN_EXAMEN'
+                      or candidature.statut.libelle == 'CONVOQUE'}">
+            <h4>Convoquer a un entretien ou un test</h4>
+            <form th:action="@{/candidatures/rh/{id}/entretiens(id=${candidature.idCandidature})}"
+                  method="post">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="type">Type <span class="required">*</span></label>
+                        <select id="type" name="type" class="form-select" required>
+                            <option th:each="type : ${typesEntretien}" th:value="${type.name()}"
+                                    th:text="${type.libelle}">Entretien</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dateHeure">Date et heure <span class="required">*</span></label>
+                        <input type="datetime-local" id="dateHeure" name="dateHeure" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lieu">Lieu / lien</label>
+                        <input type="text" id="lieu" name="lieu" class="form-control" maxlength="255">
+                    </div>
+                    <div class="form-group">
+                        <label for="participants">Participants</label>
+                        <input type="text" id="participants" name="participants" class="form-control" maxlength="255">
+                    </div>
+                    <div class="form-group">
+                        <label for="disponibilites">Disponibilites</label>
+                        <input type="text" id="disponibilites" name="disponibilites" class="form-control"
+                               maxlength="500" placeholder="Creneaux proposes au candidat">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Planifier</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section class="card gestion-section"
+             th:if="${candidature.statut.libelle == 'RETENU' or candidature.statut.libelle == 'PROPOSITION'
+                     or candidature.statut.libelle == 'ACCEPTEE' or candidature.statut.libelle == 'CONTRAT_REFUSE'}">
+        <h3>Questionnaire du contrat</h3>
+
+        <p class="help-text" th:if="${candidature.statut.libelle == 'RETENU'}">
+            Le candidat est retenu. Envoyez-lui le questionnaire du contrat ou consultez sa reponse.
+        </p>
+        <p class="help-text" th:if="${candidature.statut.libelle == 'PROPOSITION'}">
+            Le candidat a formule une proposition. Etudiez-la avant d'emettre le contrat.
+        </p>
+        <p class="help-text" th:if="${candidature.statut.libelle == 'ACCEPTEE'}">
+            Les termes du contrat sont acceptes. Le salaire convenu est de
+            <strong th:text="${#numbers.formatInteger(candidature.salaireConvenu,1,'WHITESPACE') + ' Ar'}">0 Ar</strong>.
+        </p>
+        <p class="help-text" th:if="${candidature.statut.libelle == 'CONTRAT_REFUSE'}">
+            Le candidat a refuse le contrat. La candidature est close.
+        </p>
+
+        <div class="actions" th:if="${candidature.statut.libelle == 'RETENU'}">
+            <form th:action="@{/candidatures/rh/{id}/questionnaire-contrat/envoyer(id=${candidature.idCandidature})}"
+                  method="post" class="inline-form">
+                <button type="submit" class="btn btn-outline btn-small">
+                    <span th:text="${#lists.isEmpty(dernierTourContrat) ? 'Envoyer le questionnaire' : 'Renvoyer la notification'}">
+                        Envoyer le questionnaire
+                    </span>
+                </button>
+            </form>
+            <a th:href="@{/contrats/questionnaire}" class="btn btn-outline btn-small">
+                Gerer les questions
+            </a>
+        </div>
+
+        <div class="actions" th:if="${candidature.statut.libelle == 'PROPOSITION'}">
+            <a class="btn btn-primary btn-small"
+               th:href="@{/candidatures/rh/{id}/propositions(id=${candidature.idCandidature})}">
+                Etudier la proposition du candidat
+            </a>
+        </div>
+
+        <div class="table-wrapper" th:if="${not #lists.isEmpty(dernierTourContrat)}">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Question / element</th>
+                    <th>Position du candidat</th>
+                    <th>Proposition</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="reponse : ${dernierTourContrat}">
+                    <td th:text="${reponse.question != null ? reponse.question.libelle : 'Salaire mensuel brut'}">
+                        Question
+                    </td>
+                    <td>
+                        <span th:if="${reponse.accepte}" class="statut statut-acceptee">Accepte</span>
+                        <span th:unless="${reponse.accepte}" class="statut statut-proposition">Refuse / negocie</span>
+                    </td>
+                    <td th:text="${reponse.proposition != null ? reponse.proposition
+                                   : (reponse.code == 'SALAIRE' ? salaireCourant : '-')}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card gestion-section" th:if="${candidature.statut.libelle == 'ACCEPTEE'}">
+        <h3>Contrat et embauche</h3>
+        <p th:if="${contrat == null}">
+            La candidature est acceptee. Emettez le contrat : il sera valide par le Manager, le RH puis la Direction
+            avant d'etre transmis au candidat.
+        </p>
+        <p th:if="${contrat != null}">
+            Un contrat est en cours : <strong th:text="${contrat.numeroContrat + ' (' + contrat.typeContrat + ')'}">-</strong>.
+            Statut : <span class="status-badge" th:text="${contrat.statut}">Statut</span>.
+        </p>
+        <div class="actions">
+            <a class="btn btn-primary"
+               th:href="${contrat == null
+                         ? '/candidatures/rh/' + candidature.idCandidature + '/contrat/nouveau'
+                         : '/contrats/' + contrat.idContrat}">
+                <span th:text="${contrat == null ? 'Emettre le contrat' : 'Consulter le contrat'}">Contrat</span>
+            </a>
+            <a class="btn btn-outline" th:if="${dossierContrat != null and dossierContrat.statut.name() == 'EN_COURS'}"
+               th:href="@{/validations/bloc4/{id}(id=${dossierContrat.idDossier})}">Ouvrir la validation</a>
+            <a class="btn btn-outline"
+               th:href="@{/accreditations/nouveau(candidature=${candidature.idCandidature})}">
+                Declarer une accreditation
+            </a>
+        </div>
+
+        <div class="table-wrapper" th:if="${not #lists.isEmpty(contratsHistorique)}">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Numero</th>
+                    <th>Type</th>
+                    <th>Statut</th>
+                    <th>Date d'effet</th>
+                    <th class="col-actions">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="h : ${contratsHistorique}">
+                    <td th:text="${h.numeroContrat}">-</td>
+                    <td th:text="${h.typeContrat}">CDI</td>
+                    <td th:text="${h.statut}">Statut</td>
+                    <td th:text="${h.dateEffet}">Date</td>
+                    <td class="col-actions">
+                        <a class="btn btn-outline btn-small"
+                           th:href="@{/contrats/{id}(id=${h.idContrat})}">Consulter</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card gestion-section">
+        <div class="section-head">
+            <div>
+                <h3>Accreditations du candidat</h3>
+                <span class="help-text">Une accreditation validee par les trois niveaux impose un CDI direct.</span>
+            </div>
+            <a class="btn btn-outline btn-small"
+               th:href="@{/accreditations/nouveau(candidature=${candidature.idCandidature})}">
+                Declarer
+            </a>
+        </div>
+
+        <div class="alert-info" th:if="${#lists.isEmpty(accreditations)}">
+            Aucune accreditation declaree.
+        </div>
+
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(accreditations)}">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Organisme</th>
+                    <th>Validite</th>
+                    <th>Statut</th>
+                    <th class="col-actions">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="a : ${accreditations}">
+                    <td th:text="${a.typeAccreditation}">Type</td>
+                    <td th:text="${a.organisme}">Organisme</td>
+                    <td th:text="${#temporals.format(a.dateObtention, 'dd/MM/yyyy')
+                                   + (a.dateExpiration != null ? ' - ' + #temporals.format(a.dateExpiration, 'dd/MM/yyyy') : '')}">-</td>
+                    <td th:text="${a.statut}">Statut</td>
+                    <td class="col-actions">
+                        <a class="btn btn-outline btn-small"
+                           th:href="@{/accreditations/{id}(id=${a.idAccreditation})}">Consulter</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+</body>
+
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Journal d'audit</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Securite</span>
+            <h2>Journal d'audit</h2>
+            <p>Traçabilite des acces et des actions realisees dans l'application.</p>
+        </div>
+    </div>
+
+    <form class="card" th:action="@{/audit}" method="get">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="utilisateur">Utilisateur</label>
+                <input type="text" id="utilisateur" name="utilisateur" class="form-control"
+                       th:value="${utilisateurFiltre}" placeholder="Nom d'utilisateur">
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Filtrer</button>
+            <a class="btn btn-outline" th:href="@{/audit}">Reinitialiser</a>
+        </div>
+    </form>
+
+    <div class="alert-info" th:if="${#lists.isEmpty(entrees)}">Aucune entree d'audit.</div>
+
+    <div class="table-wrapper" th:unless="${#lists.isEmpty(entrees)}">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Utilisateur</th>
+                <th>Methode</th>
+                <th>Chemin</th>
+                <th>Entite</th>
+                <th>Reference</th>
+                <th>IP</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="e : ${entrees}">
+                <td th:text="${#temporals.format(e.dateAction, 'dd/MM/yyyy HH:mm:ss')}">-</td>
+                <td th:text="${e.username}">-</td>
+                <td th:text="${e.methode}">-</td>
+                <td th:text="${e.chemin}">-</td>
+                <td th:text="${e.entite != null ? e.entite : '-'}">-</td>
+                <td th:text="${e.idEntite != null ? e.idEntite : '-'}">-</td>
+                <td th:text="${e.adresseIp != null ? e.adresseIp : '-'}">-</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</section>
+</body>
+
+</html>

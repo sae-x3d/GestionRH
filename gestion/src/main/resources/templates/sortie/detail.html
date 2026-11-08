@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Dossier de sortie</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Sorties</span>
+            <h2 th:text="${'Sortie de ' + sortie.employe.nomEmp}">Dossier de sortie</h2>
+            <p th:text="${sortie.typeSortie.libelle + ' - ' + #temporals.format(sortie.dateSortie, 'dd/MM/yyyy')}">-</p>
+        </div>
+        <a class="btn btn-outline" th:href="@{/sorties}">Retour aux sorties</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">OK</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <section class="card">
+        <div class="section-heading"><h3>Informations</h3></div>
+        <div class="form-row">
+            <div class="form-group"><label>Statut</label><p th:text="${sortie.statut.libelle}">-</p></div>
+            <div class="form-group"><label>Preavis</label>
+                <p th:text="${sortie.preavisJours != null ? sortie.preavisJours + ' jour(s)' : '-'}">-</p></div>
+            <div class="form-group"><label>Solde de tout compte</label>
+                <p th:text="${sortie.soldeToutCompte != null ? sortie.soldeToutCompte : '-'}">-</p></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Motif</label>
+                <p th:text="${sortie.motif != null ? sortie.motif : '-'}">-</p></div>
+            <div class="form-group"><label>Commentaire</label>
+                <p th:text="${sortie.commentaire != null ? sortie.commentaire : '-'}">-</p></div>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="section-heading"><h3>Checklist de depart</h3></div>
+        <div class="alert-info" th:if="${#lists.isEmpty(checklist)}">
+            Checklist disponible apres validation de la sortie.
+        </div>
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(checklist)}">
+            <table class="data-table">
+                <thead>
+                <tr><th>Tache</th><th>Responsable</th><th>Etat</th><th>Fait le</th><th>Commentaire</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${checklist}">
+                    <td th:text="${c.libelle}">-</td>
+                    <td th:text="${c.responsable != null ? c.responsable : '-'}">-</td>
+                    <td th:text="${c.fait ? 'Terminee' : 'A faire'}">-</td>
+                    <td th:text="${c.dateFait != null ? #temporals.format(c.dateFait, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                    <td th:text="${c.commentaire != null ? c.commentaire : '-'}">-</td>
+                    <td>
+                        <form th:action="@{/sorties/checklist/{id}(id=${c.idChecklist})}" method="post"
+                              style="display:inline-flex;gap:.35rem;flex-wrap:wrap;align-items:center;">
+                            <input type="hidden" name="sortieId" th:value="${sortie.idSortie}">
+                            <input type="text" name="commentaire" class="form-control" placeholder="Commentaire">
+                            <button type="submit" name="fait" value="true" class="btn btn-primary btn-small"
+                                    th:if="${!c.fait}">Terminer</button>
+                            <button type="submit" name="fait" value="false" class="btn btn-outline btn-small"
+                                    th:if="${c.fait}">Rouvrir</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</section>
+</body>
+
+</html>

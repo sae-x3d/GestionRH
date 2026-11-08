@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Sorties</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Mouvements</span>
+            <h2>Gestion des sorties</h2>
+            <p>Demissions, fins de contrat et soldes de tout compte.</p>
+        </div>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Action enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <div class="card">
+        <div class="section-heading">
+            <h3>Declarer une sortie</h3>
+        </div>
+        <form th:action="@{/sorties}" method="post">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="employeId">Salarie <span class="required">*</span></label>
+                    <select id="employeId" name="employeId" class="form-select" required>
+                        <option th:each="e : ${employes}" th:value="${e.idEmp}"
+                                th:text="${e.nomEmp + (e.matricule != null ? ' (' + e.matricule + ')' : '')}">
+                            Salarie
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="typeSortie">Type <span class="required">*</span></label>
+                    <select id="typeSortie" name="typeSortie" class="form-select" required>
+                        <option th:each="t : ${typesSortie}" th:value="${t.name()}" th:text="${t.libelle}">Type</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="dateSortie">Date de sortie <span class="required">*</span></label>
+                    <input type="date" id="dateSortie" name="dateSortie" class="form-control" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="motif">Motif</label>
+                    <input type="text" id="motif" name="motif" class="form-control" maxlength="500">
+                </div>
+                <div class="form-group">
+                    <label for="preavisJours">Preavis (jours)</label>
+                    <input type="number" id="preavisJours" name="preavisJours" class="form-control" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="commentaire">Commentaire</label>
+                    <input type="text" id="commentaire" name="commentaire" class="form-control" maxlength="1000">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Enregistrer la sortie</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="alert-info" th:if="${#lists.isEmpty(sorties)}">Aucune sortie enregistree.</div>
+
+    <div class="table-wrapper" th:unless="${#lists.isEmpty(sorties)}">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Salarie</th>
+                <th>Type</th>
+                <th>Date de sortie</th>
+                <th>Preavis</th>
+                <th>Solde</th>
+                <th>Statut</th>
+                <th class="col-actions">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="s : ${sorties}">
+                <td th:text="${s.employe.nomEmp}">Salarie</td>
+                <td th:text="${s.typeSortie.libelle}">Type</td>
+                <td th:text="${s.dateSortie}">Date</td>
+                <td th:text="${s.preavisJours != null ? s.preavisJours + ' j' : '-'}">-</td>
+                <td th:text="${s.soldeToutCompte != null ? s.soldeToutCompte : '-'}">-</td>
+                <td th:text="${s.statut.libelle}">Statut</td>
+                <td class="col-actions">
+                    <a class="btn btn-outline btn-small" th:href="@{/sorties/{id}(id=${s.idSortie})}">Dossier</a>
+                    <form th:if="${s.statut.name() == 'EN_COURS'}"
+                          th:action="@{/sorties/{id}/valider(id=${s.idSortie})}" method="post"
+                          style="display:inline-flex;gap:.35rem;align-items:center;">
+                        <input type="number" name="soldeToutCompte" class="form-control" placeholder="Solde"
+                               style="max-width:130px;">
+                        <button type="submit" class="btn btn-primary btn-small">Valider</button>
+                    </form>
+                    <form th:if="${s.statut.name() == 'EN_COURS'}"
+                          th:action="@{/sorties/{id}/annuler(id=${s.idSortie})}" method="post"
+                          style="display:inline;">
+                        <button type="submit" class="btn btn-outline btn-small">Annuler</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</section>
+</body>
+
+</html>

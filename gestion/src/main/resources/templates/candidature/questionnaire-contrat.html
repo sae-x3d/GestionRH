@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Questionnaire du contrat</title>
+    <link rel="stylesheet" th:href="@{/css/offre.css}">
+    <link rel="stylesheet" th:href="@{/css/candidature.css}">
+</head>
+
+<body>
+<div layout:fragment="content">
+
+    <div class="page-header">
+        <h2>Questionnaire du contrat</h2>
+        <a th:href="@{/candidatures}" class="btn btn-outline">Retour a mes candidatures</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Reponse enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <section class="card gestion-section">
+        <h3 th:text="${candidature.offre.titre}">Offre</h3>
+        <p><strong>Statut :</strong>
+            <span class="statut"
+                  th:classappend="${' statut-' + #strings.toLowerCase(#strings.replace(candidature.statut.libelle, '_', '-'))}"
+                  th:text="${candidature.statut.libelle}">RETENU</span>
+        </p>
+        <p th:if="${candidature.salaireConvenu != null}">
+            <strong>Salaire convenu :</strong>
+            <span th:text="${#numbers.formatInteger(candidature.salaireConvenu,1,'WHITESPACE') + ' Ar'}">0 Ar</span>
+        </p>
+        <p th:if="${salaireCourant != null}">
+            <strong>Salaire mensuel brut propose :</strong>
+            <span th:text="${#numbers.formatInteger(salaireCourant,1,'WHITESPACE') + ' Ar'}">0 Ar</span>
+        </p>
+    </section>
+
+    <section class="card gestion-section" th:if="${peutRepondre}">
+        <h3>Vos choix</h3>
+        <p class="help-text" th:if="${auteurDernierTour == 'RH'}">
+            Les RH ont formule une contre-proposition. Acceptez chaque point ou proposez une alternative.
+        </p>
+        <p class="help-text" th:unless="${auteurDernierTour == 'RH'}">
+            Acceptez chaque point du contrat ou indiquez votre proposition. Vous pouvez aussi refuser le contrat.
+        </p>
+
+        <form th:action="@{/candidatures/{id}/questionnaire-contrat(id=${candidature.idCandidature})}" method="post">
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="salaireAccepte" th:checked="${salaireAccepte}">
+                    J'accepte le salaire mensuel brut propose
+                    <strong th:if="${salaireCourant != null}"
+                            th:text="${#numbers.formatInteger(salaireCourant,1,'WHITESPACE') + ' Ar'}">0 Ar</strong>
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="salairePropose">Sinon, je propose le salaire mensuel brut suivant (Ar)</label>
+                <input type="number" id="salairePropose" name="salairePropose" class="form-control"
+                       min="1" step="1" th:value="${salaireCourant}">
+            </div>
+
+            <div class="question-contrat" th:each="question : ${questions}">
+                <p><strong th:text="${question.libelle}">Question</strong></p>
+                <label>
+                    <input type="checkbox" th:name="${'accepte_' + question.idQuestionContrat}"
+                           th:checked="${reponses[question.idQuestionContrat] == null
+                                   or reponses[question.idQuestionContrat].accepte}">
+                    J'accepte ce point
+                </label>
+                <label>
+                    Sinon, je propose :
+                    <input type="text" class="form-control"
+                           th:name="${'proposition_' + question.idQuestionContrat}"
+                           th:value="${reponses[question.idQuestionContrat] != null
+                                   ? reponses[question.idQuestionContrat].proposition : ''}"
+                           maxlength="1000">
+                </label>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" name="action" value="soumettre" class="btn btn-primary">
+                    Envoyer ma reponse
+                </button>
+                <button type="submit" name="action" value="refuser" class="btn btn-outline"
+                        onclick="return confirm('Confirmez-vous le refus du contrat ? Cette decision est definitive.');">
+                    Je refuse le contrat
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card gestion-section" th:unless="${peutRepondre}">
+        <h3>Etat de votre dossier</h3>
+        <p class="help-text" th:if="${candidature.statut.libelle == 'PROPOSITION' and auteurDernierTour == 'CANDIDAT'}">
+            Votre proposition a bien ete transmise aux RH. Vous serez notifie de leur decision.
+        </p>
+        <p class="help-text" th:if="${candidature.statut.libelle == 'ACCEPTEE'}">
+            Les termes du contrat sont acceptes. Les RH vont preparer votre contrat.
+        </p>
+        <p class="help-text" th:if="${candidature.statut.libelle == 'REFUSEE'}">
+            Votre candidature est close.
+        </p>
+        <p class="help-text" th:if="${candidature.statut.libelle == 'CONTRAT_REFUSE'}">
+            Vous avez refuse le contrat. Votre candidature est close.
+        </p>
+    </section>
+
+</div>
+</body>
+
+</html>

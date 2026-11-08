@@ -1,0 +1,30 @@
+<div class="pager" th:fragment="pager(currentPage, totalPages, size, url, filters)">
+
+    <form th:action="@{${url}}" method="get" class="pager-size">
+        <input type="hidden" th:each="entry : ${filters}" th:name="${entry.key}" th:value="${entry.value}">
+        <label for="pager-size">Lignes :</label>
+        <input id="pager-size" type="number" min="1" name="size" class="form-control"
+               th:value="${size}" onchange="this.form.submit()">
+    </form>
+
+    <nav class="pager-nav">
+        <form th:if="${currentPage > 0}" th:action="@{${url}}" method="get">
+            <input type="hidden" th:each="entry : ${filters}" th:name="${entry.key}" th:value="${entry.value}">
+            <input type="hidden" name="page" th:value="${currentPage - 1}">
+            <input type="hidden" name="size" th:value="${size}">
+            <button type="submit" class="btn btn-outline btn-sm">« Précédent</button>
+        </form>
+
+        <span class="pager-info">
+            Page <span th:text="${currentPage + 1}">1</span> / <span th:text="${totalPages}">1</span>
+        </span>
+
+        <form th:if="${currentPage < totalPages - 1}" th:action="@{${url}}" method="get">
+            <input type="hidden" th:each="entry : ${filters}" th:name="${entry.key}" th:value="${entry.value}">
+            <input type="hidden" name="page" th:value="${currentPage + 1}">
+            <input type="hidden" name="size" th:value="${size}">
+            <button type="submit" class="btn btn-outline btn-sm">Suivant »</button>
+        </form>
+    </nav>
+
+</div>

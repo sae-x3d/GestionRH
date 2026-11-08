@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Cloture de paie</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Paie</span>
+            <h2>Cloture de paie</h2>
+            <p th:text="${'Periode ' + mois + '/' + annee + ' - ' + periode.statut.libelle}">Periode</p>
+        </div>
+        <div style="display:flex;gap:.5rem;">
+            <a class="btn btn-outline btn-small" th:href="@{/paie}">Inscriptions paie</a>
+        </div>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">OK</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <section class="card">
+        <div class="section-heading"><h3>Periode</h3></div>
+        <form method="get" th:action="@{/paie/cloture}" class="form-row">
+            <div class="form-group">
+                <label for="mois">Mois</label>
+                <select id="mois" name="mois" class="form-select">
+                    <option th:each="m : ${#numbers.sequence(1, 12)}" th:value="${m}"
+                            th:text="${m}" th:selected="${m == mois}">1</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="annee">Annee</label>
+                <input type="number" id="annee" name="annee" class="form-control" th:value="${annee}">
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-outline">Afficher</button>
+            </div>
+        </form>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem;">
+            <form th:action="@{/paie/cloture/generer}" method="post" th:if="${periode.statut.name() == 'OUVERTE'}">
+                <input type="hidden" name="annee" th:value="${annee}">
+                <input type="hidden" name="mois" th:value="${mois}">
+                <button type="submit" class="btn btn-outline">Generer les variables</button>
+            </form>
+            <form th:action="@{/paie/cloture/cloturer}" method="post" th:if="${periode.statut.name() == 'OUVERTE'}">
+                <input type="hidden" name="annee" th:value="${annee}">
+                <input type="hidden" name="mois" th:value="${mois}">
+                <button type="submit" class="btn btn-primary">Cloturer la periode</button>
+            </form>
+            <a class="btn btn-outline" th:href="@{/paie/variables/{id}/export(id=${periode.idPeriodePaie})}">
+                Exporter CSV
+            </a>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="section-heading"><h3>Variables de paie</h3></div>
+        <div class="alert-info" th:if="${#lists.isEmpty(variables)}">
+            Aucune variable generee pour cette periode.
+        </div>
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(variables)}">
+            <table class="data-table">
+                <thead>
+                <tr><th>Salarie</th><th>Type</th><th>Libelle</th><th>Quantite</th><th>Montant</th><th>Reference</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="v : ${variables}">
+                    <td th:text="${v.employe.nomEmp}">-</td>
+                    <td th:text="${v.typeVariable.libelle}">-</td>
+                    <td th:text="${v.libelle}">-</td>
+                    <td th:text="${v.quantite != null ? v.quantite : '-'}">-</td>
+                    <td th:text="${v.montant != null ? v.montant : '-'}">-</td>
+                    <td th:text="${v.reference != null ? v.reference : '-'}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="section-heading"><h3>Historique des periodes</h3></div>
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(periodes)}">
+            <table class="data-table">
+                <thead><tr><th>Periode</th><th>Du</th><th>Au</th><th>Statut</th><th>Cloture le</th></tr></thead>
+                <tbody>
+                <tr th:each="p : ${periodes}">
+                    <td th:text="${p.mois + '/' + p.annee}">-</td>
+                    <td th:text="${#temporals.format(p.dateDebut, 'dd/MM/yyyy')}">-</td>
+                    <td th:text="${#temporals.format(p.dateFin, 'dd/MM/yyyy')}">-</td>
+                    <td th:text="${p.statut.libelle}">-</td>
+                    <td th:text="${p.dateCloture != null ? #temporals.format(p.dateCloture, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</section>
+</body>
+
+</html>

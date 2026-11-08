@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{fragments/layout}">
+<head><title>Absences</title></head>
+<body><section layout:fragment="content" class="page-content">
+  <div class="page-header"><div><span class="eyebrow">Temps de travail</span><h2>Absences</h2><p>Maladie, maternité et autres absences avec justificatif et décision RH.</p></div></div>
+  <div class="alert-success" th:if="${succes}" th:text="${succes}"></div><div class="alert-error" th:if="${erreur}" th:text="${erreur}"></div>
+  <section class="card"><h3>Déclarer une absence</h3>
+    <form th:action="@{/absences}" method="post" enctype="multipart/form-data" class="form-row">
+      <div class="form-group"><label>Type</label><select name="type" class="form-select"><option th:each="t : ${types}" th:value="${t}" th:text="${t}"></option></select></div>
+      <div class="form-group"><label>Début</label><input class="form-control" type="date" name="debut" required></div>
+      <div class="form-group"><label>Fin</label><input class="form-control" type="date" name="fin" required></div>
+      <div class="form-group"><label>Justificatif</label><input class="form-control" type="file" name="justificatif" required></div>
+      <div class="form-actions"><button class="btn btn-primary">Transmettre</button></div>
+    </form>
+  </section>
+  <section class="card"><h3>Déclarations</h3><div class="table-wrapper"><table class="data-table"><thead><tr><th>Salarié</th><th>Type</th><th>Du</th><th>Au</th><th>Statut</th><th>Décision</th></tr></thead><tbody>
+    <tr th:each="a : ${absences}"><td th:text="${a.employe.nomEmp}"></td><td th:text="${a.typeAbsence}"></td><td th:text="${a.dateDebut}"></td><td th:text="${a.dateFin}"></td><td th:text="${a.statut}"></td><td><a th:href="@{/absences/{id}/justificatif(id=${a.idAbsence})}">Justificatif</a><form th:if="${estRh and a.statut.name() == 'SOUMISE'}" th:action="@{/absences/{id}/decision(id=${a.idAbsence})}" method="post"><button class="btn btn-primary btn-small" name="accepter" value="true">Valider</button> <button class="btn btn-outline btn-small" name="accepter" value="false">Refuser</button></form></td></tr>
+  </tbody></table></div></section>
+</section></body></html>

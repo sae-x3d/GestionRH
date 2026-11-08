@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Accreditation</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Competences</span>
+            <h2 th:text="${accreditation.typeAccreditation}">Accreditation</h2>
+            <p th:text="${'Organisme : ' + accreditation.organisme}">Organisme</p>
+        </div>
+        <a class="btn btn-outline" th:href="@{/mes-accreditations}">Retour</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Action enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <section class="card">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Dossier</span>
+                <h3>Informations et validite</h3>
+            </div>
+            <span class="status-badge"
+                  th:classappend="${accreditation.statut == 'VALIDEE' ? ' status-success'
+                                   : (accreditation.statut == 'A_CORRIGER' ? ' status-danger' : '')}"
+                  th:text="${accreditation.statut}">Statut</span>
+        </div>
+
+        <dl class="detail-info-grid">
+            <div class="detail-info">
+                <dt>Titulaire</dt>
+                <dd th:text="${accreditation.utilisateur != null ? accreditation.utilisateur.username : '-'}">-</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Organisme</dt>
+                <dd th:text="${accreditation.organisme}">Organisme</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Numero</dt>
+                <dd th:text="${accreditation.numero != null ? accreditation.numero : '-'}">-</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Date d'obtention</dt>
+                <dd th:text="${#temporals.format(accreditation.dateObtention, 'dd/MM/yyyy')}">Date</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Date d'expiration</dt>
+                <dd th:text="${accreditation.dateExpiration != null ? #temporals.format(accreditation.dateExpiration, 'dd/MM/yyyy') : 'Illimitee'}">-</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Candidature rattachee</dt>
+                <dd th:text="${accreditation.candidature != null ? accreditation.candidature.offre.titre : '-'}">-</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Verifie par</dt>
+                <dd th:text="${accreditation.verificateur != null ? accreditation.verificateur.username : '-'}">-</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Commentaire</dt>
+                <dd th:text="${accreditation.commentaire != null ? accreditation.commentaire : '-'}">-</dd>
+            </div>
+        </dl>
+
+        <div class="form-actions">
+            <a class="btn btn-outline" th:if="${accreditation.documentChemin != null}"
+               th:href="@{/accreditations/{id}/document(id=${accreditation.idAccreditation})}">
+                Telecharger le justificatif
+            </a>
+            <a class="btn btn-primary" th:if="${dossier != null and dossier.statut.name() == 'EN_COURS'}"
+               th:href="@{/validations/bloc4/{id}(id=${dossier.idDossier})}">
+                Ouvrir la validation
+            </a>
+        </div>
+    </section>
+
+    <section class="card" th:if="${dossier != null}">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Workflow</span>
+                <h3>Etapes de validation</h3>
+            </div>
+            <span class="help-text" th:text="${'Tentative ' + dossier.numeroTentative}">Tentative</span>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Ordre</th>
+                    <th>Role</th>
+                    <th>Statut</th>
+                    <th>Decideur</th>
+                    <th>Date</th>
+                    <th>Commentaire</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="e : ${dossier.etapes}">
+                    <td th:text="${e.ordre}">1</td>
+                    <td th:text="${e.roleRequis.libelle}">Manager</td>
+                    <td th:text="${e.statut.libelle}">En attente</td>
+                    <td th:text="${e.decideur != null ? e.decideur.username : '-'}">-</td>
+                    <td th:text="${e.dateDecision != null ? #temporals.format(e.dateDecision, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                    <td th:text="${e.commentaire != null ? e.commentaire : '-'}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card" th:if="${not #lists.isEmpty(historique)}">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Historique</span>
+                <h3>Tentatives precedentes</h3>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Tentative</th>
+                    <th>Statut</th>
+                    <th>Deposee le</th>
+                    <th>Cloturee le</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="h : ${historique}">
+                    <td th:text="${h.numeroTentative}">1</td>
+                    <td th:text="${h.statut.libelle}">Statut</td>
+                    <td th:text="${#temporals.format(h.dateCreation, 'dd/MM/yyyy HH:mm')}">-</td>
+                    <td th:text="${h.dateCloture != null ? #temporals.format(h.dateCloture, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</section>
+</body>
+
+</html>

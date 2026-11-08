@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Mon dossier</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Espace salarie</span>
+            <h2>Mon dossier</h2>
+        </div>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">OK</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <div th:if="${employe == null}" class="alert-info">
+        Aucun dossier salarie n'est rattache a votre compte.
+    </div>
+
+    <div th:if="${employe != null}">
+        <section class="card">
+            <div class="section-heading"><h3>Mes coordonnees</h3></div>
+            <form th:action="@{/mon-dossier/identite}" method="post" class="form-row">
+                <div class="form-group">
+                    <label>Adresse</label>
+                    <input type="text" name="adresse" class="form-control" th:value="${employe.adresse}" maxlength="255">
+                </div>
+                <div class="form-group">
+                    <label>Telephone</label>
+                    <input type="text" name="telephone" class="form-control" th:value="${employe.telephone}" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label>Contact d'urgence</label>
+                    <input type="text" name="contactUrgence" class="form-control" th:value="${employe.contactUrgence}" maxlength="255">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Mettre a jour</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="card">
+            <div class="section-heading"><h3>Changement sensible</h3></div>
+            <p class="help-text">Le RIB, l'etat civil et la piece d'identite sont valides par la RH.</p>
+            <form th:action="@{/mon-dossier/changements}" method="post" class="form-row">
+                <div class="form-group">
+                    <label>Champ</label>
+                    <select name="champ" class="form-select" required>
+                        <option th:each="c : ${champs}" th:value="${c.name()}" th:text="${c.libelle}">Champ</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nouvelle valeur</label>
+                    <input type="text" name="nouvelleValeur" class="form-control" required maxlength="500">
+                </div>
+                <div class="form-group">
+                    <label>Motif</label>
+                    <input type="text" name="motif" class="form-control" maxlength="500">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Soumettre</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="card">
+            <div class="section-heading"><h3>Deposer un document</h3></div>
+            <form th:action="@{/mon-dossier/documents}" method="post" enctype="multipart/form-data">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Type</label>
+                        <input type="text" name="typeDocument" class="form-control" required maxlength="100">
+                    </div>
+                    <div class="form-group">
+                        <label>Date d'emission</label>
+                        <input type="date" name="dateEmission" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Date de validite</label>
+                        <input type="date" name="dateValidite" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fichier</label>
+                        <input type="file" name="fichier" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Commentaire</label>
+                        <input type="text" name="commentaire" class="form-control" maxlength="500">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Deposer</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="card">
+            <div class="section-heading"><h3>Mes documents</h3></div>
+            <div class="table-wrapper" th:unless="${#lists.isEmpty(documents)}">
+                <table class="data-table">
+                    <thead><tr><th>Type</th><th>Fichier</th><th>Validite</th><th></th></tr></thead>
+                    <tbody>
+                    <tr th:each="d : ${documents}">
+                        <td th:text="${d.typeDocument}">-</td>
+                        <td th:text="${d.nomOriginal}">-</td>
+                        <td th:text="${d.dateValidite != null ? d.dateValidite : '-'}">-</td>
+                        <td><a class="btn btn-outline btn-small"
+                               th:href="@{/employes/{id}/documents/{idDocument}(id=${employe.idEmp},idDocument=${d.idDocumentEmploye})}">Telecharger</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="section-heading"><h3>Mes changements</h3></div>
+            <div class="table-wrapper" th:unless="${#lists.isEmpty(changements)}">
+                <table class="data-table">
+                    <thead><tr><th>Champ</th><th>Nouvelle valeur</th><th>Statut</th><th>Date</th></tr></thead>
+                    <tbody>
+                    <tr th:each="ch : ${changements}">
+                        <td th:text="${ch.champ.libelle}">-</td>
+                        <td th:text="${ch.nouvelleValeur}">-</td>
+                        <td th:text="${ch.statut.libelle}">-</td>
+                        <td th:text="${#temporals.format(ch.dateSoumission, 'dd/MM/yyyy HH:mm')}">-</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="section-heading"><h3>Ma carriere</h3></div>
+            <div class="table-wrapper" th:unless="${#lists.isEmpty(carrieres)}">
+                <table class="data-table">
+                    <thead><tr><th>Date</th><th>Motif</th><th>Poste</th><th>Departement</th></tr></thead>
+                    <tbody>
+                    <tr th:each="h : ${carrieres}">
+                        <td th:text="${h.dateEffet}">-</td>
+                        <td th:text="${h.motif.libelle}">-</td>
+                        <td th:text="${h.poste != null ? h.poste.nomPoste : '-'}">-</td>
+                        <td th:text="${h.departement != null ? h.departement.nomDept : '-'}">-</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+</section>
+</body>
+
+</html>

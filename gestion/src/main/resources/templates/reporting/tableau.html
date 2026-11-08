@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Reporting RH</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Indicateurs</span>
+            <h2>Reporting RH</h2>
+            <p>Effectifs, couts, recrutement et candidatures.</p>
+        </div>
+        <a class="btn btn-primary" th:href="@{/reporting/export.csv}">Exporter en CSV</a>
+    </div>
+
+    <div class="stats-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;">
+        <div class="card">
+            <span class="eyebrow">Effectif actif</span>
+            <h3 th:text="${totalActifs}">0</h3>
+        </div>
+        <div class="card">
+            <span class="eyebrow">Delai moyen de recrutement</span>
+            <h3 th:text="${#numbers.formatDecimal(delaiMoyen, 1, 1)} + ' jours'">0 j</h3>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="section-heading"><h3>Effectif par departement</h3></div>
+        <table class="data-table">
+            <thead><tr><th>Departement</th><th>Effectif</th></tr></thead>
+            <tbody>
+            <tr th:each="entry : ${effectifsDepartement}">
+                <td th:text="${entry.key}">-</td>
+                <td th:text="${entry.value}">0</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="section-heading"><h3>Effectif par poste</h3></div>
+        <table class="data-table">
+            <thead><tr><th>Poste</th><th>Effectif</th></tr></thead>
+            <tbody>
+            <tr th:each="entry : ${effectifsPoste}">
+                <td th:text="${entry.key}">-</td>
+                <td th:text="${entry.value}">0</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="section-heading"><h3>Cout annuel par departement</h3></div>
+        <table class="data-table">
+            <thead><tr><th>Departement</th><th>Cout annuel</th></tr></thead>
+            <tbody>
+            <tr th:each="entry : ${coutsDepartement}">
+                <td th:text="${entry.key}">-</td>
+                <td th:text="${#numbers.formatInteger(entry.value, 1, 'WHITESPACE')} + ' Ar'">0 Ar</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="section-heading"><h3>Absenteisme par departement (mois en cours)</h3></div>
+        <table class="data-table">
+            <thead><tr><th>Departement</th><th>Taux d'absence</th></tr></thead>
+            <tbody>
+            <tr th:each="entry : ${absenteismeDepartement}">
+                <td th:text="${entry.key}">-</td>
+                <td th:text="${#numbers.formatDecimal(entry.value, 1, 1)} + ' %'">0 %</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="section-heading"><h3>Heures supplementaires par departement (mois en cours)</h3></div>
+        <table class="data-table">
+            <thead><tr><th>Departement</th><th>Heures</th></tr></thead>
+            <tbody>
+            <tr th:each="entry : ${heuresSupDepartement}">
+                <td th:text="${entry.key}">-</td>
+                <td th:text="${#numbers.formatDecimal(entry.value, 1, 2)} + ' h'">0 h</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="section-heading"><h3>Candidatures par statut</h3></div>
+        <table class="data-table">
+            <thead><tr><th>Statut</th><th>Nombre</th></tr></thead>
+            <tbody>
+            <tr th:each="entry : ${candidaturesStatut}">
+                <td th:text="${entry.key}">-</td>
+                <td th:text="${entry.value}">0</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</section>
+</body>
+
+</html>

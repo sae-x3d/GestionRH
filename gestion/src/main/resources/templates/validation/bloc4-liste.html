@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Validations a traiter</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Workflow</span>
+            <h2>Validations a traiter</h2>
+            <p>Contrats, accreditations et onboardings attendent votre decision. Chaque dossier suit l'ordre Manager, RH puis Direction.</p>
+        </div>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Action enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <div class="actions" style="margin-bottom: 1rem;">
+        <a class="btn btn-small" th:classappend="${type == null ? ' btn-primary' : ' btn-outline'}"
+           th:href="@{/validations/bloc4}">Tous</a>
+        <a class="btn btn-small" th:each="t : ${types}"
+           th:classappend="${type == t ? ' btn-primary' : ' btn-outline'}"
+           th:href="@{/validations/bloc4(type=${t})}"
+           th:text="${t.libelle}">Type</a>
+    </div>
+
+    <div class="alert-info" th:if="${#lists.isEmpty(dossiers)}">
+        Aucun dossier ne requiert votre validation pour le moment.
+    </div>
+
+    <div class="table-wrapper" th:unless="${#lists.isEmpty(dossiers)}">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Type</th>
+                <th>Objet</th>
+                <th>Departement</th>
+                <th>Etape attendue</th>
+                <th>Depose par</th>
+                <th>Date</th>
+                <th class="col-actions">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="d : ${dossiers}">
+                <td><span class="badge" th:text="${d.typeObjet.libelle}">Contrat</span></td>
+                <td th:text="${'#' + d.idObjet}">#1</td>
+                <td th:text="${d.departementId != null ? d.departementId : '-'}">-</td>
+                <td>
+                    <span class="status-badge"
+                          th:each="e : ${d.etapes}"
+                          th:if="${e.ordre == d.etapeCourante}"
+                          th:text="${e.roleRequis.libelle}">Manager</span>
+                    <span class="help-text" th:text="${'Tentative ' + d.numeroTentative}">Tentative</span>
+                </td>
+                <td th:text="${d.createur != null ? d.createur.username : '-'}">-</td>
+                <td th:text="${#temporals.format(d.dateCreation, 'dd/MM/yyyy HH:mm')}">Date</td>
+                <td class="col-actions">
+                    <a class="btn btn-outline btn-small" th:href="@{/validations/bloc4/{id}(id=${d.idDossier})}">
+                        Examiner
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</section>
+</body>
+
+</html>

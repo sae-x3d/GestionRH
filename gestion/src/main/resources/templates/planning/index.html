@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Planning de l'equipe</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Temps de travail</span>
+            <h2>Planning de l'equipe</h2>
+            <p th:text="${'Semaine du ' + #temporals.format(semaine, 'dd/MM/yyyy')}">Semaine</p>
+        </div>
+        <div style="display:flex;gap:.5rem;">
+            <a class="btn btn-outline btn-small"
+               th:href="@{/planning(semaine=${#temporals.format(semainePrecedente, 'yyyy-MM-dd')})}">Precedente</a>
+            <a class="btn btn-outline btn-small"
+               th:href="@{/planning(semaine=${#temporals.format(semaineSuivante, 'yyyy-MM-dd')})}">Suivante</a>
+            <a class="btn btn-outline btn-small" th:href="@{/pointage/anomalies}">Anomalies</a>
+            <a class="btn btn-outline btn-small" th:href="@{/temps-travail/parametres}" th:if="${estRh}">Paramètres</a>
+        </div>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">OK</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <section class="card">
+        <div class="section-heading"><h3>Creer un planning</h3></div>
+        <form th:action="@{/planning/employes/{id}(id=0)}" method="post" id="form-planning"
+              onsubmit="this.action='/planning/employes/' + this.employeId.value;">
+            <input type="hidden" name="semaine" th:value="${#temporals.format(semaine, 'yyyy-MM-dd')}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="employeId">Salarie</label>
+                    <select id="employeId" name="employeId" class="form-select" required>
+                        <option th:each="e : ${employes}" th:value="${e.idEmp}" th:text="${e.nomEmp}">Salarie</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Horaire par defaut</label>
+                    <p th:text="${#temporals.format(parametre.heureDebut, 'HH:mm') + ' - '
+                            + #temporals.format(parametre.heureFin, 'HH:mm') + ' (pause '
+                            + parametre.pauseMinutes + ' min)'}">-</p>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Generer la semaine</button>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <div class="alert-info" th:if="${#lists.isEmpty(plannings)}">
+        Aucun planning sur cette semaine. Generez-en un pour un salarie.
+    </div>
+
+    <section class="card" th:each="p : ${plannings}">
+        <div class="section-heading" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">
+            <div>
+                <h3 th:text="${p.employe.nomEmp}">Salarie</h3>
+                <p class="help-text" th:text="${p.statut.libelle + ' - semaine du '
+                        + #temporals.format(p.dateDebut, 'dd/MM/yyyy')}">Statut</p>
+            </div>
+            <form th:if="${p.statut.name() == 'BROUILLON'}"
+                  th:action="@{/planning/{id}/publier(id=${p.idPlanning})}" method="post">
+                <input type="hidden" name="semaine" th:value="${#temporals.format(semaine, 'yyyy-MM-dd')}">
+                <button type="submit" class="btn btn-primary btn-small">Publier</button>
+            </form>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                <tr><th>Jour</th><th>Type</th><th>Horaire</th><th>Pause</th><th>Modifier</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="j : ${joursParPlanning[p.idPlanning]}">
+                    <td th:text="${#temporals.format(j.dateJour, 'EEE dd/MM/yyyy')}">-</td>
+                    <td th:text="${j.typeJour.libelle}">-</td>
+                    <td><span th:text="${j.typeJour.libelle}">-</span><div class="alert-error" style="margin:.25rem 0;padding:.25rem" th:if="${sousEffectif[p.idPlanning + ':' + j.dateJour]}">Sous-effectif prévisible</div></td>
+                    <td th:text="${j.heureDebut != null ? #temporals.format(j.heureDebut, 'HH:mm') + ' - '
+                            + #temporals.format(j.heureFin, 'HH:mm') : '-'}">-</td>
+                    <td th:text="${j.pauseMinutes != null ? j.pauseMinutes + ' min' : '-'}">-</td>
+                    <td>
+                        <form th:action="@{/planning/{id}/jour(id=${p.idPlanning})}" method="post"
+                              style="display:flex;gap:.35rem;flex-wrap:wrap;align-items:center;">
+                            <input type="hidden" name="semaine" th:value="${#temporals.format(semaine, 'yyyy-MM-dd')}">
+                            <input type="hidden" name="date" th:value="${j.dateJour}">
+                            <select name="typeJour" class="form-select" style="max-width:120px;">
+                                <option th:each="t : ${typesJour}" th:value="${t.name()}"
+                                        th:text="${t.libelle}" th:selected="${j.typeJour == t}">Type</option>
+                            </select>
+                            <input type="time" name="heureDebut" class="form-control" style="max-width:120px;"
+                                   th:value="${j.heureDebut}">
+                            <input type="time" name="heureFin" class="form-control" style="max-width:120px;"
+                                   th:value="${j.heureFin}">
+                            <input type="number" name="pauseMinutes" class="form-control" style="max-width:100px;"
+                                   placeholder="Pause" th:value="${j.pauseMinutes}">
+                            <button type="submit" class="btn btn-outline btn-small">Enregistrer</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</section>
+</body>
+
+</html>

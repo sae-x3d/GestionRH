@@ -1,0 +1,107 @@
+.detail-heading {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.detail-heading h2 {
+    margin: 0;
+}
+
+.action-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.action-group form {
+    margin: 0;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.15rem;
+}
+
+.detail-card {
+    padding: 1.3rem;
+}
+
+.detail-card h3 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+}
+
+.detail-list {
+    display: grid;
+    gap: 0.7rem;
+    margin: 0;
+}
+
+.detail-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid #eef2f7;
+}
+
+.detail-item:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.detail-item dt {
+    color: var(--muted-color);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.detail-item dd {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 0.86rem;
+    font-weight: 650;
+    text-align: right;
+}
+
+.detail-empty {
+    margin: 0;
+    color: var(--muted-color);
+    font-size: 0.86rem;
+}
+
+.status-pending {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+.status-approved {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.status-refused {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.status-progress {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.status-done {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.status-neutral {
+    background: #f1f5f9;
+    color: #475569;
+}

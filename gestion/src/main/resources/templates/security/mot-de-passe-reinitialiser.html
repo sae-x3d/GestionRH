@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nouveau mot de passe - GestionRH</title>
+    <link rel="stylesheet" th:href="@{/css/variables.css}"><link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/components.css}"><link rel="stylesheet" th:href="@{/css/connexion.css}">
+</head>
+<body class="login-page"><div class="login-shell">
+    <section class="login-brand-panel"><span class="login-eyebrow">Portail RH</span><h1>Choisissez un nouveau mot de passe.</h1></section>
+    <main class="login-card">
+        <div class="login-card-head"><span class="eyebrow">Securite du compte</span><h2 class="login-title">Nouveau mot de passe</h2></div>
+        <div class="alert-error" th:if="${erreur}" th:text="${erreur}"></div>
+        <div class="alert-error" th:if="${!tokenValide}">Ce lien est invalide ou a expire.</div>
+        <form th:if="${tokenValide}" th:action="@{/mot-de-passe-reinitialiser}" method="post">
+            <input type="hidden" name="token" th:value="${token}">
+            <div class="form-group"><label for="nouveauMotDePasse">Nouveau mot de passe</label>
+                <input id="nouveauMotDePasse" name="nouveauMotDePasse" type="password" class="form-control"
+                       autocomplete="new-password" minlength="8" maxlength="72" required></div>
+            <div class="form-group"><label for="confirmation">Confirmer le mot de passe</label>
+                <input id="confirmation" name="confirmation" type="password" class="form-control"
+                       autocomplete="new-password" minlength="8" maxlength="72" required></div>
+            <button class="btn btn-primary btn-block" type="submit">Modifier le mot de passe</button>
+        </form>
+        <p class="login-back"><a th:href="@{/connexion}">Retour a la connexion</a></p>
+    </main>
+</div></body>
+</html>

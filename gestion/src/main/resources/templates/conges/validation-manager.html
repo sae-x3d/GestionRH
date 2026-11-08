@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Validation des conges</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Conges</span>
+            <h2>Validation manager</h2>
+            <p>Demandes de votre equipe en attente de decision.</p>
+            <p class="text-muted">Priorite au depot le plus ancien; l'ordre est conserve en cas de concurrence.</p>
+        </div>
+        <a class="btn btn-outline" th:href="@{/conges}">Mes conges</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">OK</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <div class="alert-info" th:if="${#lists.isEmpty(demandes)}">Aucune demande en attente.</div>
+
+    <div class="table-wrapper" th:unless="${#lists.isEmpty(demandes)}">
+        <table class="data-table">
+            <thead>
+            <tr><th>Salarie</th><th>Type</th><th>Du</th><th>Au</th><th>Jours</th><th>Motif</th><th>Decision</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="d : ${demandes}">
+                <td th:text="${d.employe.nomEmp}">-</td>
+                <td th:text="${d.typeConge.libelle}">-</td>
+                <td th:text="${#temporals.format(d.dateDebut, 'dd/MM/yyyy')}">-</td>
+                <td th:text="${#temporals.format(d.dateFin, 'dd/MM/yyyy')}">-</td>
+                <td th:text="${d.nombreJours}">-</td>
+                <td th:text="${d.motif != null ? d.motif : '-'}">-</td>
+                <td>
+                    <form th:action="@{/conges/validation/manager/{id}(id=${d.idDemandeConge})}"
+                          method="post" style="display:inline-flex;gap:.35rem;flex-wrap:wrap;">
+                        <input type="text" name="commentaire" class="form-control" placeholder="Commentaire">
+                        <button type="submit" name="accepter" value="true" class="btn btn-primary btn-small">Valider</button>
+                        <button type="submit" name="accepter" value="false" class="btn btn-outline btn-small">Refuser</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</section>
+</body>
+
+</html>

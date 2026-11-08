@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title th:text="${offre.titre}">Offre d'emploi</title>
+    <link rel="stylesheet" th:href="@{/css/offre.css}">
+</head>
+
+<body>
+<div layout:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Fil des offres</span>
+            <h2>Detail de l'offre</h2>
+        </div>
+        <a th:href="@{/offres}" class="btn btn-outline">Retour au fil</a>
+    </div>
+
+    <section class="offre-hero">
+        <div>
+            <span class="eyebrow">Offre d'emploi</span>
+            <h2 th:text="${offre.titre}">Titre de l'offre</h2>
+            <p class="offre-meta">
+                <span th:if="${offre.demande != null and offre.demande.poste != null}"
+                      th:text="${offre.demande.poste.nomPoste}">Poste</span>
+                <span th:if="${offre.demande != null and offre.demande.departement != null}"
+                      th:text="${offre.demande.departement.nomDept}">Departement</span>
+                <span th:if="${offre.lieu}" th:text="${offre.lieu}">Lieu</span>
+            </p>
+        </div>
+    </section>
+
+    <div class="offre-meta-grid">
+        <div class="offre-meta-card">
+            <span>Statut</span>
+            <strong>
+                <span class="statut"
+                      th:classappend="${' statut-' + #strings.toLowerCase(offre.statut.name())}"
+                      th:text="${offre.statut.libelle}">Publiee</span>
+            </strong>
+        </div>
+        <div class="offre-meta-card" th:if="${offre.salaire != null}">
+            <span>Salaire propose</span>
+            <strong th:text="${#numbers.formatInteger(offre.salaire, 1, 'POINT')} + ' Ar'">3 500 000 Ar</strong>
+        </div>
+        <div class="offre-meta-card" th:if="${offre.datePublication}">
+            <span>Publiee le</span>
+            <strong th:text="${#temporals.format(offre.datePublication, 'dd/MM/yyyy')}">01/01/2026</strong>
+        </div>
+        <div class="offre-meta-card" th:if="${offre.dateCloture}">
+            <span>Cloture</span>
+            <strong th:text="${#temporals.format(offre.dateCloture, 'dd/MM/yyyy')}">01/01/2026</strong>
+        </div>
+    </div>
+
+    <section class="card offre-description">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Mission</span>
+                <h3>Description du poste</h3>
+            </div>
+        </div>
+        <p th:text="${offre.description}">Description</p>
+    </section>
+
+    <div class="form-actions">
+        <a sec:authorize="hasAnyAuthority('ROLE_UTILISATEUR', 'ROLE_EMPLOYE', 'ROLE_MANAGER')"
+           th:if="${offre.statut.name() == 'PUBLIEE'}"
+           th:href="@{/candidatures/postuler(offreId=${offre.idOffre})}" class="btn btn-primary">
+            Postuler a cette offre
+        </a>
+        <a sec:authorize="isAnonymous()"
+           th:if="${offre.statut.name() == 'PUBLIEE'}"
+           th:href="@{/connexion}" class="btn btn-primary">
+            Se connecter pour postuler
+        </a>
+        <a sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')"
+           th:href="@{/offres/{id}/modifier(id=${offre.idOffre})}" class="btn btn-outline">
+            Modifier l'offre
+        </a>
+        <a sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')"
+           th:href="@{/candidatures/rh(offreId=${offre.idOffre})}" class="btn btn-outline">
+            Voir les candidatures
+        </a>
+        <form sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')"
+              th:if="${offre.statut.name() == 'BROUILLON'}"
+              th:action="@{/offres/{id}/publier(id=${offre.idOffre})}" method="post">
+            <button type="submit" class="btn btn-primary">Publier l'offre</button>
+        </form>
+    </div>
+
+    <section class="card" sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')">
+        <div class="section-heading">
+            <h3>Diffusion de l'offre</h3>
+        </div>
+        <form th:action="@{/offres/{id}/diffusions(id=${offre.idOffre})}" method="post">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Canal</label>
+                    <div th:each="type : ${typesDiffusion}">
+                        <label>
+                            <input type="checkbox" name="types" th:value="${type.name()}">
+                            <span th:text="${type.libelle}">Canal</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="canal">Precision (compte, page...)</label>
+                    <input type="text" id="canal" name="canal" class="form-control" maxlength="150">
+                </div>
+                <div class="form-group">
+                    <label for="reference">Reference / URL</label>
+                    <input type="text" id="reference" name="reference" class="form-control" maxlength="300">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Diffuser</button>
+            </div>
+        </form>
+
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(diffusions)}">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Canal</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                    <th class="col-actions">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="d : ${diffusions}">
+                    <td th:text="${d.canal != null ? d.canal : '-'}">-</td>
+                    <td th:text="${d.type.libelle}">-</td>
+                    <td th:text="${#temporals.format(d.dateDiffusion, 'dd/MM/yyyy HH:mm')}">-</td>
+                    <td th:text="${d.statut.libelle}">-</td>
+                    <td class="col-actions">
+                        <form th:if="${d.statut.name() == 'PUBLIEE'}"
+                              th:action="@{/offres/{id}/diffusions/{idDiffusion}/cloturer(id=${offre.idOffre},idDiffusion=${d.idDiffusion})}"
+                              method="post">
+                            <button type="submit" class="btn btn-outline btn-small">Cloturer</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+</body>
+
+</html>

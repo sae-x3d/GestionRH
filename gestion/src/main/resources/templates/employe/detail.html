@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title th:text="${pageTitle}">Dossier employe</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Dossier administratif</span>
+            <h2 th:text="${employe.nomEmp}">Salarie</h2>
+            <p th:text="${(employe.matricule != null ? employe.matricule : 'Sans matricule') + ' · ' + (employe.poste != null ? employe.poste.nomPoste : 'Sans poste')}">-</p>
+        </div>
+        <a class="btn btn-outline" th:href="@{/employes}">Retour</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">OK</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <nav class="tabs" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;">
+        <a class="btn btn-outline btn-small" href="#identite">Identite</a>
+        <a class="btn btn-outline btn-small" href="#contrats">Contrats</a>
+        <a class="btn btn-outline btn-small" href="#carriere">Affectations / carriere</a>
+        <a class="btn btn-outline btn-small" th:if="${voitSalaire}" href="#salaire">Salaire</a>
+        <a class="btn btn-outline btn-small" href="#documents">Documents</a>
+        <a class="btn btn-outline btn-small" th:href="@{/employes/documents-requis}" th:if="${peutGerer}">Documents requis</a>
+        <a class="btn btn-outline btn-small" href="#changements">Changements sensibles</a>
+    </nav>
+
+    <section class="card" id="identite">
+        <div class="section-heading"><h3>Identite</h3></div>
+        <dl class="detail-grid">
+            <dt>Nom</dt><dd th:text="${employe.nomEmp}">-</dd>
+            <dt>Matricule</dt><dd th:text="${employe.matricule != null ? employe.matricule : '-'}">-</dd>
+            <dt>Date de naissance</dt><dd th:text="${employe.dateNaissance != null ? employe.dateNaissance : '-'}">-</dd>
+            <dt>Sexe</dt><dd th:text="${employe.sexe != null ? employe.sexe : '-'}">-</dd>
+            <dt>Nationalite</dt><dd th:text="${employe.nationalite != null ? employe.nationalite : '-'}">-</dd>
+            <dt>Etat civil</dt><dd th:text="${employe.etatCivil != null ? employe.etatCivil : '-'}">-</dd>
+            <dt>Piece d'identite</dt><dd th:text="${employe.pieceIdentite != null ? employe.pieceIdentite : '-'}">-</dd>
+            <dt>Adresse</dt><dd th:text="${employe.adresse != null ? employe.adresse : '-'}">-</dd>
+            <dt>Telephone</dt><dd th:text="${employe.telephone != null ? employe.telephone : '-'}">-</dd>
+            <dt>Contact d'urgence</dt><dd th:text="${employe.contactUrgence != null ? employe.contactUrgence : '-'}">-</dd>
+            <dt th:if="${voitRib}">RIB</dt>
+            <dd th:if="${voitRib}" th:text="${employe.rib != null ? employe.rib : '-'}">-</dd>
+        </dl>
+
+        <form th:if="${peutGerer}" th:action="@{/employes/{id}/identite(id=${employe.idEmp})}"
+              method="post" class="form-row" style="margin-top:1rem;">
+            <div class="form-group">
+                <label>Date de naissance</label>
+                <input type="date" name="dateNaissance" class="form-control" th:value="${employe.dateNaissance}">
+            </div>
+            <div class="form-group">
+                <label>Sexe</label>
+                <input type="text" name="sexe" class="form-control" th:value="${employe.sexe}" maxlength="20">
+            </div>
+            <div class="form-group">
+                <label>Nationalite</label>
+                <input type="text" name="nationalite" class="form-control" th:value="${employe.nationalite}" maxlength="100">
+            </div>
+            <div class="form-group">
+                <label>Etat civil</label>
+                <input type="text" name="etatCivil" class="form-control" th:value="${employe.etatCivil}" maxlength="50">
+            </div>
+            <div class="form-group">
+                <label>Piece d'identite</label>
+                <input type="text" name="pieceIdentite" class="form-control" th:value="${employe.pieceIdentite}" maxlength="100">
+            </div>
+            <div class="form-group">
+                <label>Adresse</label>
+                <input type="text" name="adresse" class="form-control" th:value="${employe.adresse}" maxlength="255">
+            </div>
+            <div class="form-group">
+                <label>Telephone</label>
+                <input type="text" name="telephone" class="form-control" th:value="${employe.telephone}" maxlength="50">
+            </div>
+            <div class="form-group">
+                <label>Contact d'urgence</label>
+                <input type="text" name="contactUrgence" class="form-control" th:value="${employe.contactUrgence}" maxlength="255">
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card" th:if="${peutGerer}">
+        <div class="section-heading"><h3>Régime de travail</h3></div>
+        <p th:text="${employe.regimeTravail != null ? employe.regimeTravail.libelle : 'Régime global par défaut'}"></p>
+        <form th:action="@{/employes/{id}/regime(id=${employe.idEmp})}" method="post" class="form-row">
+            <div class="form-group"><label>Régime</label><select name="idRegime" class="form-select"><option value="">Régime global</option><option th:each="r : ${regimes}" th:value="${r.idRegime}" th:text="${r.libelle}" th:selected="${employe.regimeTravail != null and employe.regimeTravail.idRegime == r.idRegime}"></option></select></div>
+            <button class="btn btn-primary" type="submit">Appliquer</button>
+        </form>
+    </section>
+
+    <section class="card" id="contrats">
+        <div class="section-heading"><h3>Contrats</h3></div>
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(contrats)}">
+            <table class="data-table">
+                <thead><tr><th>Numero</th><th>Type</th><th>Nature</th><th>Statut</th><th>Effet</th><th>Fin</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="c : ${contrats}">
+                    <td th:text="${c.numeroContrat}">-</td>
+                    <td th:text="${c.typeContrat}">-</td>
+                    <td th:text="${c.nature != null ? c.nature.libelle : '-'}">-</td>
+                    <td th:text="${c.statut}">-</td>
+                    <td th:text="${c.dateEffet != null ? c.dateEffet : '-'}">-</td>
+                    <td th:text="${c.dateFin != null ? c.dateFin : '-'}">-</td>
+                    <td><a class="btn btn-outline btn-small" th:href="@{/contrats/{id}(id=${c.idContrat})}">Voir</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card" id="carriere">
+        <div class="section-heading"><h3>Affectations et carriere</h3></div>
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(carrieres)}">
+            <table class="data-table">
+                <thead><tr><th>Date d'effet</th><th>Motif</th><th>Poste</th><th>Departement</th><th>Manager</th></tr></thead>
+                <tbody>
+                <tr th:each="h : ${carrieres}">
+                    <td th:text="${h.dateEffet}">-</td>
+                    <td th:text="${h.motif.libelle}">-</td>
+                    <td th:text="${h.poste != null ? h.poste.nomPoste : '-'}">-</td>
+                    <td th:text="${h.departement != null ? h.departement.nomDept : '-'}">-</td>
+                    <td th:text="${h.manager != null ? h.manager.nomEmp : '-'}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card" id="salaire" th:if="${voitSalaire}">
+        <div class="section-heading"><h3>Salaire</h3></div>
+        <p>Salaire actuel : <strong th:text="${employe.salaireEmp != null ? employe.salaireEmp : '-'}">-</strong></p>
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(salaires)}">
+            <table class="data-table">
+                <thead><tr><th>Date d'effet</th><th>Montant</th><th>Motif</th><th>Auteur</th></tr></thead>
+                <tbody>
+                <tr th:each="h : ${salaires}">
+                    <td th:text="${h.dateEffet}">-</td>
+                    <td th:text="${h.montant}">-</td>
+                    <td th:text="${h.motif != null ? h.motif : '-'}">-</td>
+                    <td th:text="${h.auteur != null ? h.auteur.username : '-'}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <form th:if="${peutGerer}" th:action="@{/employes/{id}/salaire(id=${employe.idEmp})}"
+              method="post" class="form-row" style="margin-top:1rem;">
+            <div class="form-group">
+                <label>Nouveau montant</label>
+                <input type="number" name="montant" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Date d'effet</label>
+                <input type="date" name="dateEffet" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Motif</label>
+                <input type="text" name="motif" class="form-control" maxlength="255">
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Historiser le salaire</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card" id="documents">
+        <div class="section-heading"><h3>Documents</h3></div>
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(documents)}">
+            <table class="data-table">
+                <thead><tr><th>Type</th><th>Fichier</th><th>Validite</th><th></th></tr></thead>
+                <tbody>
+                <tr th:each="d : ${documents}">
+                    <td th:text="${d.typeDocument}">-</td>
+                    <td th:text="${d.nomOriginal}">-</td>
+                    <td th:text="${d.dateValidite != null ? d.dateValidite : '-'}">-</td>
+                    <td><a class="btn btn-outline btn-small"
+                           th:href="@{/employes/{id}/documents/{idDocument}(id=${employe.idEmp},idDocument=${d.idDocumentEmploye})}">Telecharger</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <a class="btn btn-outline" th:href="@{/employes/{id}/documents(id=${employe.idEmp})}">Gerer les documents</a>
+    </section>
+
+    <section class="card" id="changements">
+        <div class="section-heading"><h3>Changements sensibles</h3></div>
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(changements)}">
+            <table class="data-table">
+                <thead><tr><th>Champ</th><th>Ancienne</th><th>Nouvelle</th><th>Statut</th><th>Date</th></tr></thead>
+                <tbody>
+                <tr th:each="ch : ${changements}">
+                    <td th:text="${ch.champ.libelle}">-</td>
+                    <td th:text="${ch.ancienneValeur != null ? ch.ancienneValeur : '-'}">-</td>
+                    <td th:text="${ch.nouvelleValeur}">-</td>
+                    <td th:text="${ch.statut.libelle}">-</td>
+                    <td th:text="${#temporals.format(ch.dateSoumission, 'dd/MM/yyyy HH:mm')}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <a th:if="${peutGerer}" class="btn btn-outline" th:href="@{/employes/changements}">File de validation</a>
+    </section>
+
+</section>
+</body>
+
+</html>

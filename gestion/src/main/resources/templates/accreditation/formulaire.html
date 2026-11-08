@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Declarer une accreditation</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Competences</span>
+            <h2>Declarer une accreditation</h2>
+            <p>Joignez le justificatif original. Le dossier sera examine par le Manager, le RH puis la Direction.</p>
+        </div>
+        <a class="btn btn-outline" th:href="@{/mes-accreditations}">Retour</a>
+    </div>
+
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <form th:action="@{/accreditations}" th:object="${form}" method="post"
+          enctype="multipart/form-data" class="card card-form">
+
+        <input type="hidden" th:field="*{idUtilisateur}">
+
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Titulaire</span>
+                <h3>Candidature concernee</h3>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="idCandidature">Candidature (optionnel)</label>
+                <select th:field="*{idCandidature}" class="form-select">
+                    <option value="">Aucune candidature liee</option>
+                    <option th:each="c : ${candidatures}" th:value="${c.idCandidature}"
+                            th:text="${c.offre.titre + ' - ' + c.statut.libelle}">Offre</option>
+                </select>
+                <span class="help-text">Rattacher l'accreditation a une candidature permet d'appliquer le CDI direct sur ce recrutement.</span>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Justificatif</span>
+                <h3>Informations de l'accreditation</h3>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="typeAccreditation">Type d'accreditation <span class="required">*</span></label>
+                <input th:field="*{typeAccreditation}" class="form-control" required maxlength="150"
+                       placeholder="Ex. certification comptable, habilitation electrique">
+            </div>
+            <div class="form-group">
+                <label for="organisme">Organisme emetteur <span class="required">*</span></label>
+                <input th:field="*{organisme}" class="form-control" required maxlength="200">
+            </div>
+            <div class="form-group">
+                <label for="numero">Numero de reference</label>
+                <input th:field="*{numero}" class="form-control" maxlength="100">
+            </div>
+            <div class="form-group">
+                <label for="dateObtention">Date d'obtention <span class="required">*</span></label>
+                <input type="date" th:field="*{dateObtention}" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="dateExpiration">Date d'expiration</label>
+                <input type="date" th:field="*{dateExpiration}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="document">Justificatif (pdf, jpg ou png) <span class="required">*</span></label>
+                <input type="file" id="document" name="document" class="form-control"
+                       accept=".pdf,.jpg,.jpeg,.png" required>
+            </div>
+            <div class="form-group">
+                <label for="commentaire">Commentaire</label>
+                <textarea th:field="*{commentaire}" class="form-control" rows="3" maxlength="1000"></textarea>
+            </div>
+        </div>
+
+        <div class="alert-info">
+            Une accreditation n'est valide que si la Direction l'a approuvee et que sa date d'expiration couvre la date d'effet du contrat.
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Deposer l'accreditation</button>
+            <a class="btn btn-outline" th:href="@{/mes-accreditations}">Annuler</a>
+        </div>
+    </form>
+
+</section>
+</body>
+
+</html>

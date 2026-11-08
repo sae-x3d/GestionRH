@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Etude de la proposition</title>
+    <link rel="stylesheet" th:href="@{/css/offre.css}">
+    <link rel="stylesheet" th:href="@{/css/candidature.css}">
+</head>
+
+<body>
+<div layout:fragment="content">
+
+    <div class="page-header">
+        <h2>Etude de la proposition du candidat</h2>
+        <a th:href="@{/candidatures/rh/{id}(id=${candidature.idCandidature})}" class="btn btn-outline">
+            Retour au dossier
+        </a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Action enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <section class="card gestion-section">
+        <h3>Proposition du candidat</h3>
+        <p><strong>Candidat :</strong>
+            <span th:text="${candidature.utilisateur.username}">candidat</span>
+        </p>
+        <p><strong>Offre :</strong> <span th:text="${candidature.offre.titre}">Offre</span></p>
+        <p><strong>Statut :</strong>
+            <span class="statut"
+                  th:classappend="${' statut-' + #strings.toLowerCase(#strings.replace(candidature.statut.libelle, '_', '-'))}"
+                  th:text="${candidature.statut.libelle}">PROPOSITION</span>
+        </p>
+        <p th:if="${salaireCourant != null}">
+            <strong>Salaire demande par le candidat :</strong>
+            <span th:text="${#numbers.formatInteger(salaireCourant,1,'WHITESPACE') + ' Ar'}">0 Ar</span>
+        </p>
+
+        <div class="table-wrapper" th:if="${not #maps.isEmpty(reponses)}">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Question</th>
+                    <th>Position du candidat</th>
+                    <th>Proposition du candidat</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="question : ${questions}">
+                    <td th:text="${question.libelle}">Question</td>
+                    <td>
+                        <span th:if="${reponses[question.idQuestionContrat] == null
+                                       or reponses[question.idQuestionContrat].accepte}"
+                              class="statut statut-acceptee">Accepte</span>
+                        <span th:unless="${reponses[question.idQuestionContrat] == null
+                                          or reponses[question.idQuestionContrat].accepte}"
+                              class="statut statut-proposition">Negocie</span>
+                    </td>
+                    <td th:text="${reponses[question.idQuestionContrat] != null
+                                   and reponses[question.idQuestionContrat].proposition != null
+                                   ? reponses[question.idQuestionContrat].proposition : '-'}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card gestion-section">
+        <h3>Accepter la proposition</h3>
+        <p class="help-text">
+            Si le salaire et les points demandes vous conviennent, acceptez la proposition.
+            Le candidat pourra alors signer son contrat.
+        </p>
+        <form th:action="@{/candidatures/rh/{id}/propositions/accepter(id=${candidature.idCandidature})}"
+              method="post" class="form-actions">
+            <button type="submit" class="btn btn-primary">Accepter la proposition du candidat</button>
+        </form>
+    </section>
+
+    <section class="card gestion-section">
+        <h3>Contre-proposer</h3>
+        <form th:action="@{/candidatures/rh/{id}/propositions/contre-proposer(id=${candidature.idCandidature})}"
+              method="post">
+            <div class="form-group">
+                <label for="salairePropose">Salaire mensuel brut propose par les RH (Ar)</label>
+                <input type="number" id="salairePropose" name="salairePropose" class="form-control"
+                       min="1" step="1" th:value="${salaireCourant}" required>
+            </div>
+
+            <div class="question-contrat" th:each="question : ${questions}">
+                <p><strong th:text="${question.libelle}">Question</strong></p>
+                <label>
+                    <input type="checkbox" th:name="${'accepte_' + question.idQuestionContrat}"
+                           th:checked="${reponses[question.idQuestionContrat] == null
+                                   or reponses[question.idQuestionContrat].accepte}">
+                    J'accepte la position du candidat
+                </label>
+                <label>
+                    Sinon, les RH proposent :
+                    <input type="text" class="form-control"
+                           th:name="${'proposition_' + question.idQuestionContrat}"
+                           th:value="${reponses[question.idQuestionContrat] != null
+                                   ? reponses[question.idQuestionContrat].proposition : ''}"
+                           maxlength="1000">
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label for="commentaire">Message pour le candidat (facultatif)</label>
+                <textarea id="commentaire" name="commentaire" class="form-control" rows="3" maxlength="1000"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Envoyer la contre-proposition</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card gestion-section">
+        <h3>Refuser la proposition</h3>
+        <form th:action="@{/candidatures/rh/{id}/propositions/refuser(id=${candidature.idCandidature})}"
+              method="post" class="form-actions"
+              onsubmit="return confirm('Confirmez-vous le refus de cette candidature ?');">
+            <button type="submit" class="btn btn-outline">Refuser et clore la candidature</button>
+        </form>
+    </section>
+
+</div>
+</body>
+
+</html>

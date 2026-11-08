@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Mes accreditations</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Competences</span>
+            <h2>Mes accreditations</h2>
+            <p>Declarez vos certifications professionnelles. Une accreditation validee par les trois niveaux permet un CDI direct.</p>
+        </div>
+        <a class="btn btn-primary" th:href="@{/accreditations/nouveau}">Declarer une accreditation</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Action enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <div class="alert-info" th:if="${#lists.isEmpty(accreditations)}">
+        Aucune accreditation declaree pour le moment.
+    </div>
+
+    <div class="table-wrapper" th:unless="${#lists.isEmpty(accreditations)}">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Accreditation</th>
+                <th>Organisme</th>
+                <th>Obtention</th>
+                <th>Expiration</th>
+                <th>Statut</th>
+                <th>Justificatif</th>
+                <th class="col-actions">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="a : ${accreditations}">
+                <td th:text="${a.typeAccreditation}">Type</td>
+                <td th:text="${a.organisme}">Organisme</td>
+                <td th:text="${#temporals.format(a.dateObtention, 'dd/MM/yyyy')}">Date</td>
+                <td th:text="${a.dateExpiration != null ? #temporals.format(a.dateExpiration, 'dd/MM/yyyy') : 'Illimitee'}">-</td>
+                <td>
+                    <span class="status-badge"
+                          th:classappend="${a.statut == 'VALIDEE' ? ' status-success'
+                                           : (a.statut == 'A_CORRIGER' ? ' status-danger' : '')}"
+                          th:text="${a.statut}">Statut</span>
+                </td>
+                <td>
+                    <a th:if="${a.documentChemin != null}"
+                       th:href="@{/accreditations/{id}/document(id=${a.idAccreditation})}">Telecharger</a>
+                    <span th:unless="${a.documentChemin != null}">-</span>
+                </td>
+                <td class="col-actions">
+                    <a class="btn btn-outline btn-small"
+                       th:href="@{/accreditations/{id}(id=${a.idAccreditation})}">Consulter</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</section>
+</body>
+
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Accreditations</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="page-content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Workflow</span>
+            <h2>Accreditations</h2>
+            <p>Suivez les justificatifs de competences de votre perimetre et leur avancement de validation.</p>
+        </div>
+        <a class="btn btn-outline" th:href="@{/validations/bloc4(type='ACCREDITATION')}">Validations a traiter</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Action enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <div class="alert-info" th:if="${#lists.isEmpty(accreditations)}">
+        Aucune accreditation dans votre perimetre.
+    </div>
+
+    <div class="table-wrapper" th:unless="${#lists.isEmpty(accreditations)}">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Titulaire</th>
+                <th>Accreditation</th>
+                <th>Organisme</th>
+                <th>Validite</th>
+                <th>Statut</th>
+                <th class="col-actions">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="a : ${accreditations}">
+                <td th:text="${a.utilisateur != null ? a.utilisateur.username : '-'}">Utilisateur</td>
+                <td th:text="${a.typeAccreditation}">Type</td>
+                <td th:text="${a.organisme}">Organisme</td>
+                <td>
+                    <span th:text="${#temporals.format(a.dateObtention, 'dd/MM/yyyy')}">Date</span>
+                    <span th:text="${' - ' + (a.dateExpiration != null ? #temporals.format(a.dateExpiration, 'dd/MM/yyyy') : 'illimitee')}">-</span>
+                </td>
+                <td>
+                    <span class="status-badge"
+                          th:classappend="${a.statut == 'VALIDEE' ? ' status-success'
+                                           : (a.statut == 'A_CORRIGER' ? ' status-danger' : '')}"
+                          th:text="${a.statut}">Statut</span>
+                </td>
+                <td class="col-actions">
+                    <a class="btn btn-outline btn-small"
+                       th:href="@{/accreditations/{id}(id=${a.idAccreditation})}">Examiner</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</section>
+</body>
+
+</html>

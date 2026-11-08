@@ -1,0 +1,207 @@
+.offre-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 1.15rem;
+}
+
+.offre-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    overflow: hidden;
+    padding: 1.35rem;
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-xs);
+    transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+}
+
+.offre-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%);
+    opacity: 0;
+    transition: opacity var(--transition);
+}
+
+.offre-card:hover {
+    border-color: #bfdbfe;
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+}
+
+.offre-card:hover::before {
+    opacity: 1;
+}
+
+.offre-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.8rem;
+}
+
+.offre-card-header h3 {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 1.07rem;
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+}
+
+.offre-type {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.62rem;
+    border-radius: 999px;
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+.offre-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.6rem;
+    margin: 0;
+    color: var(--muted-color);
+    font-size: 0.82rem;
+}
+
+.offre-meta span {
+    display: inline-flex;
+    align-items: center;
+}
+
+.offre-meta span:not(:last-child)::after {
+    content: "·";
+    margin-left: 0.6rem;
+    color: #cbd5e1;
+}
+
+.offre-excerpt {
+    display: -webkit-box;
+    overflow: hidden;
+    margin: 0;
+    color: var(--text-soft);
+    font-size: 0.88rem;
+    white-space: pre-line;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+}
+
+.offre-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-top: auto;
+    padding-top: 0.8rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.offre-salaire {
+    color: var(--primary);
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.gestion-section h3 {
+    margin-top: 0;
+}
+
+.offre-description p {
+    margin: 0;
+    color: var(--text-soft);
+    white-space: pre-line;
+}
+
+.offre-hero {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    overflow: hidden;
+    margin-bottom: 1.3rem;
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+    background:
+        radial-gradient(circle at 90% 0%, rgba(99, 102, 241, 0.5), transparent 18rem),
+        linear-gradient(135deg, #0f172a 0%, #1e3a8a 62%, #2563eb 100%);
+    color: #fff;
+    box-shadow: 0 20px 44px rgba(30, 58, 138, 0.2);
+}
+
+.offre-hero h2 {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+}
+
+.offre-hero .eyebrow {
+    color: #93c5fd;
+}
+
+.offre-hero .offre-meta {
+    margin-top: 0.8rem;
+    color: #bfdbfe;
+}
+
+.offre-hero .offre-type {
+    background: rgba(255, 255, 255, 0.13);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #fff;
+}
+
+.offre-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 1.3rem;
+}
+
+.offre-meta-card {
+    padding: 0.9rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: var(--shadow-xs);
+}
+
+.offre-meta-card span {
+    display: block;
+    color: var(--muted-color);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.offre-meta-card strong {
+    display: block;
+    margin-top: 0.22rem;
+    color: var(--text-color);
+    font-size: 0.92rem;
+}
+
+@media (max-width: 640px) {
+    .offre-list {
+        grid-template-columns: 1fr;
+    }
+
+    .offre-hero {
+        flex-direction: column;
+        padding: 1.5rem;
+    }
+}

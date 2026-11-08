@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Connexion - GestionRH</title>
+    <link rel="stylesheet" th:href="@{/css/variables.css}">
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/components.css}">
+    <link rel="stylesheet" th:href="@{/css/connexion.css}">
+</head>
+
+<body class="login-page">
+<div class="login-shell">
+
+    <section class="login-brand-panel">
+        <a th:href="@{/}" class="login-brand">
+            <span class="login-brand-mark" aria-hidden="true">GR</span>
+            <span>
+                <strong>SIRH</strong>
+                <small>GestionRH S5</small>
+            </span>
+        </a>
+
+        <div class="login-brand-copy">
+            <span class="login-eyebrow">Portail RH</span>
+            <h1>Un espace clair pour vos recrutements.</h1>
+        </div>
+
+        <ul class="login-points">
+            <li>Suivi des candidatures en temps reel</li>
+            <li>Validation des demandes simplifiee</li>
+            <li>Contrats et notifications centralises</li>
+        </ul>
+    </section>
+
+    <main class="login-card">
+        <div class="login-card-head">
+            <span class="eyebrow">Connexion</span>
+            <h2 class="login-title">Bon retour</h2>
+            <p class="login-subtitle">Connectez-vous pour acceder a votre espace.</p>
+        </div>
+
+        <div class="alert-error" th:if="${param.error}">Identifiants invalides.</div>
+        <div class="alert-info" th:if="${param.deconnexion}">Vous avez ete deconnecte.</div>
+        <div class="alert-info" th:if="${param.reinitialise}">Votre mot de passe a ete reinitialise. Connectez-vous avec le nouveau.</div>
+        <div class="alert-info" th:if="${param.motDePasseModifie}">Mot de passe modifie. Connectez-vous avec le nouveau.</div>
+        <div class="alert-info" th:if="${param.sessionExpiree}">Votre session a expire apres un changement de securite. Reconnectez-vous.</div>
+        <div class="alert-info" th:if="${message}" th:text="${message}"></div>
+
+        <form th:action="@{/connexion}" method="post" novalidate>
+            <div class="form-group">
+                <label for="username">Identifiant</label>
+                <input type="text" id="username" name="username" class="form-control" autocomplete="username"
+                       th:value="${param.username != null ? param.username[0] : ''}" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" class="form-control"
+                       autocomplete="current-password" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
+        </form>
+
+        <p class="login-back"><a th:href="@{/mot-de-passe-oublie}">Mot de passe oublie ?</a></p>
+
+        <p class="login-back">
+            <a th:href="@{/}">Retour a l'accueil</a>
+            <span aria-hidden="true">·</span>
+            <a th:href="@{/offres}">Voir les offres d'emploi</a>
+        </p>
+    </main>
+
+</div>
+</body>
+
+</html>
