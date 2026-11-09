@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{fragments/layout}">
 <head><title>Absences</title></head>
-<body><section layout:fragment="content" class="page-content">
+<body><section layout:fragment="content">
   <div class="page-header"><div><span class="eyebrow">Temps de travail</span><h2>Absences</h2><p>Maladie, maternité et autres absences avec justificatif et décision RH.</p></div></div>
   <div class="alert-success" th:if="${succes}" th:text="${succes}"></div><div class="alert-error" th:if="${erreur}" th:text="${erreur}"></div>
   <section class="card"><h3>Déclarer une absence</h3>

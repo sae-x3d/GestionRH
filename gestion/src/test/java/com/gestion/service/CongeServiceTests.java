@@ -180,8 +180,8 @@ class CongeServiceTests {
     @Test
     void soumettreRespecteLaDureeMaximaleConfiguree() {
         congePaye.setDureeMaxJours(new BigDecimal("2.0"));
-        LocalDate debut = LocalDate.now().plusDays(3);
-        LocalDate fin = debut.plusDays(2);
+        LocalDate debut = LocalDate.of(2026, 11, 9);
+        LocalDate fin = LocalDate.of(2026, 11, 11);
         when(typeCongeRepository.findById(1)).thenReturn(Optional.of(congePaye));
         when(demandeRepository.existsChevauchement(eq(10), eq(debut), eq(fin), anyCollection())).thenReturn(false);
         when(jourFerieRepository.findByDateJourFerieBetween(debut, fin)).thenReturn(List.of());

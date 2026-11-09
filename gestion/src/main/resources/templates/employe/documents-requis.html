@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{fragments/layout}"><head><title>Documents obligatoires</title></head><body><section layout:fragment="content" class="page-content">
+<!DOCTYPE html><html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{fragments/layout}"><head><title>Documents obligatoires</title></head><body><section layout:fragment="content">
 <div class="page-header"><div><span class="eyebrow">Dossier administratif</span><h2>Documents obligatoires</h2><p>Les types actifs sont contrôlés dans les alertes de dossiers incomplets.</p></div></div>
 <div class="alert-success" th:if="${succes}" th:text="${succes}"></div><div class="alert-error" th:if="${erreur}" th:text="${erreur}"></div>
 <section class="card"><form th:action="@{/employes/documents-requis}" method="post" class="form-row"><div class="form-group"><label>Type de document requis</label><input name="typeDocument" class="form-control" maxlength="100" required></div><button class="btn btn-primary">Ajouter</button></form>

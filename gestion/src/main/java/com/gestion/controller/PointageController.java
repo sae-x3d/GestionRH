@@ -99,6 +99,20 @@ public class PointageController {
         return "pointage/anomalies";
     }
 
+    @PostMapping("/pointage/anomalies/detecter")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMINISTRATEUR','ROLE_RH')")
+    public String detecterAbsences(@RequestParam(name = "date", required = false) String date,
+                                   RedirectAttributes flash) {
+        try {
+            int creees = tempsTravailService.detecterAbsences(parseDate(date));
+            flash.addFlashAttribute("succes",
+                    creees + " absence(s) detectee(s) pour le " + parseDate(date) + ".");
+        } catch (IllegalStateException ex) {
+            flash.addFlashAttribute("erreur", ex.getMessage());
+        }
+        return "redirect:/pointage/anomalies";
+    }
+
     @PostMapping("/pointage/anomalies/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER','ROLE_ADMINISTRATEUR','ROLE_RH')")
     public String traiterAnomalie(@PathVariable Integer id,

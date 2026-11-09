@@ -591,12 +591,27 @@ public class TempsTravailService {
         return correction;
     }
 
-    @Scheduled(cron = "0 15 1 * * MON-FRI")
+    @Scheduled(cron = "0 30 23 * * MON-FRI")
+    @Transactional
+    public int detecterAbsencesDuJour() {
+        return detecterAbsences(LocalDate.now());
+    }
+
     @Transactional
     public int detecterAbsencesVeille() {
         LocalDate date = LocalDate.now().minusDays(1);
-        if (date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY
-                || jourFerieRepository.findByDateJourFerieBetween(date, date).size() > 0) return 0;
+        while (date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY
+                || !jourFerieRepository.findByDateJourFerieBetween(date, date).isEmpty()) {
+            date = date.minusDays(1);
+        }
+        return detecterAbsences(date);
+    }
+
+    @Transactional
+    public int detecterAbsences(LocalDate date) {
+        if (date == null || date.getDayOfWeek() == DayOfWeek.SATURDAY
+                || date.getDayOfWeek() == DayOfWeek.SUNDAY
+                || !jourFerieRepository.findByDateJourFerieBetween(date, date).isEmpty()) return 0;
         int creees = 0;
         for (Employe employe : employeRepository.findByDateDepartIsNullOrderByNomEmpAsc()) {
             PlanningJour prevu = planningJourRepository

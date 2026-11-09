@@ -289,7 +289,7 @@ class TempsTravailServiceTests {
 
     @Test
     void batchDuSoirCreeUneAnomaliePourUneAbsenceSansPointage() {
-        LocalDate hier = LocalDate.now().minusDays(1);
+        LocalDate hier = LocalDate.of(2026, 11, 6);
         Planning planning = Planning.builder().statut(StatutPlanning.PUBLIE).build();
         PlanningJour jour = PlanningJour.builder().planning(planning).dateJour(hier)
                 .typeJour(TypeJourPlanning.TRAVAIL).heureDebut(LocalTime.of(8, 0))
@@ -297,7 +297,7 @@ class TempsTravailServiceTests {
         when(employeRepository.findByDateDepartIsNullOrderByNomEmpAsc()).thenReturn(List.of(employe));
         when(planningJourRepository.findByPlanningEmployeIdEmpAndDateJour(10, hier)).thenReturn(Optional.of(jour));
 
-        int detectees = service.detecterAbsencesVeille();
+        int detectees = service.detecterAbsences(hier);
 
         assertEquals(1, detectees);
         verify(anomalieRepository).save(argThat(a -> a.getTypeAnomalie() == TypeAnomaliePointage.ABSENCE
@@ -306,25 +306,27 @@ class TempsTravailServiceTests {
 
     @Test
     void batchHebdomadaireCalculeLesHeuresSupDepuisLesPointages() {
-        LocalDate lundi = service.lundi(LocalDate.now().minusDays(1));
+        LocalDate lundi = LocalDate.of(2026, 11, 2);
+        LocalDate dimanche = LocalDate.of(2026, 11, 8);
         when(parametreRepository.findFirstByActifTrueOrderByIdParametreAsc()).thenReturn(Optional.of(parametre));
         when(employeRepository.findByDateDepartIsNullOrderByNomEmpAsc()).thenReturn(List.of(employe));
-        LocalDate fin = LocalDate.now().minusDays(1);
         List<Pointage> semaine = List.of(
-                pointage(lundi, 8, 17), pointage(lundi.plusDays(1), 8, 16),
-                pointage(lundi.plusDays(2), 8, 16), pointage(lundi.plusDays(3), 8, 16));
-        when(pointageRepository.findByEmployeIdEmpAndDatePointageBetweenOrderByDatePointageAsc(10, lundi, fin))
-                .thenReturn(semaine);
-        when(heureSupRepository.totalMinutes(10, lundi, fin)).thenReturn(0L);
+                pointage(lundi, 8, 17), pointage(lundi.plusDays(1), 8, 17),
+                pointage(lundi.plusDays(2), 8, 17), pointage(lundi.plusDays(3), 8, 17),
+                pointage(lundi.plusDays(4), 8, 17));
+        when(pointageRepository.findByEmployeIdEmpAndDatePointageBetweenOrderByDatePointageAsc(
+                10, lundi, dimanche)).thenReturn(semaine);
+        when(heureSupRepository.totalMinutes(10, lundi, dimanche)).thenReturn(0L);
 
-        int employees = service.calculerHeuresSupSemaine();
+        int employees = service.calculerHeuresSupSemaine(dimanche);
 
         assertEquals(1, employees);
         ArgumentCaptor<HeureSup> captor = ArgumentCaptor.forClass(HeureSup.class);
-        verify(heureSupRepository).save(captor.capture());
-        assertEquals(60, captor.getValue().getMinutes());
-        assertEquals(25, captor.getValue().getTauxMajoration());
-        assertNotEquals(java.time.DayOfWeek.SUNDAY, captor.getValue().getDateHeureSup().getDayOfWeek());
+        verify(heureSupRepository, times(5)).save(captor.capture());
+        assertEquals(300, captor.getAllValues().stream().mapToInt(HeureSup::getMinutes).sum());
+        assertTrue(captor.getAllValues().stream().allMatch(h -> h.getTauxMajoration() == 25));
+        assertTrue(captor.getAllValues().stream()
+                .noneMatch(h -> h.getDateHeureSup().getDayOfWeek() == java.time.DayOfWeek.SUNDAY));
     }
 
     @Test
