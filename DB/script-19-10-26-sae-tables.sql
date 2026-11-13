@@ -63,9 +63,16 @@ CREATE TABLE utilisateur (
     id_user SERIAL PRIMARY KEY,
     id_emp INT REFERENCES emp(id_emp),
     id_role INT NOT NULL REFERENCES role(id_role),
+    prenom VARCHAR(100),
+    nom VARCHAR(100),
+    email VARCHAR(255),
+    telephone VARCHAR(30),
     username VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL
 );
+
+CREATE UNIQUE INDEX idx_utilisateur_email_unique
+    ON utilisateur (LOWER(email)) WHERE email IS NOT NULL;
 
 CREATE TABLE poste_par_dept (
     id SERIAL PRIMARY KEY,

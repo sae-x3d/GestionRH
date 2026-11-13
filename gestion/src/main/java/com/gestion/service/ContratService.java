@@ -317,12 +317,18 @@ public class ContratService {
 
     private String nomParDefaut(Candidature candidature) {
         if (candidature.getUtilisateur() != null) {
-            Employe employe = candidature.getUtilisateur().getEmploye();
+            Utilisateur utilisateur = candidature.getUtilisateur();
+            Employe employe = utilisateur.getEmploye();
             if (employe != null && texteOuNull(employe.getNomEmp()) != null) {
                 return employe.getNomEmp().trim();
             }
-            if (texteOuNull(candidature.getUtilisateur().getUsername()) != null) {
-                return candidature.getUtilisateur().getUsername().trim();
+            String prenom = texteOuNull(utilisateur.getPrenom());
+            String nom = texteOuNull(utilisateur.getNom());
+            if (prenom != null || nom != null) {
+                return ((prenom == null ? "" : prenom + " ") + (nom == null ? "" : nom)).trim();
+            }
+            if (texteOuNull(utilisateur.getUsername()) != null) {
+                return utilisateur.getUsername().trim();
             }
         }
         return "";
