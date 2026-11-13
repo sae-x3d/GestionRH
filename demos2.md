@@ -9,14 +9,15 @@ Les blocs 1 à 4 sont dans `demos1.md`. Le salarié créé à la fin du bloc 4 p
 
 ## Préparation
 
-- **Données** : `script-global.sql` ne crée que `admin`. Charger `gestionrh-01.sql`, qui contient les comptes de `auth.txt` (mot de passe `MotDePasse2026`).
+- **Données** : `script-global.sql` crée le schéma et `admin`. Charger ensuite `script-demo-global.sql`, qui contient les comptes de `auth.txt` (mot de passe `MotDePasse2026`). Ne pas charger `gestionrh-01.sql` après `script-global.sql`.
 - **Comptes utilisés** :
   - `paul.rabe` : employé
+  - `andry.nouveau` : employé (parcours contrat/onboarding)
   - `manager.it` : manager
   - `rh.sophie` : RH
   - `finance.claire` : Finance
-  - `admin` : joue la Direction (aucun compte `DIRECTION` n'est fourni)
-- **Soldes de congés** : lancer d'abord `/conges/batch/credits` avec `admin`, sinon l'employé n'a pas de solde. Pour montrer le FIFO, il faut deux lots (un ancien qui expire bientôt, un récent) : les créer en SQL dans `solde_conge` avant la démo.
+  - `direction.demo` : Direction
+- **Soldes de congés** : `script-demo-global.sql` crée déjà les lots, dont deux lots pour Paul (un ancien qui expire bientôt, un récent) pour montrer le FIFO. Ne pas relancer `/conges/batch/credits`, sauf pour tester le mécanisme de crédit annuel.
 - **Dates** : utiliser le 24 au 29 décembre 2026. Le 25 est un jour férié seedé et les 26 et 27 sont un week-end, ce qui rend le calcul visible.
 - **Pointage en direct** : l'heure de pointage est celle du moment. Pour provoquer un retard, baisser `heureDebut` sur `/temps-travail/parametres` (par exemple 06:00).
 
@@ -78,7 +79,7 @@ Les blocs 1 à 4 sont dans `demos1.md`. Le salarié créé à la fin du bloc 4 p
 ### Démo 7 : workflow et FIFO
 
 - **Comptes** : `manager.it`, puis `rh.sophie`
-- **Étapes** : valider sur `/conges/validation/manager`, puis `/conges/validation/rh`. Montrer la table de consommation en base.
+- **Étapes** : valider la demande d'Andry du 14 au 18 décembre sur `/conges/validation/manager` avec `manager.it`, puis `/conges/validation/rh` avec `rh.sophie`. Pour Paul (Commercial), l'étape manager est validée par la RH car aucun manager commercial n'est seedé. Montrer la table de consommation en base.
 - **Ce qu'on voit** : les jours sont pris d'abord sur le lot le plus ancien, une ligne par lot touché.
 - **Pourquoi** : le FIFO évite de perdre des jours qui expirent. La table de liaison permet d'annuler en recréditant le bon lot.
 
@@ -91,8 +92,8 @@ Les blocs 1 à 4 sont dans `demos1.md`. Le salarié créé à la fin du bloc 4 p
 
 ### Démo 9 : règles par type et validation Direction
 
-- **Comptes** : `rh.sophie`, puis `admin`
-- **Étapes** : sur `/conges/parametres`, fixer un préavis ou une durée max pour un type. Faire une demande trop longue, et la valider avec `admin` sur `/conges/validation/direction`.
+- **Comptes** : `rh.sophie`, puis `direction.demo`
+- **Étapes** : sur `/conges/parametres`, fixer un préavis ou une durée max pour un type. Faire une demande trop longue, et la valider avec `direction.demo` sur `/conges/validation/direction`.
 - **Pourquoi** : les règles sont des paramètres modifiables, pas du code. La Direction n'intervient que sur les cas exceptionnels, comme dans la répartition des rôles.
 
 ### Démo 10 : absences maladie

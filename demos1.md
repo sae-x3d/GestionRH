@@ -9,14 +9,14 @@ L'application n'a pas été lancée pour rédiger ce guide : répéter une fois 
 
 ## Préparation
 
-- **Comptes** (mot de passe `MotDePasse2026`, chargés par `gestionrh-01.sql`) :
+- **Comptes** (mot de passe `MotDePasse2026`, chargés par `script-demo-global.sql`) :
   - `manager.it` : manager du département Informatique
   - `rh.sophie` : RH (seul rôle accepté pour la validation RH d'une demande, l'admin n'y a pas accès)
   - `finance.claire` : Finance
   - `manager.finance` : manager du département Finance
-  - `admin` : joue la Direction (aucun compte `DIRECTION` n'est fourni)
+  - `direction.demo` : Direction
   - `user.simple` : le candidat
-- **Budget** : l'enveloppe des départements est vide dans les données seed, donc le contrôle de budget ne se déclenche pas. Fixer une enveloppe par SQL sur le département Informatique (vérifier les noms de colonnes de la table `departement`).
+- **Budget** : `script-demo-global.sql` renseigne les enveloppes et budgets consommés des départements, donc le contrôle de budget peut se déclencher. Vérifier le solde du département Informatique avant de faire une demande trop élevée.
 - **Flux à sens unique** : une fois le contrat accepté, `user.simple` devient salarié. Faire une sauvegarde de la base avant, ou prévoir un second compte candidat pour recommencer.
 - **Dates** : une date d'entretien ou d'effet de contrat ne peut pas être dans le passé.
 
@@ -38,7 +38,7 @@ L'application n'a pas été lancée pour rédiger ce guide : répéter une fois 
 
 ### Démo B : la chaîne de validation
 
-- **Comptes** : `rh.sophie`, puis `finance.claire`, puis `admin`
+- **Comptes** : `rh.sophie`, puis `finance.claire`, puis `direction.demo`
 - **Étapes** :
   1. `/demandes/validation-rh` : accepter.
   2. `/demandes/validation/finance` : accepter.
@@ -170,5 +170,5 @@ L'application n'a pas été lancée pour rédiger ce guide : répéter une fois 
 
 ## À annoncer au prof
 
-- **Limites assumées** : l'admin joue la Direction (aucun compte `DIRECTION`, `IT` ni `PAIE` n'est fourni), les emails sont simulés, et le flux candidat → salarié est irréversible.
+- **Limites assumées** : `direction.demo` valide la Direction des demandes de recrutement et des congés. Pour les workflows contrat/onboarding, l'étape Direction est réservée à l'admin par `ValidationWorkflowService`. Les rôles `IT` et `PAIE` n'ont pas de compte fourni, les emails sont simulés, et le flux candidat → salarié est irréversible.
 - **Phrase de conclusion** : « Chaque étape est une entité, un statut et une validation tracée, pas un simple écran de saisie. »
