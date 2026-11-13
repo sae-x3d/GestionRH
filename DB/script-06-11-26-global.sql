@@ -903,6 +903,7 @@ CREATE TABLE entretien (
 CREATE INDEX idx_entretien_candidature
     ON entretien(id_candidature);
 
+<<<<<<< HEAD
 <<<<<<< HEAD:DB/gestionrh-01.sql
 -- Questionnaire global du contrat, commun a toutes les candidatures.
 CREATE TABLE question_contrat (
@@ -934,6 +935,8 @@ CREATE INDEX idx_reponse_contrat_tour
 
 -- Notifications in-app.
 =======
+=======
+>>>>>>> origin/dev
 -- Contrat de travail issu d'une candidature retenue.
 CREATE TABLE contrat (
     id_contrat SERIAL PRIMARY KEY,
@@ -971,7 +974,10 @@ CREATE INDEX idx_contrat_statut
     ON contrat(statut);
 
 -- Notifications envoyees aux utilisateurs.
+<<<<<<< HEAD
 >>>>>>> origin/dev:DB/script-06-11-26-global.sql
+=======
+>>>>>>> origin/dev
 CREATE TABLE notification (
     id_notification SERIAL PRIMARY KEY,
     id_user INT NOT NULL REFERENCES utilisateur(id_user) ON DELETE CASCADE,
@@ -986,11 +992,14 @@ CREATE TABLE notification (
 CREATE INDEX idx_notification_user
     ON notification(id_user);
 
+<<<<<<< HEAD
 <<<<<<< HEAD:DB/gestionrh-01.sql
 CREATE INDEX idx_notification_user_lu
     ON notification(id_user, lu);
 
 =======
+=======
+>>>>>>> origin/dev
 CREATE INDEX idx_notification_lu
     ON notification(id_user, lu);
 
@@ -1018,7 +1027,10 @@ CREATE TABLE reponse_contrat (
 CREATE INDEX idx_reponse_contrat_candidature
     ON reponse_contrat(id_candidature, numero_tour);
 
+<<<<<<< HEAD
 >>>>>>> origin/dev:DB/script-06-11-26-global.sql
+=======
+>>>>>>> origin/dev
 
 -- Niveaux diplomes : Bacc+1 a Bacc+7 (reserves au parcours "Etude")
 INSERT INTO niveau (libelle, categorie)
@@ -1046,6 +1058,7 @@ WHERE NOT EXISTS (
     SELECT 1 FROM parcours p WHERE p.type = t.type
 );
 
+<<<<<<< HEAD
 <<<<<<< HEAD:DB/gestionrh-01.sql
 INSERT INTO candidature_status (libelle)
 SELECT t.libelle
@@ -1055,6 +1068,8 @@ WHERE NOT EXISTS (
     SELECT 1 FROM candidature_status c WHERE c.libelle = t.libelle
 );
 =======
+=======
+>>>>>>> origin/dev
 INSERT INTO candidature_status (id_candidature_status, libelle) VALUES
 (1, 'RETENUE'),
 (2, 'RECUE'),
@@ -1066,6 +1081,7 @@ INSERT INTO candidature_status (id_candidature_status, libelle) VALUES
 (8, 'CONTRAT_REFUSE'),
 (9, 'PROPOSITION')
 ON CONFLICT DO NOTHING;
+<<<<<<< HEAD
 >>>>>>> origin/dev:DB/script-06-11-26-global.sql
 
 -- Questions par defaut du questionnaire contrat (modifiables par les RH).
@@ -1080,6 +1096,8 @@ FROM (VALUES
 WHERE NOT EXISTS (
     SELECT 1 FROM question_contrat q WHERE q.libelle = t.libelle
 );
+=======
+>>>>>>> origin/dev
 
 
 -- ==========================================
