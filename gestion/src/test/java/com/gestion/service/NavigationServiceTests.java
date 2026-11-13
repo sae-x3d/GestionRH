@@ -18,13 +18,26 @@ class NavigationServiceTests {
 
     @Test
     void leMenuAdministrateurContientLePilotageEtLeRecrutementSansPostulationCandidat() {
-        List<String> libelles = libelles(menu("Administrateur", "/tableau-de-bord"));
+        List<MenuSection> menu = menu("Administrateur", "/tableau-de-bord");
+        List<String> libelles = libelles(menu);
 
         assertThat(libelles).contains("Tableau de bord", "Demandes", "Nouvelle demande",
-                "Validation Direction", "Offres d'emploi", "Gérer les offres", "Candidatures RH",
-                "Questionnaire contrat", "Mon profil");
+                "Validation Direction", "Validation conges Direction", "Offres d'emploi",
+                "Gérer les offres", "Candidatures RH", "Questionnaire contrat", "Mon profil");
         assertThat(libelles).doesNotContain("Accueil", "Validation Finance", "Validation RH",
                 "Mes candidatures", "Postuler", "Mes contrats", "Notifications");
+        assertThat(lien(menu, "Validation Direction").url()).isEqualTo("/demandes/validation/direction");
+        assertThat(lien(menu, "Validation conges Direction").url())
+                .isEqualTo("/conges/validation/direction");
+    }
+
+    @Test
+    void leMenuDirectionProposeLaValidationDesCongesExceptionnels() {
+        List<MenuSection> menu = menu("Direction", "/tableau-de-bord");
+
+        assertThat(lien(menu, "Validation conges Direction").url())
+                .isEqualTo("/conges/validation/direction");
+        assertThat(libelles(menu)).contains("Validation Direction", "Validation conges Direction");
     }
 
     @Test
