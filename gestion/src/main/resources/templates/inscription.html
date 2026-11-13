@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Creer un compte - GestionRH</title>
+    <link rel="stylesheet" th:href="@{/css/variables.css}">
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/components.css}">
+    <link rel="stylesheet" th:href="@{/css/connexion.css}">
+</head>
+
+<body class="login-page">
+<div class="login-shell">
+
+    <section class="login-brand-panel">
+        <a th:href="@{/}" class="login-brand">
+            <span class="login-brand-mark" aria-hidden="true">GR</span>
+            <span>
+                <strong>SIRH</strong>
+                <small>GestionRH S5</small>
+            </span>
+        </a>
+
+        <div class="login-brand-copy">
+            <span class="login-eyebrow">Espace candidat</span>
+            <h1>Creez votre compte pour postuler.</h1>
+            <p>Un seul compte pour candidater, suivre vos dossiers et recevoir vos propositions.</p>
+        </div>
+
+        <ul class="login-points">
+            <li>Candidature en quelques minutes</li>
+            <li>Suivi de vos candidatures</li>
+            <li>Notifications sur vos contrats</li>
+        </ul>
+    </section>
+
+    <main class="login-card">
+        <div class="login-card-head">
+            <span class="eyebrow">Inscription</span>
+            <h2 class="login-title">Creer un compte</h2>
+            <p class="login-subtitle">Renseignez vos informations pour acceder aux offres.</p>
+        </div>
+
+        <form th:action="@{/inscription}" th:object="${form}" method="post" novalidate>
+            <input type="hidden" th:field="*{offreId}">
+
+            <div class="alert-error" th:if="${#fields.hasGlobalErrors()}">
+                <div th:each="erreur : ${#fields.globalErrors()}" th:text="${erreur}">Erreur</div>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Nom d'utilisateur <span class="required">*</span></label>
+                <input type="text" id="username" class="form-control" th:field="*{username}"
+                       th:errorclass="is-invalid" autocomplete="username" minlength="3" maxlength="100" required autofocus>
+                <span class="help-text">Lettres, chiffres, points, tirets et underscores.</span>
+                <span class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Adresse email <span class="required">*</span></label>
+                <input type="email" id="email" class="form-control" th:field="*{email}"
+                       th:errorclass="is-invalid" autocomplete="email" maxlength="150" required>
+                <span class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="password">Mot de passe <span class="required">*</span></label>
+                    <div class="password-field">
+                        <input type="password" id="password" name="password" class="form-control"
+                               th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''"
+                               autocomplete="new-password" minlength="8" maxlength="72" required>
+                        <button type="button" class="password-toggle" data-password-toggle="password"
+                                aria-label="Afficher le mot de passe" aria-pressed="false" aria-controls="password">
+                            <svg class="password-toggle-show" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <svg class="password-toggle-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
+                                <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/>
+                                <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/>
+                                <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/>
+                                <path d="m2 2 20 20"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <span class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmation">Confirmation <span class="required">*</span></label>
+                    <div class="password-field">
+                        <input type="password" id="confirmation" name="confirmation" class="form-control"
+                               th:classappend="${#fields.hasErrors('confirmation')} ? 'is-invalid' : ''"
+                               autocomplete="new-password" maxlength="72" required>
+                        <button type="button" class="password-toggle" data-password-toggle="confirmation"
+                                aria-label="Afficher le mot de passe" aria-pressed="false" aria-controls="confirmation">
+                            <svg class="password-toggle-show" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <svg class="password-toggle-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
+                                <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/>
+                                <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/>
+                                <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/>
+                                <path d="m2 2 20 20"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <span class="field-error" th:if="${#fields.hasErrors('confirmation')}"
+                          th:errors="*{confirmation}"></span>
+                </div>
+            </div>
+
+            <span class="help-text">8 caracteres minimum, avec au moins une lettre et un chiffre.</span>
+
+            <button type="submit" class="btn btn-primary btn-block">Creer mon compte</button>
+        </form>
+
+        <p class="login-back">
+            <span>Deja un compte ?</span>
+            <a th:if="${form.offreId != null}" th:href="@{/connexion(offreId=${form.offreId})}">Se connecter</a>
+            <a th:if="${form.offreId == null}" th:href="@{/connexion}">Se connecter</a>
+            <span aria-hidden="true">·</span>
+            <a th:href="@{/offres}">Voir les offres</a>
+        </p>
+    </main>
+
+</div>
+<script th:src="@{/js/password-toggle.js}" defer></script>
+</body>
+
+</html>

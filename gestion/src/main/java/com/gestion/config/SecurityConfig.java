@@ -26,8 +26,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/connexion", "/mot-de-passe-oublie", "/mot-de-passe-reinitialiser",
-                                "/css/**", "/error").permitAll()
+                        .requestMatchers("/connexion", "/inscription", "/mot-de-passe-oublie",
+                                "/mot-de-passe-reinitialiser", "/css/**", "/js/**", "/error").permitAll()
 
                         .requestMatchers("/offres/gestion", "/offres/nouvelle")
                         .hasAnyAuthority("ROLE_ADMINISTRATEUR", "ROLE_RH")
