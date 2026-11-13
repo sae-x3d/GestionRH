@@ -65,6 +65,10 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Intege
 
     Optional<Utilisateur> findFirstByEmailIgnoreCaseAndActifTrue(String email);
 
+    boolean existsByUsernameIgnoreCase(String username);
+
+    boolean existsByEmailIgnoreCase(String email);
+
     @Query("select u.securityVersion from Utilisateur u where u.idUser = :id")
     Optional<Integer> findSecurityVersionById(@Param("id") Integer id);
 }

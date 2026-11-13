@@ -16,17 +16,17 @@ Employe          | paul.rabe          | MotDePasse2026 | Paul Rabe
 Employe          | marie.randria      | MotDePasse2026 | Marie Randria
 Utilisateur      | user.simple        | MotDePasse2026 | -
 Finance          | finance.claire     | MotDePasse2026 | Claire Ravel
+DIRECTION        | direction.demo     | MotDePasse2026 | -
+Employe          | andry.nouveau      | MotDePasse2026 | Andry Nouveau
 
 ROLES SANS COMPTE DE CONNEXION
 ------------------------------
-DIRECTION : aucun utilisateur rattache en base
 IT        : aucun utilisateur rattache en base
 PAIE      : aucun utilisateur rattache en base
 
 NOTES
 -----
-- Les 10 comptes ci-dessus sont actifs.
+- Les 12 comptes ci-dessus sont actifs.
 - Tous utilisent le hash bcrypt de demonstration MotDePasse2026.
-- Les roles DIRECTION, IT et PAIE existent dans la table role mais n'ont pas
-  encore de compte utilisateur ; il faut en creer un pour se connecter avec
-  ces roles.
+- Les roles IT et PAIE existent dans la table role mais n'ont pas encore de
+  compte utilisateur ; il faut en creer un pour se connecter avec ces roles.

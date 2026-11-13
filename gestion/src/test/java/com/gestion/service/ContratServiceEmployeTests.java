@@ -9,6 +9,7 @@ import com.gestion.model.Employe;
 import com.gestion.model.OffreEmploi;
 import com.gestion.model.Poste;
 import com.gestion.model.Provenance;
+import com.gestion.model.Role;
 import com.gestion.model.Utilisateur;
 import com.gestion.repository.CandidatureRepository;
 import com.gestion.repository.ContratRepository;
@@ -52,6 +53,7 @@ class ContratServiceEmployeTests {
     private Contrat contrat;
     private Provenance provenance;
     private Poste poste;
+    private Role role;
     private Departement departement;
 
     @BeforeEach
@@ -66,7 +68,8 @@ class ContratServiceEmployeTests {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         utilisateur = Utilisateur.builder().idUser(7).username("candidat").build();
-        poste = Poste.builder().idPoste(3).nomPoste("Developpeur").build();
+        role = Role.builder().idRole(4).nomRole("Employe").build();
+        poste = Poste.builder().idPoste(3).nomPoste("Developpeur").role(role).build();
         departement = Departement.builder().idDept(4).nomDept("Informatique").build();
         Demande demande = Demande.builder().poste(poste).departement(departement).build();
         OffreEmploi offre = OffreEmploi.builder().demande(demande).titre("Developpeur").build();
@@ -97,6 +100,7 @@ class ContratServiceEmployeTests {
         assertEquals(2_500_000, employe.getSalaireEmp());
         assertSame(provenance, employe.getProvenance());
         assertSame(employe, utilisateur.getEmploye());
+        assertSame(role, utilisateur.getRole());
         assertEquals("ACCEPTE", resultat.getStatut());
         assertArrayEquals(new byte[]{1, 2, 3}, resultat.getPdf());
         verify(employeService, times(1)).preparerNouvelEmploye(
@@ -120,14 +124,15 @@ class ContratServiceEmployeTests {
     @Test
     void candidatDejaLieAUnEmployeEstReutiliseSansDoublon() {
         stubAcceptation();
-        Employe existant = Employe.builder().idEmp(99).nomEmp("Kenny Test").build();
+        Employe existant = Employe.builder().idEmp(99).nomEmp("Kenny Test").poste(poste).build();
         utilisateur.setEmploye(existant);
 
         Contrat resultat = service.repondre(21, 7, true);
 
         assertSame(existant, resultat.getEmploye());
+        assertSame(role, utilisateur.getRole());
         verifyNoInteractions(employeRepository, provenanceRepository);
-        verify(utilisateurRepository, never()).save(any(Utilisateur.class));
+        verify(utilisateurRepository).save(utilisateur);
     }
 
     @Test

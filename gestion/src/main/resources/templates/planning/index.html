@@ -58,6 +58,53 @@
         Aucun planning sur cette semaine. Generez-en un pour un salarie.
     </div>
 
+    <section class="card" th:if="${!#lists.isEmpty(plannings)}">
+        <div class="section-heading">
+            <div>
+                <h3>Vue de la semaine</h3>
+                <p class="help-text">Debut et fin de shift par salarie</p>
+            </div>
+        </div>
+        <div class="table-wrapper planning-week-wrapper">
+            <table class="data-table planning-week-table">
+                <thead>
+                <tr>
+                    <th rowspan="2" class="planning-name-column">Nom</th>
+                    <th colspan="2" th:each="offset : ${#numbers.sequence(0, 6)}"
+                        th:text="${#temporals.format(semaine.plusDays(offset), 'EEE dd/MM')}">Lun 01/01</th>
+                </tr>
+                <tr>
+                    <th th:each="offset : ${#numbers.sequence(0, 6)}" colspan="2" class="planning-shift-heading">
+                        <span>Debut</span><span>Fin</span>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${plannings}">
+                    <th scope="row" class="planning-name-cell">
+                        <span th:text="${p.employe.nomEmp}">Salarie</span>
+                        <small th:text="${p.statut.libelle}">Statut</small>
+                    </th>
+                    <th:block th:each="j : ${joursParPlanning[p.idPlanning]}">
+                        <td class="planning-time-cell" th:classappend="${j.typeJour.name() != 'TRAVAIL' ? 'planning-day-off' : ''}">
+                            <span th:if="${j.typeJour.name() == 'TRAVAIL' && j.heureDebut != null}"
+                                  th:text="${#temporals.format(j.heureDebut, 'HH:mm')}">08:00</span>
+                            <span th:if="${j.typeJour.name() != 'TRAVAIL' || j.heureDebut == null}" class="planning-day-label"
+                                  th:text="${j.typeJour.libelle}">Repos</span>
+                        </td>
+                        <td class="planning-time-cell" th:classappend="${j.typeJour.name() != 'TRAVAIL' ? 'planning-day-off' : ''}">
+                            <span th:if="${j.typeJour.name() == 'TRAVAIL' && j.heureFin != null}"
+                                  th:text="${#temporals.format(j.heureFin, 'HH:mm')}">17:00</span>
+                            <span th:if="${j.typeJour.name() != 'TRAVAIL' || j.heureFin == null}" class="planning-day-label"
+                                  th:text="${j.typeJour.libelle}">Repos</span>
+                        </td>
+                    </th:block>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
     <section class="card" th:each="p : ${plannings}">
         <div class="section-heading" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">
             <div>

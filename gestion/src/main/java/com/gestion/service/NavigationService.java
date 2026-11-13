@@ -63,6 +63,7 @@ public class NavigationService {
                 section("Conges",
                         lien("Mes conges", "/conges"),
                         lien("Validation conges", "/conges/validation/rh"),
+                        lien("Validation conges Direction", "/conges/validation/direction"),
                         lien("Calendrier", "/conges/calendrier"),
                         lien("Referentiels conges", "/conges/parametres")),
                 section("Temps de travail",
@@ -214,6 +215,8 @@ public class NavigationService {
                         lien("Validation Direction", "/demandes/validation/direction"),
                         lien("Salaries", "/employes"),
                         lien("Sorties", "/sorties")),
+                section("Conges",
+                        lien("Validation conges Direction", "/conges/validation/direction")),
                 section("Compte",
                         lien("Mon profil", "/profil"))
         );

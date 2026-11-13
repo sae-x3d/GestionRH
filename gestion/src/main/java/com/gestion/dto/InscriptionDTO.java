@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 
 public class InscriptionDTO {
 
+<<<<<<< HEAD
     @NotBlank(message = "Le prenom est obligatoire")
     @Size(max = 100, message = "Le prenom ne peut pas depasser 100 caracteres")
     private String prenom;
@@ -26,11 +27,21 @@ public class InscriptionDTO {
     @Pattern(regexp = "^[0-9+ .()\\-]+$", message = "Le telephone contient des caracteres invalides")
     private String telephone;
 
+=======
+>>>>>>> origin/dev-correction
     @NotBlank(message = "Le nom d'utilisateur est obligatoire")
     @Size(min = 3, max = 100, message = "Le nom d'utilisateur doit contenir entre 3 et 100 caracteres")
     @Pattern(regexp = "^[a-zA-Z0-9._-]+$", message = "Le nom d'utilisateur ne peut contenir que des lettres, chiffres, points, tirets et underscores")
     private String username;
 
+<<<<<<< HEAD
+=======
+    @NotBlank(message = "L'adresse email est obligatoire")
+    @Email(message = "L'adresse email n'est pas valide")
+    @Size(max = 150, message = "L'adresse email ne peut pas depasser 150 caracteres")
+    private String email;
+
+>>>>>>> origin/dev-correction
     @NotBlank(message = "Le mot de passe est obligatoire")
     @Size(min = 8, max = 72, message = "Le mot de passe doit contenir entre 8 et 72 caracteres")
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d).+$", message = "Le mot de passe doit contenir au moins une lettre et un chiffre")
@@ -46,6 +57,7 @@ public class InscriptionDTO {
         return password != null && password.equals(confirmation);
     }
 
+<<<<<<< HEAD
     public String getPrenom() {
         return prenom;
     }
@@ -60,6 +72,14 @@ public class InscriptionDTO {
 
     public void setNom(String nom) {
         this.nom = nom;
+=======
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+>>>>>>> origin/dev-correction
     }
 
     public String getEmail() {
@@ -70,6 +90,7 @@ public class InscriptionDTO {
         this.email = email;
     }
 
+<<<<<<< HEAD
     public String getTelephone() {
         return telephone;
     }
@@ -86,6 +107,8 @@ public class InscriptionDTO {
         this.username = username;
     }
 
+=======
+>>>>>>> origin/dev-correction
     public String getPassword() {
         return password;
     }

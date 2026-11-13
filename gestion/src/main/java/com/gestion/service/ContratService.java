@@ -11,7 +11,9 @@ import com.gestion.model.Contrat;
 import com.gestion.model.Demande;
 import com.gestion.model.Employe;
 import com.gestion.model.OffreEmploi;
+import com.gestion.model.Poste;
 import com.gestion.model.Provenance;
+import com.gestion.model.Role;
 import com.gestion.model.Utilisateur;
 import com.gestion.repository.CandidatureRepository;
 import com.gestion.repository.ContratRepository;
@@ -26,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -314,8 +317,18 @@ public class ContratService {
             emp = creerEmployeDepuisContrat(c);
         }
         emp = employeService.preparerNouvelEmploye(emp, c.getCandidature(), user);
+        boolean utilisateurModifie = false;
         if (user.getEmploye() == null) {
             user.setEmploye(emp);
+            utilisateurModifie = true;
+        }
+        Role rolePoste = roleDuPoste(emp, c);
+        if (rolePoste != null && (user.getRole() == null
+                || !Objects.equals(rolePoste.getIdRole(), user.getRole().getIdRole()))) {
+            user.setRole(rolePoste);
+            utilisateurModifie = true;
+        }
+        if (utilisateurModifie) {
             utilisateurRepository.save(user);
         }
         c.setEmploye(emp);
@@ -367,6 +380,16 @@ public class ContratService {
                 "Votre contrat " + contrat.getNumeroContrat()
                         + " est valide. Consultez-le et indiquez votre decision.",
                 "/contrats/" + contrat.getIdContrat());
+    }
+
+    private Role roleDuPoste(Employe employe, Contrat contrat) {
+        Poste poste = employe.getPoste();
+        if (poste == null && contrat.getCandidature() != null
+                && contrat.getCandidature().getOffre() != null
+                && contrat.getCandidature().getOffre().getDemande() != null) {
+            poste = contrat.getCandidature().getOffre().getDemande().getPoste();
+        }
+        return poste == null ? null : poste.getRole();
     }
 
     private Employe creerEmployeDepuisContrat(Contrat contrat) {

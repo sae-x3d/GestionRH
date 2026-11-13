@@ -50,6 +50,7 @@
                 <div th:each="erreur : ${#fields.globalErrors()}" th:text="${erreur}">Erreur</div>
             </div>
 
+<<<<<<< HEAD
             <div class="form-row">
                 <div class="form-group">
                     <label for="prenom">Prenom <span class="required">*</span></label>
@@ -64,11 +65,20 @@
                            th:errorclass="is-invalid" autocomplete="family-name" maxlength="100" required>
                     <span class="field-error" th:if="${#fields.hasErrors('nom')}" th:errors="*{nom}"></span>
                 </div>
+=======
+            <div class="form-group">
+                <label for="username">Nom d'utilisateur <span class="required">*</span></label>
+                <input type="text" id="username" class="form-control" th:field="*{username}"
+                       th:errorclass="is-invalid" autocomplete="username" minlength="3" maxlength="100" required autofocus>
+                <span class="help-text">Lettres, chiffres, points, tirets et underscores.</span>
+                <span class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
+>>>>>>> origin/dev-correction
             </div>
 
             <div class="form-group">
                 <label for="email">Adresse email <span class="required">*</span></label>
                 <input type="email" id="email" class="form-control" th:field="*{email}"
+<<<<<<< HEAD
                        th:errorclass="is-invalid" autocomplete="email" maxlength="255" required>
                 <span class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
             </div>
@@ -88,12 +98,24 @@
                 <span class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
             </div>
 
+=======
+                       th:errorclass="is-invalid" autocomplete="email" maxlength="150" required>
+                <span class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+            </div>
+
+>>>>>>> origin/dev-correction
             <div class="form-row">
                 <div class="form-group">
                     <label for="password">Mot de passe <span class="required">*</span></label>
                     <div class="password-field">
+<<<<<<< HEAD
                         <input type="password" id="password" class="form-control" th:field="*{password}"
                                th:errorclass="is-invalid" autocomplete="new-password" minlength="8" maxlength="72" required>
+=======
+                        <input type="password" id="password" name="password" class="form-control"
+                               th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''"
+                               autocomplete="new-password" minlength="8" maxlength="72" required>
+>>>>>>> origin/dev-correction
                         <button type="button" class="password-toggle" data-password-toggle="password"
                                 aria-label="Afficher le mot de passe" aria-pressed="false" aria-controls="password">
                             <svg class="password-toggle-show" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -116,8 +138,14 @@
                 <div class="form-group">
                     <label for="confirmation">Confirmation <span class="required">*</span></label>
                     <div class="password-field">
+<<<<<<< HEAD
                         <input type="password" id="confirmation" class="form-control" th:field="*{confirmation}"
                                th:errorclass="is-invalid" autocomplete="new-password" maxlength="72" required>
+=======
+                        <input type="password" id="confirmation" name="confirmation" class="form-control"
+                               th:classappend="${#fields.hasErrors('confirmation')} ? 'is-invalid' : ''"
+                               autocomplete="new-password" maxlength="72" required>
+>>>>>>> origin/dev-correction
                         <button type="button" class="password-toggle" data-password-toggle="confirmation"
                                 aria-label="Afficher le mot de passe" aria-pressed="false" aria-controls="confirmation">
                             <svg class="password-toggle-show" viewBox="0 0 24 24" fill="none" stroke="currentColor"

@@ -75,8 +75,13 @@
         </a>
         <a sec:authorize="isAnonymous()"
            th:if="${offre.statut.name() == 'PUBLIEE'}"
-           th:href="@{/connexion}" class="btn btn-primary">
-            Se connecter pour postuler
+           th:href="@{/inscription(offreId=${offre.idOffre})}" class="btn btn-primary">
+            Creer un compte pour postuler
+        </a>
+        <a sec:authorize="isAnonymous()"
+           th:if="${offre.statut.name() == 'PUBLIEE'}"
+           th:href="@{/connexion(offreId=${offre.idOffre})}" class="btn btn-outline">
+            Se connecter
         </a>
         <a sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')"
            th:href="@{/offres/{id}/modifier(id=${offre.idOffre})}" class="btn btn-outline">

@@ -94,6 +94,53 @@
     color: #94a3b8;
 }
 
+.password-field {
+    position: relative;
+}
+
+.password-field .form-control {
+    padding-right: 3rem;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 0.45rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted-color);
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition: background-color var(--transition), color var(--transition);
+}
+
+.password-toggle:hover {
+    background: var(--surface-alt);
+    color: var(--text-soft);
+}
+
+.password-toggle:focus-visible {
+    outline: none;
+    color: var(--primary);
+    box-shadow: var(--focus-ring);
+}
+
+.password-toggle svg {
+    width: 19px;
+    height: 19px;
+}
+
+.password-toggle svg[hidden] {
+    display: none;
+}
+
 textarea.form-control {
     min-height: 104px;
     resize: vertical;
@@ -414,6 +461,79 @@ input[type="file"].form-control {
 
 .table-wrapper {
     margin-top: 0.75rem;
+}
+
+.planning-week-wrapper {
+    overflow-x: auto;
+}
+
+.planning-week-table {
+    min-width: 980px;
+    table-layout: fixed;
+}
+
+.planning-week-table th,
+.planning-week-table td {
+    padding: 0.65rem 0.5rem;
+    text-align: center;
+}
+
+.planning-week-table thead th {
+    text-align: center;
+}
+
+.planning-week-table .planning-name-column,
+.planning-week-table .planning-name-cell {
+    width: 150px;
+    text-align: left;
+}
+
+.planning-week-table .planning-name-cell {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--surface);
+    font-weight: 700;
+}
+
+.planning-week-table tbody tr:hover .planning-name-cell {
+    background: #f8fbff;
+}
+
+.planning-week-table .planning-name-cell small {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--muted-color);
+    font-size: 0.7rem;
+    font-weight: 400;
+}
+
+.planning-week-table .planning-shift-heading {
+    vertical-align: middle;
+    font-size: 0.58rem;
+}
+
+.planning-week-table .planning-shift-heading span {
+    display: inline-block;
+    width: 48%;
+}
+
+.planning-week-table .planning-time-cell {
+    min-width: 58px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.planning-week-table .planning-day-off {
+    background: #f8fafc;
+    color: var(--muted-color);
+    font-size: 0.68rem;
+}
+
+.planning-week-table .planning-day-label {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .data-table {
