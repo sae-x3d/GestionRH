@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Salaries</title>
+</head>
+
+<body>
+<section layout:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Effectif</span>
+            <h2>Salaries</h2>
+            <p>Consultez les fiches salaries, leurs documents et leur inscription paie.</p>
+        </div>
+    </div>
+
+    <div class="alert-info" th:if="${#lists.isEmpty(employes)}">Aucun salarie actif.</div>
+
+    <div class="table-wrapper" th:unless="${#lists.isEmpty(employes)}">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Matricule</th>
+                <th>Nom</th>
+                <th>Poste</th>
+                <th>Departement</th>
+                <th>Embauche</th>
+                <th class="col-actions">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="e : ${employes}">
+                <td th:text="${e.matricule != null ? e.matricule : '-'}">-</td>
+                <td th:text="${e.nomEmp}">Nom</td>
+                <td th:text="${e.poste != null ? e.poste.nomPoste : '-'}">-</td>
+                <td th:text="${e.departement != null ? e.departement.nomDept : '-'}">-</td>
+                <td th:text="${e.dateEmbauche != null ? #temporals.format(e.dateEmbauche, 'dd/MM/yyyy') : '-'}">-</td>
+                <td class="col-actions">
+                    <a class="btn btn-outline btn-small" th:href="@{/employes/{id}(id=${e.idEmp})}">Dossier</a>
+                    <a class="btn btn-outline btn-small"
+                       th:href="@{/employes/{id}/documents(id=${e.idEmp})}">Documents</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</section>
+</body>
+
+</html>

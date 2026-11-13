@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Dossier de validation</title>
+</head>
+
+<body>
+<section layout:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Workflow</span>
+            <h2 th:text="${dossier.typeObjet.libelle + ' #' + dossier.idObjet}">Dossier</h2>
+            <p th:text="${'Tentative ' + dossier.numeroTentative + ' - statut ' + dossier.statut.libelle}">Statut</p>
+        </div>
+        <a class="btn btn-outline" th:href="@{/validations/bloc4}">Retour aux validations</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Action enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <section class="card">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Synthese</span>
+                <h3>Informations du dossier</h3>
+            </div>
+            <span class="status-badge" th:text="${dossier.statut.libelle}">En cours</span>
+        </div>
+
+        <dl class="detail-info-grid">
+            <div class="detail-info">
+                <dt>Type</dt>
+                <dd th:text="${dossier.typeObjet.libelle}">Contrat</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Objet</dt>
+                <dd th:text="${'#' + dossier.idObjet}">#1</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Departement</dt>
+                <dd th:text="${dossier.departementId != null ? dossier.departementId : '-'}">-</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Depose par</dt>
+                <dd th:text="${dossier.createur != null ? dossier.createur.username : '-'}">-</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Date de creation</dt>
+                <dd th:text="${#temporals.format(dossier.dateCreation, 'dd/MM/yyyy HH:mm')}">Date</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Etape attendue</dt>
+                <dd th:text="${roleAttendu != null ? roleAttendu.libelle : 'Aucune (dossier clos)'}">Manager</dd>
+            </div>
+        </dl>
+
+        <div class="form-actions">
+            <a class="btn btn-outline" th:href="@{${dossier.lien}}" target="_blank" rel="noopener">
+                Ouvrir l'objet concerne
+            </a>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Parcours</span>
+                <h3>Etapes de validation</h3>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Ordre</th>
+                    <th>Role requis</th>
+                    <th>Statut</th>
+                    <th>Decideur</th>
+                    <th>Date</th>
+                    <th>Commentaire</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="e : ${dossier.etapes}">
+                    <td th:text="${e.ordre}">1</td>
+                    <td th:text="${e.roleRequis.libelle}">Manager</td>
+                    <td>
+                        <span class="status-badge"
+                              th:classappend="${e.statut.name() == 'APPROUVE' ? ' status-success'
+                                               : (e.statut.name() == 'REFUSE' ? ' status-danger' : '')}"
+                              th:text="${e.statut.libelle}">En attente</span>
+                    </td>
+                    <td th:text="${e.decideur != null ? e.decideur.username : '-'}">-</td>
+                    <td th:text="${e.dateDecision != null ? #temporals.format(e.dateDecision, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                    <td th:text="${e.commentaire != null ? e.commentaire : '-'}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card" th:if="${peutDecider}">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Votre decision</span>
+                <h3>Valider ou renvoyer le dossier</h3>
+            </div>
+        </div>
+        <form th:action="@{/validations/bloc4/{id}/approuver(id=${dossier.idDossier})}" method="post">
+            <div class="form-group">
+                <label for="commentaire">Commentaire (optionnel)</label>
+                <textarea id="commentaire" name="commentaire" class="form-control" rows="3" maxlength="1000"
+                          placeholder="Precisez une reserve ou une consigne."></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Approuver cette etape</button>
+                <button type="submit" class="btn btn-outline"
+                        th:formaction="@{/validations/bloc4/{id}/refuser(id=${dossier.idDossier})}"
+                        onclick="return confirm('Renvoyer ce dossier pour correction ?');">
+                    Refuser / renvoyer pour correction
+                </button>
+            </div>
+        </form>
+    </section>
+
+</section>
+</body>
+
+</html>

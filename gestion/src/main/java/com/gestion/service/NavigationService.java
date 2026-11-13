@@ -19,6 +19,9 @@ public class NavigationService {
     private static final String ROLE_EMPLOYE = "EMPLOYE";
     private static final String ROLE_FINANCE = "FINANCE";
     private static final String ROLE_UTILISATEUR = "UTILISATEUR";
+    private static final String ROLE_DIRECTION = "DIRECTION";
+    private static final String ROLE_IT = "IT";
+    private static final String ROLE_PAIE = "PAIE";
 
     public List<MenuSection> construire(Utilisateur utilisateur, String uri) {
         if (utilisateur == null) {
@@ -31,6 +34,9 @@ public class NavigationService {
             case ROLE_MANAGER -> menuManager(estFinance(utilisateur));
             case ROLE_EMPLOYE -> menuEmploye(estFinance(utilisateur));
             case ROLE_FINANCE -> menuFinance();
+            case ROLE_DIRECTION -> menuDirection();
+            case ROLE_IT -> menuIt();
+            case ROLE_PAIE -> menuPaie();
             case ROLE_UTILISATEUR -> menuUtilisateur();
             default -> menuUtilisateur();
         };
@@ -50,7 +56,28 @@ public class NavigationService {
                         lien("Offres d'emploi", "/offres"),
                         lien("Gérer les offres", "/offres/gestion"),
                         lien("Candidatures RH", "/candidatures/rh"),
-                        lien("Questionnaire contrat", "/contrats/questionnaire")),
+                        lien("Questionnaire contrat", "/contrats/questionnaire"),
+                        lien("Accreditations", "/accreditations"),
+                        lien("Onboarding", "/onboarding"),
+                        lien("Validations contrats / accreditations", "/validations/bloc4")),
+                section("Conges",
+                        lien("Mes conges", "/conges"),
+                        lien("Validation conges", "/conges/validation/rh"),
+                        lien("Calendrier", "/conges/calendrier"),
+                        lien("Referentiels conges", "/conges/parametres")),
+                section("Temps de travail",
+                        lien("Planning", "/planning"),
+                        lien("Pointage equipe", "/pointage/equipe"),
+                        lien("Anomalies", "/pointage/anomalies"),
+                        lien("Heures supplementaires", "/heures-sup"),
+                        lien("Cloture paie", "/paie/cloture")),
+                section("Gestion RH",
+                        lien("Salaries", "/employes"),
+                        lien("Changements sensibles", "/employes/changements"),
+                        lien("Sorties", "/sorties"),
+                        lien("Paie", "/paie"),
+                        lien("Reporting", "/reporting"),
+                        lien("Journal d'audit", "/audit")),
                 section("Compte",
                         lien("Mon profil", "/profil"))
         );
@@ -67,7 +94,28 @@ public class NavigationService {
                         lien("Offres d'emploi", "/offres"),
                         lien("Gérer les offres", "/offres/gestion"),
                         lien("Candidatures RH", "/candidatures/rh"),
-                        lien("Questionnaire contrat", "/contrats/questionnaire")),
+                        lien("Questionnaire contrat", "/contrats/questionnaire"),
+                        lien("Accreditations", "/accreditations"),
+                        lien("Onboarding", "/onboarding"),
+                        lien("Validations contrats / accreditations", "/validations/bloc4")),
+                section("Conges",
+                        lien("Mes conges", "/conges"),
+                        lien("Validation manager", "/conges/validation/manager"),
+                        lien("Validation RH", "/conges/validation/rh"),
+                        lien("Calendrier", "/conges/calendrier"),
+                        lien("Referentiels conges", "/conges/parametres")),
+                section("Temps de travail",
+                        lien("Planning", "/planning"),
+                        lien("Pointage equipe", "/pointage/equipe"),
+                        lien("Anomalies", "/pointage/anomalies"),
+                        lien("Heures supplementaires", "/heures-sup"),
+                        lien("Cloture paie", "/paie/cloture")),
+                section("Gestion RH",
+                        lien("Salaries", "/employes"),
+                        lien("Changements sensibles", "/employes/changements"),
+                        lien("Sorties", "/sorties"),
+                        lien("Paie", "/paie"),
+                        lien("Reporting", "/reporting")),
                 section("Compte",
                         lien("Mon profil", "/profil"))
         );
@@ -80,6 +128,10 @@ public class NavigationService {
         sections.add(section("Demandes",
                 lien("Mes demandes", "/demandes"),
                 lien("Nouvelle demande", "/demandes/nouvelle")));
+        sections.add(section("Validation",
+                lien("Validations a traiter", "/validations/bloc4"),
+                lien("Onboarding equipe", "/onboarding"),
+                lien("Accreditations equipe", "/accreditations")));
         if (finance) {
             sections.add(section("Validation",
                     lien("Validation Finance", "/demandes/validation/finance")));
@@ -87,9 +139,21 @@ public class NavigationService {
         sections.add(section("Recrutement",
                 lien("Offres d'emploi", "/offres"),
                 lien("Mes candidatures", "/candidatures")));
+        sections.add(section("Conges",
+                lien("Mes conges", "/conges"),
+                lien("Validation equipe", "/conges/validation/manager"),
+                lien("Calendrier", "/conges/calendrier")));
+        sections.add(section("Temps de travail",
+                lien("Planning", "/planning"),
+                lien("Pointage equipe", "/pointage/equipe"),
+                lien("Anomalies", "/pointage/anomalies"),
+                lien("Mes heures sup", "/heures-sup")));
         sections.add(section("Contrats",
-                lien("Mes contrats", "/contrats")));
+                lien("Mes contrats", "/contrats"),
+                lien("Mon integration", "/mon-onboarding"),
+                lien("Mes accreditations", "/mes-accreditations")));
         sections.add(section("Compte",
+                lien("Mon dossier", "/mon-dossier"),
                 lien("Mon profil", "/profil")));
         return sections;
     }
@@ -107,9 +171,18 @@ public class NavigationService {
         sections.add(section("Recrutement",
                 lien("Offres d'emploi", "/offres"),
                 lien("Mes candidatures", "/candidatures")));
+        sections.add(section("Conges",
+                lien("Mes conges", "/conges"),
+                lien("Calendrier", "/conges/calendrier")));
+        sections.add(section("Temps de travail",
+                lien("Mon pointage", "/pointage"),
+                lien("Mes heures sup", "/heures-sup")));
         sections.add(section("Contrats",
-                lien("Mes contrats", "/contrats")));
+                lien("Mes contrats", "/contrats"),
+                lien("Mon integration", "/mon-onboarding"),
+                lien("Mes accreditations", "/mes-accreditations")));
         sections.add(section("Compte",
+                lien("Mon dossier", "/mon-dossier"),
                 lien("Mon profil", "/profil")));
         return sections;
     }
@@ -120,8 +193,53 @@ public class NavigationService {
                         lien("Tableau de bord", "/tableau-de-bord")),
                 section("Validation",
                         lien("Validation Finance", "/demandes/validation/finance")),
+                section("Paie",
+                        lien("Cloture paie", "/paie/cloture"),
+                        lien("Inscriptions paie", "/paie")),
                 section("Recrutement",
-                        lien("Offres d'emploi", "/offres")),
+                        lien("Offres d'emploi", "/offres"),
+                        lien("Mes accreditations", "/mes-accreditations")),
+                section("Compte",
+                        lien("Mon profil", "/profil"))
+        );
+    }
+
+    private List<MenuSection> menuDirection() {
+        return List.of(
+                section("Général",
+                        lien("Tableau de bord", "/tableau-de-bord"),
+                        lien("Reporting", "/reporting")),
+                section("Pilotage",
+                        lien("Demandes", "/demandes"),
+                        lien("Validation Direction", "/demandes/validation/direction"),
+                        lien("Salaries", "/employes"),
+                        lien("Sorties", "/sorties")),
+                section("Compte",
+                        lien("Mon profil", "/profil"))
+        );
+    }
+
+    private List<MenuSection> menuIt() {
+        return List.of(
+                section("Général",
+                        lien("Tableau de bord", "/tableau-de-bord")),
+                section("Integrations",
+                        lien("Onboarding", "/onboarding"),
+                        lien("Mes taches IT", "/onboarding")),
+                section("Compte",
+                        lien("Mon profil", "/profil"))
+        );
+    }
+
+    private List<MenuSection> menuPaie() {
+        return List.of(
+                section("Général",
+                        lien("Tableau de bord", "/tableau-de-bord")),
+                section("Paie",
+                        lien("Inscriptions paie", "/paie"),
+                        lien("Cloture paie", "/paie/cloture"),
+                        lien("Salaries", "/employes"),
+                        lien("Reporting", "/reporting")),
                 section("Compte",
                         lien("Mon profil", "/profil"))
         );
@@ -133,7 +251,8 @@ public class NavigationService {
                         lien("Tableau de bord", "/tableau-de-bord")),
                 section("Recrutement",
                         lien("Offres d'emploi", "/offres"),
-                        lien("Mes candidatures", "/candidatures")),
+                        lien("Mes candidatures", "/candidatures"),
+                        lien("Mes accreditations", "/mes-accreditations")),
                 section("Compte",
                         lien("Mon profil", "/profil"))
         );

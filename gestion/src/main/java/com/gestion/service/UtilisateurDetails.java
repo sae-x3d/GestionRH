@@ -3,19 +3,19 @@ package com.gestion.service;
 import com.gestion.model.Utilisateur;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 
 import java.text.Normalizer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
-public class UtilisateurDetails extends User {
+public class UtilisateurDetails extends org.springframework.security.core.userdetails.User {
 
     private final Utilisateur utilisateur;
 
     public UtilisateurDetails(Utilisateur utilisateur) {
-        super(utilisateur.getUsername(), utilisateur.getPasswordHash(), authorities(utilisateur));
+        super(utilisateur.getUsername(), utilisateur.getPasswordHash(), utilisateur.isActif(),
+                true, true, true, authorities(utilisateur));
         this.utilisateur = utilisateur;
     }
 

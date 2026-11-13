@@ -15,6 +15,7 @@ import java.util.List;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final EmailService emailService;
 
     @Transactional
     public Notification envoyer(Utilisateur destinataire, String type, String message, String lien) {
@@ -29,7 +30,9 @@ public class NotificationService {
                 .dateCreation(LocalDateTime.now())
                 .lu(false)
                 .build();
-        return notificationRepository.save(notification);
+        Notification enregistree = notificationRepository.save(notification);
+        emailService.envoyer(destinataire, "GestionRH - " + (type == null ? "Notification" : type), message);
+        return enregistree;
     }
 
     @Transactional(readOnly = true)

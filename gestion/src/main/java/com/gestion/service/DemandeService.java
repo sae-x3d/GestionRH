@@ -54,7 +54,36 @@ public class DemandeService {
                 .dateCreation(LocalDateTime.now())
                 .build();
 
+        verifierCapacite(demande);
         return demandeRepository.save(demande);
+    }
+
+    public void verifierCapacite(Demande demande) {
+        if (demande == null || demande.getDepartement() == null) {
+            return;
+        }
+        var departement = demande.getDepartement();
+        if (departement.getEnveloppeBudgetaire() != null && demande.getBudget() != null) {
+            int consomme = departement.getBudgetConsomme() == null ? 0 : departement.getBudgetConsomme();
+            int restant = departement.getEnveloppeBudgetaire() - consomme;
+            if (demande.getBudget() > restant) {
+                throw new IllegalStateException("Budget insuffisant pour le departement "
+                        + departement.getNomDept() + " : reste " + restant
+                        + ", demande " + demande.getBudget() + ".");
+            }
+        }
+        if (departement.getEffectif() != null) {
+            long actifs = employeRepository.countByDepartementIdDeptAndDateDepartIsNull(
+                    departement.getIdDept());
+            if (actifs >= departement.getEffectif()) {
+                throw new IllegalStateException("Effectif maximal atteint pour le departement "
+                        + departement.getNomDept() + " (" + departement.getEffectif() + ").");
+            }
+        }
+        if (demande.getPoste() != null && demande.getPoste().getStatut()
+                == com.gestion.enums.StatutPoste.GELE) {
+            throw new IllegalStateException("Le poste demande est gele et ne peut pas etre pourvu.");
+        }
     }
 
     @Transactional(readOnly = true)
@@ -192,6 +221,9 @@ public class DemandeService {
     @Transactional
     public Demande validerFinance(Integer idDemande, Utilisateur utilisateur) {
         verifierValidationFinance(idDemande, utilisateur);
+        Demande demande = demandeRepository.findById(idDemande)
+                .orElseThrow(() -> new RessourceIntrouvableException("Demande introuvable : " + idDemande));
+        verifierCapacite(demande);
         return transitionner(idDemande, STATUT_ATTENTE_BUDGET, STATUT_ATTENTE_DIRECTION);
     }
 
@@ -252,7 +284,7 @@ public class DemandeService {
     }
 
     private void verifierValidationDirection(Utilisateur utilisateur) {
-        if (!estAdmin(utilisateur)) {
+        if (!estAdmin(utilisateur) && !estRole(utilisateur, "Direction")) {
             throw new AccesRefuseException("Seule la direction peut valider une demande.");
         }
     }

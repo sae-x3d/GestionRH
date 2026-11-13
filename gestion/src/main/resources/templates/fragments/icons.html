@@ -57,6 +57,18 @@
         <path d="M8 13h8"></path>
         <path d="M8 17h5"></path>
     </g>
+    <g th:if="${url == '/accreditations' or url == '/mes-accreditations'}">
+        <path d="M12 3 4 6v6c0 4.5 3.2 8.2 8 9 4.8-.8 8-4.5 8-9V6z"></path>
+        <path d="m9 12 2 2 4-4"></path>
+    </g>
+    <g th:if="${url == '/onboarding' or url == '/mon-onboarding'}">
+        <path d="M9 5h10"></path>
+        <path d="M9 12h10"></path>
+        <path d="M9 19h10"></path>
+        <path d="m3 5 1.5 1.5L7 4"></path>
+        <path d="m3 12 1.5 1.5L7 11"></path>
+        <path d="m3 19 1.5 1.5L7 18"></path>
+    </g>
     <g th:if="${url == '/profil'}">
         <circle cx="12" cy="8" r="4"></circle>
         <path d="M4 21a8 8 0 0 1 16 0"></path>
@@ -64,7 +76,9 @@
     <g th:if="${url != '/' and url != '/tableau-de-bord' and url != '/demandes' and url != '/demandes/nouvelle'
                  and !#strings.contains(url, '/validation') and url != '/offres' and url != '/offres/gestion'
                  and url != '/candidatures' and url != '/candidatures/rh'
-                 and url != '/contrats' and url != '/contrats/questionnaire' and url != '/profil'}">
+                 and url != '/contrats' and url != '/contrats/questionnaire' and url != '/profil'
+                 and url != '/accreditations' and url != '/mes-accreditations'
+                 and url != '/onboarding' and url != '/mon-onboarding'}">
         <circle cx="12" cy="12" r="8"></circle>
         <path d="M12 8v4l2.5 1.5"></path>
     </g>

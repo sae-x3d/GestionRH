@@ -1,5 +1,6 @@
 package com.gestion.model;
 
+import com.gestion.enums.StatutPoste;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,6 +32,14 @@ public class Poste {
 
     @Column(name = "salaire_min")
     private Integer salaireMin;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "statut", length = 20)
+    @Builder.Default
+    private StatutPoste statut = StatutPoste.VACANT;
+
+    @Column(name = "effectif")
+    private Integer effectif;
 
     @OneToMany(mappedBy = "poste")
     @Builder.Default

@@ -9,7 +9,7 @@
 </head>
 
 <body>
-<div layout:fragment="content" class="page-content">
+<div layout:fragment="content">
 
     <div class="page-header">
         <div>
@@ -37,6 +37,17 @@
         </section>
 
         <div class="profile-grid">
+            <section class="card">
+                <div class="section-head"><div><span class="eyebrow">Securite</span><h3>Modifier mon mot de passe</h3></div></div>
+                <div class="alert-success" th:if="${messageMotDePasse}" th:text="${messageMotDePasse}"></div>
+                <div class="alert-error" th:if="${erreurMotDePasse}" th:text="${erreurMotDePasse}"></div>
+                <form th:action="@{/profil/mot-de-passe}" method="post">
+                    <div class="form-group"><label for="ancienMotDePasse">Mot de passe actuel</label><input id="ancienMotDePasse" name="ancienMotDePasse" type="password" autocomplete="current-password" required></div>
+                    <div class="form-group"><label for="nouveauMotDePasse">Nouveau mot de passe</label><input id="nouveauMotDePasse" name="nouveauMotDePasse" type="password" minlength="8" autocomplete="new-password" required></div>
+                    <div class="form-group"><label for="confirmation">Confirmer le nouveau mot de passe</label><input id="confirmation" name="confirmation" type="password" minlength="8" autocomplete="new-password" required></div>
+                    <button class="btn btn-primary" type="submit">Modifier le mot de passe</button>
+                </form>
+            </section>
             <section class="card">
                 <div class="section-head">
                     <div>

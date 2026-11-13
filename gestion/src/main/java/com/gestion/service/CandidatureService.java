@@ -118,6 +118,13 @@ public class CandidatureService {
     @Transactional
     public Entretien planifierEntretien(Integer idCandidature, TypeEntretien type,
                                         LocalDateTime dateHeure, String lieu, String participants) {
+        return planifierEntretien(idCandidature, type, dateHeure, lieu, participants, null);
+    }
+
+    @Transactional
+    public Entretien planifierEntretien(Integer idCandidature, TypeEntretien type,
+                                        LocalDateTime dateHeure, String lieu, String participants,
+                                        String disponibilites) {
         Candidature candidature = trouverParIdAvecDetails(idCandidature);
         String statut = candidature.getStatut().getLibelle().toUpperCase();
         if (!Set.of("RECUE", "EN_EXAMEN", "CONVOQUE").contains(statut)) {
@@ -138,6 +145,7 @@ public class CandidatureService {
                 .dateHeure(dateHeure)
                 .lieu(texteOuNull(lieu))
                 .participants(texteOuNull(participants))
+                .disponibilites(texteOuNull(disponibilites))
                 .build();
         Entretien enregistre = entretienRepository.save(entretien);
         if (!"CONVOQUE".equals(statut)) {

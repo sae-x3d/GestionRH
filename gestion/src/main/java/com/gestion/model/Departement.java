@@ -22,6 +22,15 @@ public class Departement {
     @Column(name = "nom_dept", length = 100)
     private String nomDept;
 
+    @Column(name = "effectif")
+    private Integer effectif;
+
+    @Column(name = "enveloppe_budgetaire")
+    private Integer enveloppeBudgetaire;
+
+    @Column(name = "budget_consomme")
+    private Integer budgetConsomme;
+
     @OneToMany(mappedBy = "departement")
     @Builder.Default
     @ToString.Exclude

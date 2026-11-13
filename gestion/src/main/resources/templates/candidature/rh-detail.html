@@ -139,6 +139,7 @@
                     <th>Date</th>
                     <th>Lieu</th>
                     <th>Participants</th>
+                    <th>Disponibilites</th>
                     <th>Resultat</th>
                     <th>Evaluation</th>
                     <th>Action</th>
@@ -150,6 +151,7 @@
                     <td th:text="${#temporals.format(entretien.dateHeure, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
                     <td th:text="${entretien.lieu != null ? entretien.lieu : '-'}">-</td>
                     <td th:text="${entretien.participants != null ? entretien.participants : '-'}">-</td>
+                    <td th:text="${entretien.disponibilites != null ? entretien.disponibilites : '-'}">-</td>
                     <td th:text="${entretien.resultat != null ? entretien.resultat : 'En attente'}">En attente</td>
                     <td th:text="${entretien.evaluation != null ? entretien.evaluation : '-'}">-</td>
                     <td>
@@ -161,11 +163,32 @@
                                    placeholder="Evaluation / note">
                             <button type="submit" class="btn btn-primary btn-small">Enregistrer</button>
                         </form>
+                        <form th:action="@{/candidatures/rh/{id}/entretiens/{idEntretien}/evaluations(id=${candidature.idCandidature}, idEntretien=${entretien.idEntretien})}"
+                              method="post" class="resultat-form" style="margin-top:.5rem;">
+                            <input type="number" name="note" class="form-control" min="0" max="100"
+                                   placeholder="Note /100" required>
+                            <input type="text" name="grille" class="form-control" maxlength="2000"
+                                   placeholder="Grille d'evaluation">
+                            <input type="text" name="commentaire" class="form-control" maxlength="1000"
+                                   placeholder="Commentaire">
+                            <button type="submit" class="btn btn-outline btn-small">Ajouter une evaluation</button>
+                        </form>
                         <span th:if="${entretien.realise}" class="help-text">Termine</span>
                     </td>
                 </tr>
                 </tbody>
             </table>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(evaluations)}">
+            <h4>Evaluations ({#numbers.formatDecimal(moyenneEvaluation, 1, 1)}/100 en moyenne)</h4>
+            <ul>
+                <li th:each="eval : ${evaluations}">
+                    <strong th:text="${eval.note} + '/100'">0/100</strong>
+                    <span th:text="${eval.grille != null ? ' - ' + eval.grille : ''}"></span>
+                    <span th:text="${eval.commentaire != null ? ' (' + eval.commentaire + ')' : ''}"></span>
+                </li>
+            </ul>
         </div>
 
         <div th:if="${candidature.statut.libelle == 'RECUE' or candidature.statut.libelle == 'EN_EXAMEN'
@@ -192,6 +215,11 @@
                     <div class="form-group">
                         <label for="participants">Participants</label>
                         <input type="text" id="participants" name="participants" class="form-control" maxlength="255">
+                    </div>
+                    <div class="form-group">
+                        <label for="disponibilites">Disponibilites</label>
+                        <input type="text" id="disponibilites" name="disponibilites" class="form-control"
+                               maxlength="500" placeholder="Creneaux proposes au candidat">
                     </div>
                 </div>
                 <div class="form-actions">
@@ -269,8 +297,98 @@
 
     <section class="card gestion-section" th:if="${candidature.statut.libelle == 'ACCEPTEE'}">
         <h3>Contrat et embauche</h3>
-        <p>La candidature est acceptee. Emettez le contrat pour permettre au candidat de le consulter et de repondre.</p>
-        <a class="btn btn-primary" th:href="@{/candidatures/rh/{id}/contrat/nouveau(id=${candidature.idCandidature})}">Emettre / consulter le contrat</a>
+        <p th:if="${contrat == null}">
+            La candidature est acceptee. Emettez le contrat : il sera valide par le Manager, le RH puis la Direction
+            avant d'etre transmis au candidat.
+        </p>
+        <p th:if="${contrat != null}">
+            Un contrat est en cours : <strong th:text="${contrat.numeroContrat + ' (' + contrat.typeContrat + ')'}">-</strong>.
+            Statut : <span class="status-badge" th:text="${contrat.statut}">Statut</span>.
+        </p>
+        <div class="actions">
+            <a class="btn btn-primary"
+               th:href="${contrat == null
+                         ? '/candidatures/rh/' + candidature.idCandidature + '/contrat/nouveau'
+                         : '/contrats/' + contrat.idContrat}">
+                <span th:text="${contrat == null ? 'Emettre le contrat' : 'Consulter le contrat'}">Contrat</span>
+            </a>
+            <a class="btn btn-outline" th:if="${dossierContrat != null and dossierContrat.statut.name() == 'EN_COURS'}"
+               th:href="@{/validations/bloc4/{id}(id=${dossierContrat.idDossier})}">Ouvrir la validation</a>
+            <a class="btn btn-outline"
+               th:href="@{/accreditations/nouveau(candidature=${candidature.idCandidature})}">
+                Declarer une accreditation
+            </a>
+        </div>
+
+        <div class="table-wrapper" th:if="${not #lists.isEmpty(contratsHistorique)}">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Numero</th>
+                    <th>Type</th>
+                    <th>Statut</th>
+                    <th>Date d'effet</th>
+                    <th class="col-actions">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="h : ${contratsHistorique}">
+                    <td th:text="${h.numeroContrat}">-</td>
+                    <td th:text="${h.typeContrat}">CDI</td>
+                    <td th:text="${h.statut}">Statut</td>
+                    <td th:text="${h.dateEffet}">Date</td>
+                    <td class="col-actions">
+                        <a class="btn btn-outline btn-small"
+                           th:href="@{/contrats/{id}(id=${h.idContrat})}">Consulter</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card gestion-section">
+        <div class="section-head">
+            <div>
+                <h3>Accreditations du candidat</h3>
+                <span class="help-text">Une accreditation validee par les trois niveaux impose un CDI direct.</span>
+            </div>
+            <a class="btn btn-outline btn-small"
+               th:href="@{/accreditations/nouveau(candidature=${candidature.idCandidature})}">
+                Declarer
+            </a>
+        </div>
+
+        <div class="alert-info" th:if="${#lists.isEmpty(accreditations)}">
+            Aucune accreditation declaree.
+        </div>
+
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(accreditations)}">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Organisme</th>
+                    <th>Validite</th>
+                    <th>Statut</th>
+                    <th class="col-actions">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="a : ${accreditations}">
+                    <td th:text="${a.typeAccreditation}">Type</td>
+                    <td th:text="${a.organisme}">Organisme</td>
+                    <td th:text="${#temporals.format(a.dateObtention, 'dd/MM/yyyy')
+                                   + (a.dateExpiration != null ? ' - ' + #temporals.format(a.dateExpiration, 'dd/MM/yyyy') : '')}">-</td>
+                    <td th:text="${a.statut}">Statut</td>
+                    <td class="col-actions">
+                        <a class="btn btn-outline btn-small"
+                           th:href="@{/accreditations/{id}(id=${a.idAccreditation})}">Consulter</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 
 </div>

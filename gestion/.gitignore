@@ -36,3 +36,6 @@ build/
 
 ### Fichiers generes ###
 uploads/
+
+# JDK local
+.tools/jdk-21/

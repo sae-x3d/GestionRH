@@ -42,6 +42,10 @@ class ContratServiceEmployeTests {
     @Mock private ParametresContrat parametresContrat;
     @Mock private CandidatureStatusService candidatureStatusService;
     @Mock private NotificationService notificationService;
+    @Mock private AccreditationService accreditationService;
+    @Mock private ValidationWorkflowService workflowService;
+    @Mock private OnboardingService onboardingService;
+    @Mock private EmployeService employeService;
 
     private ContratService service;
     private Utilisateur utilisateur;
@@ -54,7 +58,12 @@ class ContratServiceEmployeTests {
     void setUp() {
         service = new ContratService(contratRepository, candidatureRepository, employeRepository,
                 utilisateurRepository, provenanceRepository, pdfService, parametresContrat,
-                candidatureStatusService, notificationService);
+                candidatureStatusService, notificationService, accreditationService, workflowService,
+                onboardingService, employeService);
+
+        lenient().when(employeService.preparerNouvelEmploye(
+                        any(Employe.class), any(Candidature.class), any(Utilisateur.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         utilisateur = Utilisateur.builder().idUser(7).username("candidat").build();
         poste = Poste.builder().idPoste(3).nomPoste("Developpeur").build();
@@ -76,7 +85,6 @@ class ContratServiceEmployeTests {
         stubAcceptation();
         when(provenanceRepository.findByLibelleIgnoreCase("Recrutement externe"))
                 .thenReturn(Optional.of(provenance));
-        when(employeRepository.save(any(Employe.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Contrat resultat = service.repondre(21, 7, true);
 
@@ -91,7 +99,9 @@ class ContratServiceEmployeTests {
         assertSame(employe, utilisateur.getEmploye());
         assertEquals("ACCEPTE", resultat.getStatut());
         assertArrayEquals(new byte[]{1, 2, 3}, resultat.getPdf());
-        verify(employeRepository, times(1)).save(any(Employe.class));
+        verify(employeService, times(1)).preparerNouvelEmploye(
+                any(Employe.class), any(Candidature.class), eq(utilisateur));
+        verify(employeService, times(1)).finaliserEmbauche(any(Employe.class), any(Candidature.class), any(Utilisateur.class));
         verify(utilisateurRepository).save(utilisateur);
     }
 
@@ -100,12 +110,11 @@ class ContratServiceEmployeTests {
         stubAcceptation();
         when(provenanceRepository.findByLibelleIgnoreCase("Recrutement externe"))
                 .thenReturn(Optional.of(provenance));
-        when(employeRepository.save(any(Employe.class))).thenAnswer(invocation -> invocation.getArgument(0));
         service.repondre(21, 7, true);
 
         assertThrows(IllegalStateException.class, () -> service.repondre(21, 7, true));
 
-        verify(employeRepository, times(1)).save(any(Employe.class));
+        verify(employeService, times(1)).finaliserEmbauche(any(Employe.class), any(Candidature.class), any(Utilisateur.class));
     }
 
     @Test

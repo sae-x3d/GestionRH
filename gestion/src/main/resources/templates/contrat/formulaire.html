@@ -8,7 +8,7 @@
 </head>
 
 <body>
-<section layout:fragment="content" class="page-content">
+<section layout:fragment="content">
 
     <div class="page-header">
         <div>
@@ -73,7 +73,11 @@
                 <select th:field="*{typeContrat}" class="form-select" th:errorclass="is-invalid">
                     <option value="CDI">CDI</option>
                     <option value="CDD">CDD</option>
+                    <option value="ESSAI">Contrat d'essai (3 mois)</option>
                 </select>
+                <span class="help-text">
+                    Une accreditation validee impose un CDI direct. A defaut, le contrat d'essai de 3 mois est applique.
+                </span>
                 <span class="field-error" th:if="${#fields.hasErrors('typeContrat')}" th:errors="*{typeContrat}"></span>
             </div>
             <div class="form-group">

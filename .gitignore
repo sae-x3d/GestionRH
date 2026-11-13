@@ -1,0 +1,5 @@
+# JDK local
+.tools/
+
+# macOS
+.DS_Store

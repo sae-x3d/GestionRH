@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Onboarding</title>
+</head>
+
+<body>
+<section layout:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Integrations</span>
+            <h2>Onboarding</h2>
+            <p>Suivez les arrivees de votre perimetre : taches, documents, affectation et validation de fin de parcours.</p>
+        </div>
+        <a class="btn btn-outline" th:href="@{/validations/bloc4(type='ONBOARDING')}">Validations a traiter</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Action enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <div class="alert-info" th:if="${#lists.isEmpty(onboardings)}">
+        Aucun onboarding dans votre perimetre.
+    </div>
+
+    <div class="table-wrapper" th:unless="${#lists.isEmpty(onboardings)}">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Employe</th>
+                <th>Poste</th>
+                <th>Departement</th>
+                <th>Contrat</th>
+                <th>Debut</th>
+                <th>Statut</th>
+                <th class="col-actions">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="o : ${onboardings}">
+                <td th:text="${o.employe != null ? o.employe.nomEmp : '-'}">Employe</td>
+                <td th:text="${o.affectation != null ? o.affectation.poste.nomPoste : '-'}">Poste</td>
+                <td th:text="${o.affectation != null ? o.affectation.departement.nomDept : '-'}">Departement</td>
+                <td th:text="${o.contrat.typeContrat}">CDI</td>
+                <td th:text="${#temporals.format(o.dateDebut, 'dd/MM/yyyy')}">Date</td>
+                <td>
+                    <span class="status-badge"
+                          th:classappend="${o.statut == 'TERMINE' ? ' status-success'
+                                           : (o.statut == 'A_CORRIGER' ? ' status-danger' : '')}"
+                          th:text="${o.statut}">Statut</span>
+                </td>
+                <td class="col-actions">
+                    <a class="btn btn-outline btn-small"
+                       th:href="@{/onboarding/{id}(id=${o.idOnboarding})}">Examiner</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</section>
+</body>
+
+</html>

@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "entretien")
@@ -43,6 +45,15 @@ public class Entretien {
 
     @Column(name = "evaluation", length = 255)
     private String evaluation;
+
+    @Column(name = "disponibilites", length = 500)
+    private String disponibilites;
+
+    @OneToMany(mappedBy = "entretien", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<EvaluationCandidat> evaluations = new ArrayList<>();
 
     public boolean isRealise() {
         return resultat != null && !resultat.isBlank();

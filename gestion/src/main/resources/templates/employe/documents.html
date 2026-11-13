@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Documents du salarie</title>
+</head>
+
+<body>
+<section layout:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">GED</span>
+            <h2>Documents de <span th:text="${employe.nomEmp}">Salarie</span></h2>
+            <p>Centralisez les documents du salarie et surveillez leurs dates de validite.</p>
+        </div>
+        <a class="btn btn-outline" th:href="@{/}">Retour</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Action enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <div class="card">
+        <div class="section-heading">
+            <h3>Ajouter un document</h3>
+        </div>
+        <form th:action="@{/employes/{id}/documents(id=${employe.idEmp})}" method="post"
+              enctype="multipart/form-data">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="typeDocument">Type de document <span class="required">*</span></label>
+                    <input type="text" id="typeDocument" name="typeDocument" class="form-control"
+                           maxlength="100" required>
+                </div>
+                <div class="form-group">
+                    <label for="dateEmission">Date d'emission</label>
+                    <input type="date" id="dateEmission" name="dateEmission" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="dateValidite">Date de validite</label>
+                    <input type="date" id="dateValidite" name="dateValidite" class="form-control">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="fichier">Fichier <span class="required">*</span></label>
+                    <input type="file" id="fichier" name="fichier" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="commentaire">Commentaire</label>
+                    <input type="text" id="commentaire" name="commentaire" class="form-control" maxlength="500">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Ajouter</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="alert-info" th:if="${#lists.isEmpty(documents)}">
+        Aucun document enregistre pour ce salarie.
+    </div>
+
+    <div class="table-wrapper" th:unless="${#lists.isEmpty(documents)}">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Type</th>
+                <th>Fichier</th>
+                <th>Emission</th>
+                <th>Validite</th>
+                <th>Ajoute le</th>
+                <th class="col-actions">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="d : ${documents}">
+                <td th:text="${d.typeDocument}">Type</td>
+                <td th:text="${d.nomOriginal}">Fichier</td>
+                <td th:text="${d.dateEmission != null ? d.dateEmission : '-'}">-</td>
+                <td th:text="${d.dateValidite != null ? d.dateValidite : '-'}">-</td>
+                <td th:text="${#temporals.format(d.dateUpload, 'dd/MM/yyyy HH:mm')}">-</td>
+                <td class="col-actions">
+                    <a class="btn btn-outline btn-small"
+                       th:href="@{/employes/{id}/documents/{idDocument}(id=${employe.idEmp},idDocument=${d.idDocumentEmploye})}">
+                        Telecharger
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</section>
+</body>
+
+</html>

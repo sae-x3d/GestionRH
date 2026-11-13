@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Parcours d'integration</title>
+</head>
+
+<body>
+<section layout:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Parcours d'integration</span>
+            <h2 th:text="${onboarding.employe != null ? onboarding.employe.nomEmp : 'Onboarding'}">Employe</h2>
+            <p th:text="${(onboarding.affectation != null ? onboarding.affectation.poste.nomPoste : 'Poste') + ' - ' + (onboarding.affectation != null ? onboarding.affectation.departement.nomDept : '')}">Poste</p>
+        </div>
+        <a class="btn btn-outline" th:href="${demandeur != null and (demandeur.role.nomRole == 'Manager' or demandeur.role.nomRole == 'RH' or demandeur.role.nomRole == 'Administrateur') ? '/onboarding' : '/mon-onboarding'}">Retour</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Action enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <section class="card">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Situation</span>
+                <h3>Informations du parcours</h3>
+            </div>
+            <span class="status-badge"
+                  th:classappend="${onboarding.statut == 'TERMINE' ? ' status-success'
+                                   : (onboarding.statut == 'A_CORRIGER' ? ' status-danger' : '')}"
+                  th:text="${onboarding.statut}">Statut</span>
+        </div>
+
+        <dl class="detail-info-grid">
+            <div class="detail-info">
+                <dt>Employe</dt>
+                <dd th:text="${onboarding.employe != null ? onboarding.employe.nomEmp : '-'}">-</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Contrat</dt>
+                <dd th:text="${onboarding.contrat.numeroContrat + ' (' + onboarding.contrat.typeContrat + ')'}">-</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Date de debut</dt>
+                <dd th:text="${#temporals.format(onboarding.dateDebut, 'dd/MM/yyyy')}">Date</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Affectation</dt>
+                <dd th:text="${onboarding.affectation != null ? onboarding.affectation.poste.nomPoste : '-'}">Poste</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Departement</dt>
+                <dd th:text="${onboarding.affectation != null ? onboarding.affectation.departement.nomDept : '-'}">Departement</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Manager</dt>
+                <dd th:text="${onboarding.affectation != null and onboarding.affectation.manager != null ? onboarding.affectation.manager.username : '-'}">-</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Decision de fin d'essai</dt>
+                <dd th:text="${onboarding.decisionEssai != null ? onboarding.decisionEssai : '-'}">-</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Cloture</dt>
+                <dd th:text="${onboarding.dateCloture != null ? #temporals.format(onboarding.dateCloture, 'dd/MM/yyyy') : '-'}">-</dd>
+            </div>
+            <div class="detail-info">
+                <dt>Commentaire</dt>
+                <dd th:text="${onboarding.commentaire != null ? onboarding.commentaire : '-'}">-</dd>
+            </div>
+        </dl>
+    </section>
+
+    <section class="card">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Checklist</span>
+                <h3>Taches d'integration</h3>
+            </div>
+            <span class="help-text">Les taches obligatoires doivent etre terminees avant la soumission.</span>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Ordre</th>
+                    <th>Tache</th>
+                    <th>Responsable</th>
+                    <th>Echeance</th>
+                    <th>Obligatoire</th>
+                    <th>Etat</th>
+                    <th>Realisee le</th>
+                    <th class="col-actions">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${taches}">
+                    <td th:text="${t.ordre}">1</td>
+                    <td th:text="${t.libelle}">Tache</td>
+                    <td th:text="${t.responsable != null ? t.responsable : '-'}">-</td>
+                    <td th:text="${t.dateEcheance != null ? #temporals.format(t.dateEcheance, 'dd/MM/yyyy') : '-'}">-</td>
+                    <td th:text="${t.obligatoire ? 'Oui' : 'Non'}">Oui</td>
+                    <td>
+                        <span class="status-badge"
+                              th:classappend="${t.fait ? ' status-success' : ''}"
+                              th:text="${t.fait ? 'Terminee' : 'En attente'}">En attente</span>
+                    </td>
+                    <td th:text="${t.dateRealisation != null ? #temporals.format(t.dateRealisation, 'dd/MM/yyyy') : '-'}">-</td>
+                    <td class="col-actions">
+                        <form th:if="${!t.fait and (onboarding.statut == 'EN_COURS' or onboarding.statut == 'A_CORRIGER')}"
+                              th:action="@{/onboarding/{id}/taches/{idTache}(id=${onboarding.idOnboarding},idTache=${t.idTache})}"
+                              method="post" class="inline-form">
+                            <input type="hidden" name="fait" value="true">
+                            <button type="submit" class="btn btn-outline btn-small">Marquer terminee</button>
+                        </form>
+                        <form th:if="${t.fait and (onboarding.statut == 'EN_COURS' or onboarding.statut == 'A_CORRIGER')}"
+                              th:action="@{/onboarding/{id}/taches/{idTache}(id=${onboarding.idOnboarding},idTache=${t.idTache})}"
+                              method="post" class="inline-form">
+                            <input type="hidden" name="fait" value="false">
+                            <button type="submit" class="btn btn-outline btn-small">Reouvrir</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Documents</span>
+                <h3>Pieces du dossier</h3>
+            </div>
+        </div>
+
+        <div class="alert-info" th:if="${#lists.isEmpty(documents)}">
+            Aucun document depose.
+        </div>
+
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(documents)}">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Fichier</th>
+                    <th>Depose le</th>
+                    <th>Etat</th>
+                    <th class="col-actions">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="d : ${documents}">
+                    <td th:text="${d.typeDocument}">Type</td>
+                    <td th:text="${d.nomOriginal}">Fichier</td>
+                    <td th:text="${#temporals.format(d.dateUpload, 'dd/MM/yyyy HH:mm')}">Date</td>
+                    <td th:text="${d.valide ? 'Valide' : 'En attente'}">Etat</td>
+                    <td class="col-actions">
+                        <a class="btn btn-outline btn-small"
+                           th:href="@{/onboarding/{id}/documents/{idDocument}(id=${onboarding.idOnboarding},idDocument=${d.idDocument})}">
+                            Telecharger
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <form th:if="${onboarding.statut == 'EN_COURS' or onboarding.statut == 'A_CORRIGER'}"
+              th:action="@{/onboarding/{id}/documents(id=${onboarding.idOnboarding})}" method="post"
+              enctype="multipart/form-data" class="card-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="typeDocument">Type de document <span class="required">*</span></label>
+                    <input id="typeDocument" name="typeDocument" class="form-control" required maxlength="80"
+                           placeholder="Ex. piece d'identite, diplome, RIB">
+                </div>
+                <div class="form-group">
+                    <label for="fichier">Fichier (pdf, jpg ou png) <span class="required">*</span></label>
+                    <input type="file" id="fichier" name="fichier" class="form-control"
+                           accept=".pdf,.jpg,.jpeg,.png" required>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-outline">Ajouter le document</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card" th:if="${onboarding.statut == 'EN_COURS' or onboarding.statut == 'A_CORRIGER'}">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Cloture</span>
+                <h3>Soumettre le parcours au workflow</h3>
+            </div>
+        </div>
+        <form th:action="@{/onboarding/{id}/soumettre(id=${onboarding.idOnboarding})}" method="post">
+            <div class="form-row">
+                <div class="form-group" th:if="${onboarding.contrat.typeContrat == 'ESSAI'}">
+                    <label for="decisionEssai">Decision de fin d'essai <span class="required">*</span></label>
+                    <select id="decisionEssai" name="decisionEssai" class="form-select">
+                        <option value="">Choisir</option>
+                        <option value="TITULARISATION">Titularisation en CDI</option>
+                        <option value="PROLONGATION">Prolongation de l'essai</option>
+                        <option value="RUPTURE">Rupture a l'issue de l'essai</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="commentaireCloture">Commentaire</label>
+                    <textarea id="commentaireCloture" name="commentaire" class="form-control" rows="3"
+                              maxlength="1000"></textarea>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Soumettre a validation</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card" th:if="${dossier != null}">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Workflow</span>
+                <h3>Etapes de validation</h3>
+            </div>
+            <a class="btn btn-outline btn-small"
+               th:if="${dossier.statut.name() == 'EN_COURS'}"
+               th:href="@{/validations/bloc4/{id}(id=${dossier.idDossier})}">Ouvrir la validation</a>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Ordre</th>
+                    <th>Role</th>
+                    <th>Statut</th>
+                    <th>Decideur</th>
+                    <th>Date</th>
+                    <th>Commentaire</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="e : ${dossier.etapes}">
+                    <td th:text="${e.ordre}">1</td>
+                    <td th:text="${e.roleRequis.libelle}">Manager</td>
+                    <td th:text="${e.statut.libelle}">En attente</td>
+                    <td th:text="${e.decideur != null ? e.decideur.username : '-'}">-</td>
+                    <td th:text="${e.dateDecision != null ? #temporals.format(e.dateDecision, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                    <td th:text="${e.commentaire != null ? e.commentaire : '-'}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card" th:if="${not #lists.isEmpty(historique)}">
+        <div class="section-head">
+            <div>
+                <span class="eyebrow">Historique</span>
+                <h3>Tentatives precedentes</h3>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Tentative</th>
+                    <th>Statut</th>
+                    <th>Deposee le</th>
+                    <th>Cloturee le</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="h : ${historique}">
+                    <td th:text="${h.numeroTentative}">1</td>
+                    <td th:text="${h.statut.libelle}">Statut</td>
+                    <td th:text="${#temporals.format(h.dateCreation, 'dd/MM/yyyy HH:mm')}">-</td>
+                    <td th:text="${h.dateCloture != null ? #temporals.format(h.dateCloture, 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</section>
+</body>
+
+</html>

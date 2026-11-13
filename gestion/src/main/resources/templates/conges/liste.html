@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Mes conges</title>
+</head>
+
+<body>
+<section layout:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Conges et absences</span>
+            <h2>Mes conges</h2>
+            <p>Soldes, demandes et suivi des validations.</p>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+            <a class="btn btn-outline" th:href="@{/absences}">Déclarer une absence</a>
+            <a class="btn btn-outline" th:href="@{/conges/calendrier}">Calendrier</a>
+            <a class="btn btn-outline" th:if="${estManager}" th:href="@{/conges/validation/manager}">Validation manager</a>
+            <a class="btn btn-outline" th:if="${estRh}" th:href="@{/conges/validation/rh}">Validation RH</a>
+            <a class="btn btn-outline" th:if="${estRh}" th:href="@{/conges/parametres}">Referentiels</a>
+        </div>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">OK</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <div class="card-grid">
+        <div class="card" th:each="type : ${types}">
+            <div class="section-heading"><h3 th:text="${type.libelle}">Type</h3></div>
+            <p class="metric" th:text="${soldes[type.idTypeConge] != null ? soldes[type.idTypeConge] : 0}">0</p>
+            <p class="help-text" th:text="${type.decompteSolde ? 'jours disponibles' : 'absence non decomptee'}">-</p>
+        </div>
+    </div>
+
+    <section class="card">
+        <div class="section-heading"><h3>Nouvelle demande</h3></div>
+        <form th:action="@{/conges}" method="post" enctype="multipart/form-data">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="typeConge">Type <span class="required">*</span></label>
+                    <select id="typeConge" name="typeConge" class="form-select" required>
+                        <option th:each="type : ${types}" th:value="${type.idTypeConge}"
+                                th:text="${type.libelle + (type.decompteSolde ? '' : ' (sans decompte)')}">Type</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="dateDebut">Debut <span class="required">*</span></label>
+                    <input type="date" id="dateDebut" name="dateDebut" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="dateFin">Fin <span class="required">*</span></label>
+                    <input type="date" id="dateFin" name="dateFin" class="form-control" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" name="demiJourDebut" value="true"> Demi-journee au debut
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" name="demiJourFin" value="true"> Demi-journee a la fin
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="motif">Motif</label>
+                    <input type="text" id="motif" name="motif" class="form-control" maxlength="500">
+                </div>
+                <div class="form-group">
+                    <label for="justificatif">Justificatif (si requis pour le type)</label>
+                    <input type="file" id="justificatif" name="justificatif" class="form-control"
+                           accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Soumettre la demande</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+        <div class="section-heading"><h3>Mes demandes</h3></div>
+        <div class="alert-info" th:if="${#lists.isEmpty(demandes)}">Aucune demande de conge.</div>
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(demandes)}">
+            <table class="data-table">
+                <thead>
+                <tr><th>Type</th><th>Du</th><th>Au</th><th>Jours</th><th>Statut</th><th>Motif</th><th>Justificatif</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="d : ${demandes}">
+                    <td th:text="${d.typeConge.libelle}">-</td>
+                    <td th:text="${#temporals.format(d.dateDebut, 'dd/MM/yyyy')}">-</td>
+                    <td th:text="${#temporals.format(d.dateFin, 'dd/MM/yyyy')}">-</td>
+                    <td th:text="${d.nombreJours}">-</td>
+                    <td th:text="${d.statut.libelle}">-</td>
+                    <td th:text="${d.motif != null ? d.motif : '-'}">-</td>
+                    <td><a th:if="${d.justificatifChemin != null}" th:href="@{/conges/{id}/justificatif(id=${d.idDemandeConge})}">Télécharger</a><span th:unless="${d.justificatifChemin != null}">-</span></td>
+                    <td>
+                        <form th:if="${d.statut.name() == 'SOUMISE' or d.statut.name() == 'VALIDEE_MANAGER'}"
+                              th:action="@{/conges/{id}/annuler(id=${d.idDemandeConge})}" method="post">
+                            <button type="submit" class="btn btn-outline btn-small">Annuler</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="section-heading"><h3>Lots de solde (FIFO)</h3></div>
+        <div class="help-text">Les lots les plus proches de leur expiration sont consommes en premier.</div>
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(lots)}">
+            <table class="data-table">
+                <thead><tr><th>Type</th><th>Acquisition</th><th>Expiration</th><th>Initial</th><th>Restant</th></tr></thead>
+                <tbody>
+                <tr th:each="l : ${lots}">
+                    <td th:text="${l.typeConge.libelle}">-</td>
+                    <td th:text="${l.dateAcquisition}">-</td>
+                    <td th:text="${l.dateExpiration != null ? l.dateExpiration : '-'}">-</td>
+                    <td th:text="${l.quantiteInitiale}">-</td>
+                    <td th:text="${l.quantiteRestante}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</section>
+</body>
+
+</html>

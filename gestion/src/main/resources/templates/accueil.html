@@ -28,7 +28,6 @@
            th:href="@{/candidatures}">Mes candidatures</a>
         <a sec:authorize="isAuthenticated()"
            th:href="@{/tableau-de-bord}">Tableau de bord</a>
-        <a th:unless="${estAuthentifie}" th:href="@{/inscription}">Creer un compte</a>
         <a th:unless="${estAuthentifie}" th:href="@{/connexion}" class="topnav-cta">Se connecter</a>
     </nav>
 </header>
@@ -47,9 +46,6 @@
                 <a th:href="@{/offres}" class="btn btn-primary">Voir les offres</a>
                 <a sec:authorize="isAuthenticated()" th:href="@{/tableau-de-bord}" class="btn btn-outline">
                     Mon espace
-                </a>
-                <a th:unless="${estAuthentifie}" th:href="@{/inscription}" class="btn btn-primary">
-                    Creer un compte
                 </a>
                 <a th:unless="${estAuthentifie}" th:href="@{/connexion}" class="btn btn-outline">
                     Se connecter

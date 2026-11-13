@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mot de passe oublie - GestionRH</title>
+    <link rel="stylesheet" th:href="@{/css/variables.css}"><link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/components.css}"><link rel="stylesheet" th:href="@{/css/connexion.css}">
+</head>
+<body class="login-page"><div class="login-shell">
+    <section class="login-brand-panel"><span class="login-eyebrow">Portail RH</span><h1>Retrouvez l'acces a votre espace.</h1></section>
+    <main class="login-card">
+        <div class="login-card-head"><span class="eyebrow">Reinitialisation</span><h2 class="login-title">Mot de passe oublie</h2>
+            <p class="login-subtitle">Saisissez l'adresse email associee a votre compte.</p></div>
+        <div class="alert-info" th:if="${message}" th:text="${message}"></div>
+        <div class="alert-info" th:if="${lienDeveloppement}">
+            Lien de test (profil de developpement) : <a th:href="${lienDeveloppement}" th:text="${lienDeveloppement}">Lien</a>
+        </div>
+        <form th:action="@{/mot-de-passe-oublie}" method="post">
+            <div class="form-group"><label for="email">Adresse email</label>
+                <input id="email" name="email" type="email" class="form-control" autocomplete="email" required></div>
+            <button class="btn btn-primary btn-block" type="submit">Envoyer le lien</button>
+        </form>
+        <p class="login-back"><a th:href="@{/connexion}">Retour a la connexion</a></p>
+    </main>
+</div></body>
+</html>

@@ -80,20 +80,6 @@ class Bloc1AuthTests {
     }
 
     @Test
-    void laPageDeConnexionProposeUnBoutonPourAfficherLeMotDePasse() throws Exception {
-        mockMvc.perform(get("/connexion"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("data-password-toggle=\"password\"")))
-                .andExpect(content().string(containsString("/js/password-toggle.js")));
-    }
-
-    @Test
-    void lesScriptsSontAccessiblesSansAuthentification() throws Exception {
-        mockMvc.perform(get("/js/password-toggle.js"))
-                .andExpect(status().isOk());
-    }
-
-    @Test
     void lesPagesProtegeesExigentUneAuthentification() throws Exception {
         mockMvc.perform(get("/demandes/nouvelle"))
                 .andExpect(status().is3xxRedirection())

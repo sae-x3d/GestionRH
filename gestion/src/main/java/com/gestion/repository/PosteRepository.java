@@ -10,4 +10,6 @@ import java.util.List;
 public interface PosteRepository extends JpaRepository<Poste, Integer> {
 
     List<Poste> findAllByOrderByNomPosteAsc();
+
+    List<Poste> findByStatutOrderByNomPosteAsc(com.gestion.enums.StatutPoste statut);
 }

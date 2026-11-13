@@ -56,6 +56,15 @@ public class ContratPdfService {
                 pdf.paragraphe("Le present contrat est conclu a duree determinee, du "
                         + DATE.format(contrat.getDateEffet()) + " au " + DATE.format(contrat.getDateFin()) + ".");
                 pdf.paragraphe("Motif et nature temporaire du besoin : " + contrat.getMotifCdd() + ".");
+            } else if ("ESSAI".equalsIgnoreCase(contrat.getTypeContrat())) {
+                pdf.paragraphe("Le present contrat est conclu sous forme de contrat d'essai a compter du "
+                        + DATE.format(contrat.getDateEffet()) + ".");
+                pdf.paragraphe("Duree de la periode d'essai : "
+                        + (contrat.getDureeEssaiMois() == null ? 3 : contrat.getDureeEssaiMois()) + " mois.");
+                pdf.paragraphe("Fin de la periode d'essai : "
+                        + (contrat.getDateFinEssai() == null ? "-" : DATE.format(contrat.getDateFinEssai())) + ".");
+                pdf.paragraphe("A l'issue de cette periode, en cas de poursuite de la relation de travail, "
+                        + "le contrat se poursuit a duree indeterminee dans les conditions prevues par le Code du travail.");
             } else {
                 pdf.paragraphe("Le present contrat est conclu a duree indeterminee a compter du "
                         + DATE.format(contrat.getDateEffet()) + ".");

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Paie</title>
+</head>
+
+<body>
+<section layout:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Paie</span>
+            <h2>Inscriptions paie</h2>
+            <p>Transmettez les nouveaux salaries a la paie et suivez les inscriptions.</p>
+        </div>
+        <a class="btn btn-outline" th:href="@{/reporting}">Reporting</a>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">Action enregistree</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <div class="card">
+        <div class="section-heading">
+            <h3>Inscrire un salarie</h3>
+        </div>
+        <form th:action="@{/paie/employes/0}" method="post" id="paie-form"
+              th:attr="data-base=@{/paie/employes/}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="employeId">Salarie <span class="required">*</span></label>
+                    <select id="employeId" name="employeId" class="form-select" required>
+                        <option th:each="e : ${employes}" th:value="${e.idEmp}"
+                                th:text="${e.nomEmp + (e.matricule != null ? ' (' + e.matricule + ')' : '')}">
+                            Salarie
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="numeroPaie">Numero de paie</label>
+                    <input type="text" id="numeroPaie" name="numeroPaie" class="form-control" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label for="organisme">Organisme</label>
+                    <input type="text" id="organisme" name="organisme" class="form-control" maxlength="150">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="dateDebut">Date de debut</label>
+                    <input type="date" id="dateDebut" name="dateDebut" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="commentaire">Commentaire</label>
+                    <input type="text" id="commentaire" name="commentaire" class="form-control" maxlength="500">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Inscrire</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="alert-info" th:if="${#lists.isEmpty(inscriptions)}">Aucune inscription paie.</div>
+
+    <div class="table-wrapper" th:unless="${#lists.isEmpty(inscriptions)}">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Salarie</th>
+                <th>Matricule</th>
+                <th>Numero paie</th>
+                <th>Organisme</th>
+                <th>Debut</th>
+                <th>Statut</th>
+                <th class="col-actions">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="i : ${inscriptions}">
+                <td th:text="${i.employe.nomEmp}">Salarie</td>
+                <td th:text="${i.employe.matricule != null ? i.employe.matricule : '-'}">-</td>
+                <td th:text="${i.numeroPaie != null ? i.numeroPaie : '-'}">-</td>
+                <td th:text="${i.organisme != null ? i.organisme : '-'}">-</td>
+                <td th:text="${i.dateDebut != null ? i.dateDebut : '-'}">-</td>
+                <td th:text="${i.statut.libelle}">Statut</td>
+                <td class="col-actions">
+                    <form th:if="${i.statut.name() == 'INSCRIT'}"
+                          th:action="@{/paie/{id}/exclure(id=${i.idInscriptionPaie})}" method="post">
+                        <button type="submit" class="btn btn-outline btn-small">Desactiver</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.getElementById('paie-form')?.addEventListener('submit', function (event) {
+            var select = document.getElementById('employeId');
+            if (!select || !select.value) {
+                return;
+            }
+            event.target.action = event.target.dataset.base + select.value;
+        });
+    </script>
+
+</section>
+</body>
+
+</html>

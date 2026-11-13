@@ -1,17 +1,20 @@
 package com.gestion.controller;
 
 import com.gestion.enums.TypeEntretien;
+import com.gestion.enums.TypeObjetValidation;
 import com.gestion.exception.RessourceIntrouvableException;
 import com.gestion.model.Candidature;
 import com.gestion.model.Entretien;
 import com.gestion.model.ReponseContrat;
 import com.gestion.model.Utilisateur;
+import com.gestion.service.AccreditationService;
 import com.gestion.service.CandidatureService;
 import com.gestion.service.CandidatureStatusService;
 import com.gestion.service.ContratService;
 import com.gestion.service.NegociationContratService;
 import com.gestion.service.OffreEmploiService;
 import com.gestion.service.UtilisateurDetails;
+import com.gestion.service.ValidationWorkflowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,6 +43,9 @@ public class CandidatureRhController {
     private final CandidatureStatusService candidatureStatusService;
     private final ContratService contratService;
     private final NegociationContratService negociationContratService;
+    private final AccreditationService accreditationService;
+    private final ValidationWorkflowService workflowService;
+    private final com.gestion.service.EvaluationService evaluationService;
 
     @GetMapping
     public String liste(@RequestParam(name = "offreId", required = false) Integer offreId,
@@ -66,8 +72,16 @@ public class CandidatureRhController {
         model.addAttribute("pageTitle", "Dossier de candidature");
         model.addAttribute("candidature", candidature);
         model.addAttribute("entretiens", entretiens);
+        model.addAttribute("evaluations", evaluationService.listerParCandidature(id));
+        model.addAttribute("moyenneEvaluation", evaluationService.moyenneParCandidature(id));
         model.addAttribute("typesEntretien", TypeEntretien.values());
-        model.addAttribute("contrat", contratService.contratCandidature(id));
+        var contrat = contratService.contratActifCandidature(id);
+        model.addAttribute("contrat", contrat);
+        model.addAttribute("contratsHistorique", contratService.historiqueCandidature(id));
+        model.addAttribute("dossierContrat", workflowService.dernierDossier(
+                TypeObjetValidation.CONTRAT, contrat == null ? null : contrat.getIdContrat()));
+        model.addAttribute("accreditations", accreditationService.mesAccreditations(
+                candidature.getUtilisateur().getIdUser()));
         model.addAttribute("dernierTourContrat", dernierTourContrat);
         model.addAttribute("salaireCourant", negociationContratService
                 .salaireCourant(candidature, dernierTourContrat));
@@ -100,9 +114,24 @@ public class CandidatureRhController {
                                      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateHeure,
                                      @RequestParam(name = "lieu", required = false) String lieu,
                                      @RequestParam(name = "participants", required = false) String participants,
+                                     @RequestParam(name = "disponibilites", required = false) String disponibilites,
                                      RedirectAttributes redirectAttributes) {
         return executer(id, "Convocation envoyee : entretien/test planifie.", () -> candidatureService
-                .planifierEntretien(id, type, dateHeure, lieu, participants), redirectAttributes);
+                .planifierEntretien(id, type, dateHeure, lieu, participants, disponibilites),
+                redirectAttributes);
+    }
+
+    @PostMapping("/{id}/entretiens/{idEntretien}/evaluations")
+    public String ajouterEvaluation(@PathVariable Integer id,
+                                    @PathVariable Integer idEntretien,
+                                    @RequestParam("note") Integer note,
+                                    @RequestParam(name = "grille", required = false) String grille,
+                                    @RequestParam(name = "commentaire", required = false) String commentaire,
+                                    Authentication authentication,
+                                    RedirectAttributes redirectAttributes) {
+        return executer(id, "Evaluation enregistree.", () -> evaluationService.ajouter(
+                idEntretien, note, grille, commentaire, utilisateurCourant(authentication)),
+                redirectAttributes);
     }
 
     @PostMapping("/{id}/entretiens/{idEntretien}/resultat")

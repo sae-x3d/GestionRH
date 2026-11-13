@@ -75,13 +75,8 @@
         </a>
         <a sec:authorize="isAnonymous()"
            th:if="${offre.statut.name() == 'PUBLIEE'}"
-           th:href="@{/inscription(offreId=${offre.idOffre})}" class="btn btn-primary">
-            Creer un compte pour postuler
-        </a>
-        <a sec:authorize="isAnonymous()"
-           th:if="${offre.statut.name() == 'PUBLIEE'}"
-           th:href="@{/connexion(offreId=${offre.idOffre})}" class="btn btn-outline">
-            Se connecter
+           th:href="@{/connexion}" class="btn btn-primary">
+            Se connecter pour postuler
         </a>
         <a sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')"
            th:href="@{/offres/{id}/modifier(id=${offre.idOffre})}" class="btn btn-outline">
@@ -97,6 +92,65 @@
             <button type="submit" class="btn btn-primary">Publier l'offre</button>
         </form>
     </div>
+
+    <section class="card" sec:authorize="hasAnyRole('ADMINISTRATEUR', 'RH')">
+        <div class="section-heading">
+            <h3>Diffusion de l'offre</h3>
+        </div>
+        <form th:action="@{/offres/{id}/diffusions(id=${offre.idOffre})}" method="post">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Canal</label>
+                    <div th:each="type : ${typesDiffusion}">
+                        <label>
+                            <input type="checkbox" name="types" th:value="${type.name()}">
+                            <span th:text="${type.libelle}">Canal</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="canal">Precision (compte, page...)</label>
+                    <input type="text" id="canal" name="canal" class="form-control" maxlength="150">
+                </div>
+                <div class="form-group">
+                    <label for="reference">Reference / URL</label>
+                    <input type="text" id="reference" name="reference" class="form-control" maxlength="300">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Diffuser</button>
+            </div>
+        </form>
+
+        <div class="table-wrapper" th:unless="${#lists.isEmpty(diffusions)}">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Canal</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                    <th class="col-actions">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="d : ${diffusions}">
+                    <td th:text="${d.canal != null ? d.canal : '-'}">-</td>
+                    <td th:text="${d.type.libelle}">-</td>
+                    <td th:text="${#temporals.format(d.dateDiffusion, 'dd/MM/yyyy HH:mm')}">-</td>
+                    <td th:text="${d.statut.libelle}">-</td>
+                    <td class="col-actions">
+                        <form th:if="${d.statut.name() == 'PUBLIEE'}"
+                              th:action="@{/offres/{id}/diffusions/{idDiffusion}/cloturer(id=${offre.idOffre},idDiffusion=${d.idDiffusion})}"
+                              method="post">
+                            <button type="submit" class="btn btn-outline btn-small">Cloturer</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
 
 </div>
 </body>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Heures supplementaires</title>
+</head>
+
+<body>
+<section layout:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Temps de travail</span>
+            <h2>Heures supplementaires</h2>
+            <p th:text="${'Du ' + #temporals.format(debut, 'dd/MM/yyyy') + ' au '
+                    + #temporals.format(fin, 'dd/MM/yyyy')}">Periode</p>
+        </div>
+        <div style="display:flex;gap:.5rem;">
+            <a class="btn btn-outline btn-small" th:href="@{/pointage}">Mon pointage</a>
+            <a class="btn btn-outline btn-small" th:href="@{/planning}">Planning</a>
+        </div>
+    </div>
+
+    <div class="alert-success" th:if="${succes}" th:text="${succes}">OK</div>
+    <div class="alert-error" th:if="${erreur}" th:text="${erreur}">Erreur</div>
+
+    <div class="card-grid">
+        <div class="card">
+            <div class="section-heading"><h3>Declarer des heures</h3></div>
+            <form th:action="@{/heures-sup}" method="post">
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" name="date" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="minutes">Minutes</label>
+                    <input type="number" id="minutes" name="minutes" class="form-control"
+                           min="1" max="600" required>
+                </div>
+                <div class="form-group">
+                    <label for="motif">Motif</label>
+                    <input type="text" id="motif" name="motif" class="form-control" maxlength="500">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Declarer</button>
+                </div>
+            </form>
+            <p class="help-text" th:text="${'Majoration 25% sur les ' + parametre.seuilTranche25Minutes
+                    + ' premières minutes au-delà du seuil hebdomadaire de ' + parametre.seuilHebdoHeuresSup
+                    + 'h, puis 50%. Les taux nuit/dimanche/férié sont paramétrables.'}">-</p>
+        </div>
+        <div class="card">
+            <div class="section-heading"><h3>Total retenu</h3></div>
+            <p class="metric" th:text="${totalHeures != null ? totalHeures : 0}">0</p>
+            <p class="help-text">heures sur la periode</p>
+        </div>
+    </div>
+
+    <section class="card" th:if="${joursTravailles != null and !#lists.isEmpty(joursTravailles)}">
+        <div class="section-heading"><h3>Jours travaillés calculés</h3></div>
+        <div class="table-wrapper"><table class="data-table"><thead><tr><th>Date</th><th>Brut</th><th>Net</th><th>Normal</th><th>Supplémentaire</th></tr></thead><tbody>
+            <tr th:each="j : ${joursTravailles}"><td th:text="${j.dateJour}"></td><td th:text="${j.minutesBrutes + ' min'}"></td><td th:text="${j.minutesNet + ' min'}"></td><td th:text="${j.minutesNormales + ' min'}"></td><td th:text="${j.minutesSupplementaires + ' min'}"></td></tr>
+        </tbody></table></div>
+    </section>
+
+    <section class="card">
+        <div class="section-heading"><h3>Mes declarations</h3></div>
+        <div class="alert-info" th:if="${mesHeures == null or #lists.isEmpty(mesHeures)}">
+            Aucune heure supplementaire sur la periode.
+        </div>
+        <div class="table-wrapper" th:if="${mesHeures != null and !#lists.isEmpty(mesHeures)}">
+            <table class="data-table">
+                <thead><tr><th>Date</th><th>Minutes</th><th>Majoration</th><th>Statut</th><th>Motif</th></tr></thead>
+                <tbody>
+                <tr th:each="h : ${mesHeures}">
+                    <td th:text="${#temporals.format(h.dateHeureSup, 'dd/MM/yyyy')}">-</td>
+                    <td th:text="${h.minutes}">-</td>
+                    <td th:text="${h.tauxMajoration + '%'}">-</td>
+                    <td th:text="${h.statut.libelle}">-</td>
+                    <td th:text="${h.motif != null ? h.motif : '-'}">-</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card" th:if="${aValider != null and !#lists.isEmpty(aValider)}">
+        <div class="section-heading"><h3>A valider</h3></div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead><tr><th>Salarie</th><th>Date</th><th>Minutes</th><th>Majoration</th><th>Decision</th></tr></thead>
+                <tbody>
+                <tr th:each="h : ${aValider}">
+                    <td th:text="${h.employe.nomEmp}">-</td>
+                    <td th:text="${#temporals.format(h.dateHeureSup, 'dd/MM/yyyy')}">-</td>
+                    <td th:text="${h.minutes}">-</td>
+                    <td th:text="${h.tauxMajoration + '%'}">-</td>
+                    <td>
+                        <form th:action="@{/heures-sup/{id}/traiter(id=${h.idHeureSup})}" method="post"
+                              style="display:inline-flex;gap:.35rem;flex-wrap:wrap;">
+                            <input type="hidden" name="repos" value="false">
+                            <button type="submit" name="accepter" value="true" class="btn btn-primary btn-small">Valider</button>
+                            <button type="submit" name="accepter" value="false" class="btn btn-outline btn-small">Refuser</button>
+                        </form>
+                        <form th:action="@{/heures-sup/{id}/traiter(id=${h.idHeureSup})}" method="post"
+                              style="display:inline-flex;margin-top:.25rem;">
+                            <input type="hidden" name="accepter" value="true">
+                            <input type="hidden" name="repos" value="true">
+                            <button type="submit" class="btn btn-outline btn-small">Convertir en repos</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card" th:if="${periodesCloturees != null and !#lists.isEmpty(periodesCloturees)}">
+        <div class="section-heading"><h3>Régulariser une correction après clôture</h3></div>
+        <form th:action="@{/heures-sup/regularisation}" method="post" class="form-row">
+            <div class="form-group"><label>Salarié</label><select class="form-select" name="idEmp" required><option th:each="e : ${employesActifs}" th:value="${e.idEmp}" th:text="${e.nomEmp}"></option></select></div>
+            <div class="form-group"><label>Période clôturée</label><select class="form-select" name="idPeriodeSource"><option th:each="p : ${periodesCloturees}" th:value="${p.idPeriodePaie}" th:text="${p.mois + '/' + p.annee}"></option></select></div>
+            <div class="form-group"><label>Minutes à reporter</label><input class="form-control" type="number" name="minutes" min="1" max="600" required></div>
+            <div class="form-group"><label>Motif</label><input class="form-control" name="motif" maxlength="400" required></div>
+            <button class="btn btn-primary">Reporter sur la période ouverte suivante</button>
+        </form>
+    </section>
+
+</section>
+</body>
+
+</html>

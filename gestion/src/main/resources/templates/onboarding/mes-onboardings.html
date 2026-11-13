@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout}">
+
+<head>
+    <title>Mon integration</title>
+</head>
+
+<body>
+<section layout:fragment="content">
+
+    <div class="page-header">
+        <div>
+            <span class="eyebrow">Parcours</span>
+            <h2>Mon integration</h2>
+            <p>Suivez vos taches d'arrivee, deposez vos documents et validez votre parcours d'onboarding.</p>
+        </div>
+    </div>
+
+    <div class="alert-info" th:if="${#lists.isEmpty(onboardings)}">
+        Aucun parcours d'integration n'est ouvert pour votre compte.
+    </div>
+
+    <div class="contract-grid" th:unless="${#lists.isEmpty(onboardings)}">
+        <article class="card contract-card" th:each="o : ${onboardings}">
+            <div class="contract-card-head">
+                <span class="offre-type" th:text="${o.contrat.typeContrat}">CDI</span>
+                <span class="status-badge"
+                      th:classappend="${o.statut == 'TERMINE' ? ' status-success'
+                                       : (o.statut == 'A_CORRIGER' ? ' status-danger' : '')}"
+                      th:text="${o.statut}">Statut</span>
+            </div>
+            <div>
+                <span class="eyebrow" th:text="${'Demarre le ' + #temporals.format(o.dateDebut, 'dd/MM/yyyy')}">Date</span>
+                <h3 th:text="${o.contrat.candidature.offre.titre}">Poste</h3>
+            </div>
+            <p class="help-text"
+               th:text="${o.affectation != null ? 'Departement : ' + o.affectation.departement.nomDept : ''}">Departement</p>
+            <a class="btn btn-outline btn-block" th:href="@{/onboarding/{id}(id=${o.idOnboarding})}">Ouvrir le parcours</a>
+        </article>
+    </div>
+
+</section>
+</body>
+
+</html>

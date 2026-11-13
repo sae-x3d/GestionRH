@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/offres")
 @RequiredArgsConstructor
@@ -30,6 +32,7 @@ public class OffreEmploiController {
 
     private final OffreEmploiService offreEmploiService;
     private final QuestionService questionService;
+    private final com.gestion.service.DiffusionService diffusionService;
 
     @GetMapping
     public String filActualite(Model model, Authentication authentication) {
@@ -98,8 +101,40 @@ public class OffreEmploiController {
         }
         model.addAttribute("pageTitle", offre.getTitre());
         model.addAttribute("offre", offre);
+        model.addAttribute("diffusions", diffusionService.listerParOffre(id));
+        model.addAttribute("typesDiffusion", com.gestion.enums.TypeDiffusion.values());
         model.addAttribute("demandeur", utilisateurCourant(authentication));
         return "offre/detail";
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMINISTRATEUR', 'ROLE_RH')")
+    @PostMapping("/{id}/diffusions")
+    public String diffuser(@PathVariable Integer id,
+                           @RequestParam(name = "types", required = false) List<com.gestion.enums.TypeDiffusion> types,
+                           @RequestParam(name = "canal", required = false) String canal,
+                           @RequestParam(name = "reference", required = false) String reference,
+                           RedirectAttributes redirectAttributes) {
+        try {
+            diffusionService.diffuser(id, types, canal, reference);
+            redirectAttributes.addFlashAttribute("succes",
+                    "Offre diffusee sur les canaux selectionnes.");
+        } catch (RessourceIntrouvableException | IllegalStateException ex) {
+            redirectAttributes.addFlashAttribute("erreur", ex.getMessage());
+        }
+        return "redirect:/offres/" + id;
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMINISTRATEUR', 'ROLE_RH')")
+    @PostMapping("/{id}/diffusions/{idDiffusion}/cloturer")
+    public String cloturerDiffusion(@PathVariable Integer id, @PathVariable Integer idDiffusion,
+                                    RedirectAttributes redirectAttributes) {
+        try {
+            diffusionService.cloturer(idDiffusion);
+            redirectAttributes.addFlashAttribute("succes", "Diffusion cloturee.");
+        } catch (RessourceIntrouvableException ex) {
+            redirectAttributes.addFlashAttribute("erreur", ex.getMessage());
+        }
+        return "redirect:/offres/" + id;
     }
 
     @PreAuthorize("hasAnyAuthority('ROLE_ADMINISTRATEUR', 'ROLE_RH')")
