@@ -1,4 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize, forkJoin } from 'rxjs';
@@ -13,11 +14,13 @@ import { CandidateApplicationService, ReceivedCandidature, RhOfferCandidates } f
   styleUrl: './rh-candidatures-page.component.scss'
 })
 export class RhCandidaturesPageComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
   private readonly applications = inject(CandidateApplicationService);
   private readonly notifications = inject(NotificationService);
   offers: RhOfferCandidates[] = [];
   candidatures: ReceivedCandidature[] = [];
   loading = true;
+  candidatesView = false;
   busy = false;
   downloadingId: number | null = null;
   selectedOffer: RhOfferCandidates | null = null;
@@ -31,10 +34,15 @@ export class RhCandidaturesPageComponent implements OnInit {
   dateDebut = '';
   typeContrat = 'CDI_PERIODE_ESSAI';
 
-  ngOnInit(): void { this.load(); }
+  ngOnInit(): void {
+    this.candidatesView = this.route.snapshot.data['rhRecruitmentView'] === 'candidates';
+    this.load();
+  }
 
   get offerCandidatures(): ReceivedCandidature[] {
-    return this.candidatures.filter((item) => item.offreId === this.selectedOffer?.id);
+    return this.selectedOffer
+      ? this.candidatures.filter((item) => item.offreId === this.selectedOffer?.id)
+      : this.candidatures;
   }
 
   get filteredCandidatures(): ReceivedCandidature[] {

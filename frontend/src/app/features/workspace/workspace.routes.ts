@@ -118,7 +118,7 @@ export const WORKSPACE_ROUTES: Routes = [
       {
         path: 'rh/recrutement/offres',
         canActivate: [roleGuard],
-        data: { roles: ['rh'] },
+        data: { roles: ['rh'], rhRecruitmentView: 'offers' },
         loadComponent: () => import('./pages/workflow/rh-candidatures-page.component').then((page) => page.RhCandidaturesPageComponent)
       },
       {
@@ -130,7 +130,7 @@ export const WORKSPACE_ROUTES: Routes = [
       {
         path: 'rh/recrutement/candidatures',
         canActivate: [roleGuard],
-        data: { roles: ['rh'] },
+        data: { roles: ['rh'], rhRecruitmentView: 'candidates' },
         loadComponent: () => import('./pages/workflow/rh-candidatures-page.component').then((page) => page.RhCandidaturesPageComponent)
       },
       {

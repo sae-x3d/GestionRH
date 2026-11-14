@@ -35,19 +35,26 @@ public class CandidatureWorkflowService {
         requireRh(rhId);
         return jdbc.query("""
             SELECT o.id, o.titre, p.intitule AS poste, d.nom AS departement,
-                   GREATEST(dr.effectif - COUNT(e.id), 0)::integer AS effectif_restant,
-                   COUNT(DISTINCT c.id)::integer AS nombre_candidatures
+                   dr.effectif, dr.effectif_recrute,
+                   GREATEST(dr.effectif - dr.effectif_recrute, 0)::integer AS effectif_restant,
+                   COUNT(DISTINCT c.id)::integer AS nombre_candidatures,
+                   CASE WHEN so.code = 'PUBLIEE' AND (o.date_cloture < CURRENT_DATE OR dr.effectif_recrute >= dr.effectif)
+                        THEN 'CLOTUREE' ELSE so.code END AS statut_code,
+                   CASE WHEN so.code = 'PUBLIEE' AND (o.date_cloture < CURRENT_DATE OR dr.effectif_recrute >= dr.effectif)
+                        THEN 'Clôturée' ELSE so.libelle END AS statut,
+                   o.date_cloture
             FROM offres_emploi o
             JOIN demandes_recrutement dr ON dr.id = o.demande_id
             JOIN postes p ON p.id = dr.poste_id
             JOIN departements d ON d.id = dr.departement_id
+            JOIN statuts_offre_emploi so ON so.id = o.statut_id
             LEFT JOIN candidatures c ON c.offre_id = o.id
-            LEFT JOIN employes e ON e.user_id = c.candidat_id
-            GROUP BY o.id, p.intitule, d.nom, dr.effectif
+            GROUP BY o.id, p.intitule, d.nom, dr.effectif, dr.effectif_recrute, so.code, so.libelle
             ORDER BY o.created_at DESC, o.id DESC
             """, (row, index) -> new RhOfferCandidateListResponse(row.getInt("id"), row.getString("titre"),
-                row.getString("poste"), row.getString("departement"), row.getInt("effectif_restant"),
-                row.getInt("nombre_candidatures")));
+                row.getString("poste"), row.getString("departement"), row.getInt("effectif"),
+                row.getInt("effectif_recrute"), row.getInt("effectif_restant"), row.getInt("nombre_candidatures"),
+                row.getString("statut_code"), row.getString("statut"), row.getObject("date_cloture", LocalDate.class)));
     }
 
     @Transactional(readOnly = true)
@@ -396,7 +403,7 @@ public class CandidatureWorkflowService {
     private void hire(Integer candidateId, Integer candidatureId, Map<String, Object> application) {
         Map<String, Object> questionnaire = one("""
             SELECT qe.date_naissance, qe.date_debut_finale, qe.salaire_base_final, qe.type_contrat_final_id,
-                   dr.poste_id, dr.effectif, o.id AS offre_id
+                   dr.poste_id, dr.effectif, dr.effectif_recrute, o.id AS offre_id
             FROM questionnaires_embauche qe JOIN candidatures c ON c.id = qe.candidature_id
             JOIN offres_emploi o ON o.id = c.offre_id JOIN demandes_recrutement dr ON dr.id = o.demande_id
             WHERE qe.candidature_id = ? FOR UPDATE OF qe
@@ -405,11 +412,7 @@ public class CandidatureWorkflowService {
         if (questionnaire.get("date_debut_finale") == null || questionnaire.get("salaire_base_final") == null || questionnaire.get("type_contrat_final_id") == null) {
             throw conflict("La proposition de contrat n’est pas complète.");
         }
-        Integer hiredCount = jdbc.queryForObject("""
-            SELECT COUNT(*) FROM employes e JOIN candidatures c ON c.candidat_id = e.user_id
-            WHERE c.offre_id = ?
-            """, Integer.class, questionnaire.get("offre_id"));
-        if (hiredCount != null && hiredCount >= (Integer) questionnaire.get("effectif")) {
+        if ((Integer) questionnaire.get("effectif_recrute") >= (Integer) questionnaire.get("effectif")) {
             throw conflict("Tous les postes de cette offre sont déjà pourvus.");
         }
         Integer authorized = jdbc.queryForObject("SELECT effectif_autorise FROM postes WHERE id = ? FOR UPDATE",
@@ -429,6 +432,18 @@ public class CandidatureWorkflowService {
               AND effectif_recrute < effectif
             """, questionnaire.get("offre_id"));
         if (reservedForDemand != 1) throw conflict("Toutes les places autorisÃ©es par cette demande sont dÃ©jÃ  pourvues.");
+        Integer recruited = jdbc.queryForObject("""
+            SELECT dr.effectif_recrute FROM demandes_recrutement dr
+            JOIN offres_emploi o ON o.demande_id = dr.id WHERE o.id = ?
+            """, Integer.class, questionnaire.get("offre_id"));
+        if (recruited != null && recruited >= (Integer) questionnaire.get("effectif")) {
+            jdbc.update("""
+                UPDATE offres_emploi
+                SET statut_id = (SELECT id FROM statuts_offre_emploi WHERE code = 'CLOTUREE'),
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ? AND statut_id = (SELECT id FROM statuts_offre_emploi WHERE code = 'PUBLIEE')
+                """, questionnaire.get("offre_id"));
+        }
         jdbc.update("""
             INSERT INTO employes (user_id, poste_id, date_embauche, date_naissance)
             VALUES (?, ?, ?, ?)

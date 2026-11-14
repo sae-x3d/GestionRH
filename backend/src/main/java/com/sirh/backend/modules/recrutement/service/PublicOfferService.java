@@ -15,8 +15,7 @@ public class PublicOfferService {
     private static final String SELECT = """
         SELECT o.id, o.titre, o.description, o.competences, p.intitule AS poste,
                d.nom AS departement, dr.budget_salaire_base AS budget, dr.effectif,
-               GREATEST(dr.effectif - (SELECT COUNT(*) FROM candidatures c
-                   JOIN employes e ON e.user_id = c.candidat_id WHERE c.offre_id = o.id), 0)::integer AS effectif_restant,
+               GREATEST(dr.effectif - dr.effectif_recrute, 0)::integer AS effectif_restant,
                o.date_publication, o.date_cloture
         FROM offres_emploi o
         JOIN statuts_offre_emploi so ON so.id = o.statut_id AND so.code = 'PUBLIEE'
@@ -24,7 +23,7 @@ public class PublicOfferService {
         JOIN postes p ON p.id = dr.poste_id
         JOIN departements d ON d.id = dr.departement_id
         WHERE o.date_cloture >= CURRENT_DATE
-          AND dr.effectif > (SELECT COUNT(*) FROM candidatures c JOIN employes e ON e.user_id = c.candidat_id WHERE c.offre_id = o.id)
+          AND dr.effectif > dr.effectif_recrute
         """;
 
     private final JdbcTemplate jdbc;

@@ -51,7 +51,7 @@ public class CandidatureService {
             JOIN statuts_offre_emploi so ON so.id = o.statut_id
             JOIN demandes_recrutement dr ON dr.id = o.demande_id
             WHERE o.id = ? AND so.code = 'PUBLIEE' AND o.date_cloture >= CURRENT_DATE
-              AND dr.effectif > (SELECT COUNT(*) FROM candidatures c JOIN employes e ON e.user_id = c.candidat_id WHERE c.offre_id = o.id)
+              AND dr.effectif > dr.effectif_recrute
             FOR UPDATE OF o
             """, (row, index) -> row.getInt("id"), request.offreId()).isEmpty();
         if (!openOffer) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cette offre est clôturée ou n’est plus disponible.");
