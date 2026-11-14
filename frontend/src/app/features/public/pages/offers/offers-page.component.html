@@ -1,0 +1,27 @@
+<main class="offers-page">
+  <section class="offers-intro">
+    <p class="eyebrow">CARRIÈRES <span>/</span> RECRUTEMENT</p>
+    <h1>Construisons la suite <em>ensemble.</em></h1>
+    <p>Découvrez les postes ouverts et trouvez celui où vos compétences pourront faire la différence.</p>
+    <span class="offers-count"><i class="pi pi-briefcase" aria-hidden="true"></i>{{ offers.length }} offre{{ offers.length > 1 ? 's' : '' }} ouverte{{ offers.length > 1 ? 's' : '' }}</span>
+  </section>
+
+  @if (loading) {
+    <div class="offers-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des offres…</div>
+  } @else if (!offers.length) {
+    <div class="offers-state empty"><i class="pi pi-inbox" aria-hidden="true"></i><strong>Aucune offre pour le moment</strong><span>Revenez bientôt pour découvrir nos prochaines opportunités.</span></div>
+  } @else {
+    <section class="offers-grid" aria-label="Offres d’emploi disponibles">
+      @for (offer of offers; track offer.id) {
+        <a class="offer-card" [routerLink]="['/offres', offer.id]">
+          <div class="offer-card-top"><span class="offer-department"><i class="pi pi-building" aria-hidden="true"></i>{{ offer.departement }}</span><i class="pi pi-arrow-up-right card-arrow" aria-hidden="true"></i></div>
+          <p class="offer-card-post">{{ offer.poste }}</p>
+          <h2>{{ offer.titre }}</h2>
+          <p class="offer-excerpt">{{ offer.description }}</p>
+          <div class="offer-card-facts"><span><i class="pi pi-wallet" aria-hidden="true"></i>Salaire de base {{ offer.budgetSalaireBase | number:'1.0-2' }} / personne</span><span><i class="pi pi-users" aria-hidden="true"></i>{{ offer.effectifRestant }} poste{{ offer.effectifRestant > 1 ? 's' : '' }} restant{{ offer.effectifRestant > 1 ? 's' : '' }}</span></div>
+          <div class="offer-card-footer"><span><i class="pi pi-clock" aria-hidden="true"></i> Candidatures jusqu’au {{ offer.dateCloture | date:'dd/MM/yyyy' }}</span><strong>Voir l’offre <i class="pi pi-arrow-right" aria-hidden="true"></i></strong></div>
+        </a>
+      }
+    </section>
+  }
+</main>

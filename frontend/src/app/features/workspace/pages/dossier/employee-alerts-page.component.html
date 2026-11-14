@@ -1,0 +1,27 @@
+<main class="alerts-page">
+  <header class="page-heading"><div><p class="eyebrow">RESSOURCES HUMAINES <span>/</span> DOSSIERS</p><h1>Alertes administratives<span>.</span></h1><p>Suivez les dossiers incomplets, les échéances et les corrections à traiter.</p></div><button type="button" class="refresh" (click)="load()" [disabled]="loading"><i class="pi" [class.pi-spin]="loading" [class.pi-refresh]="!loading" [class.pi-spinner]="loading"></i> Actualiser</button></header>
+  @if (loading) { <div class="state"><i class="pi pi-spin pi-spinner"></i> Chargement des alertes…</div> }
+  @else {
+    <section class="alerts-grid">
+      @for (section of sections; track section.key) {
+        <article class="alert-card">
+          <header><div class="alert-icon"><i [class]="section.icon" aria-hidden="true"></i></div><div><p class="eyebrow">SUIVI DU PERSONNEL</p><h2>{{ section.title }}</h2><p>{{ section.description }}</p></div><span class="count">{{ section.items.length }}</span></header>
+          @if (!section.items.length) { <div class="empty"><i class="pi pi-check-circle"></i><span>Aucun élément à traiter</span></div> }
+          @else { <div class="alert-list">
+            @for (item of section.items; track $index) {
+              <button type="button" class="alert-row" (click)="openEmployee(item['employeeId'])">
+                <span class="alert-copy"><strong>{{ item['employe'] || 'Salarié sans nom' }}</strong><small>{{ item['matricule'] || 'Matricule indisponible' }} · {{ item['departement'] || 'Département non renseigné' }}</small>
+                  @if (section.key === 'documentsManquants') { <span>{{ item['type'] }}</span> }
+                  @if (section.key === 'documentsExpirants') { <span>{{ item['type'] }} · échéance {{ item['dateExpiration'] | date:'dd/MM/yyyy' }}</span> }
+                  @if (section.key === 'contratsEcheance') { <span>Contrat {{ item['contrat'] }} · fin {{ item['dateFin'] | date:'dd/MM/yyyy' }}</span> }
+                  @if (section.key === 'informationsIncompletes') { <span>À compléter : {{ item['champsManquants'] }}</span> }
+                  @if (section.key === 'correctionsEnAttente') { <span>{{ item['champ'] }} · reçue le {{ item['soumiseAt'] | date:'dd/MM/yyyy' }}</span> }
+                </span><i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+              </button>
+            }
+          </div>}
+        </article>
+      }
+    </section>
+  }
+</main>

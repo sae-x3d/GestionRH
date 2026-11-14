@@ -1,0 +1,55 @@
+<main class="auth-page">
+  <div class="page-topline">
+    <span class="topline-label">SIRH</span>
+    <span class="brand-divider"></span>
+    <span class="brand-caption">Espace professionnel</span>
+    <span class="topline-caption">PORTAIL DES TALENTS</span>
+  </div>
+
+  <section class="auth-card" aria-label="Authentification SIRH">
+    <p-toast position="bottom-right" styleClass="sirh-toast" />
+    <aside class="visual-panel">
+      <div class="visual-topline">
+        <div class="visual-brand">
+          <span class="visual-brand-mark">S</span>
+          <span>SIRH<span class="brand-period">.</span></span>
+        </div>
+      </div>
+
+      <div class="visual-copy">
+        <span class="visual-kicker">LE PORTAIL DES ÉQUIPES</span>
+        <h1>Votre espace.<br /><span>Votre évolution.</span></h1>
+        <p>Harena - Kenny - Fifaliana - Jonathan</p>
+      </div>
+
+      <div class="editorial-art" role="img" aria-label="Illustration abstraite évoquant les talents et les parcours professionnels">
+        <span class="art-caption">PEOPLE · TALENTS · ÉVOLUTION</span>
+        <span class="art-ring art-ring-large"></span>
+        <span class="art-ring art-ring-small"></span>
+        <span class="art-bar art-bar-one"></span>
+        <span class="art-bar art-bar-two"></span>
+        <span class="art-accent-block"></span>
+        <span class="art-number">RH<br />2026</span>
+        <span class="art-footnote">SIRH / ESPACE PERSONNEL</span>
+      </div>
+    </aside>
+
+    <section class="form-panel">
+      <div class="form-panel-inner">
+        <nav class="auth-tabs" aria-label="Choisir une page">
+          <a routerLink="/offres">Offres</a>
+          <a routerLink="/connexion" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Connexion</a>
+          <a routerLink="/inscription" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Inscription</a>
+        </nav>
+
+        <router-outlet />
+
+        <p class="security-note"><i class="pi pi-shield" aria-hidden="true"></i> Vos informations sont protégées.</p>
+      </div>
+    </section>
+  </section>
+
+  <footer class="page-footer">
+    <span>© 2026 SIRH</span>
+  </footer>
+</main>

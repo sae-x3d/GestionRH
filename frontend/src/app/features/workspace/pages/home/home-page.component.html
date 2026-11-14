@@ -1,0 +1,16 @@
+<section class="home-page" aria-labelledby="home-title">
+  <span class="home-eyebrow">ESPACE PERSONNEL</span>
+  @if (currentRole() === 'manager') {
+    <h1 id="home-title">Mon dash<span>.</span></h1>
+  } @else if (currentRole() === 'employe') {
+    <h1 id="home-title">Mon dashboard<span>.</span></h1>
+  } @else if (currentRole() === 'rh') {
+    <h1 id="home-title">Tableau de bord RH<span>.</span></h1>
+  } @else if (currentRole() === 'administration') {
+    <h1 id="home-title">Tableau de bord Administration<span>.</span></h1>
+  } @else if (currentRole() === 'gestionnaire') {
+    <h1 id="home-title">Tableau de bord comptes<span>.</span></h1>
+  } @else {
+    <h1 id="home-title">Connect&#233;<span>.</span></h1>
+  }
+</section>

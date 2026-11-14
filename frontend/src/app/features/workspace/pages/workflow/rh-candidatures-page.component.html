@@ -1,0 +1,67 @@
+<main class="rh-applications-page">
+  <header class="page-heading">
+    <div><p class="eyebrow">RH <span>/</span> RECRUTEMENT</p><h1>{{ selectedOffer ? 'Candidats de l’offre' : 'Offres et candidatures' }}</h1>
+      <p>{{ selectedOffer ? selectedOffer.titre + ' · ' + selectedOffer.poste : 'Choisissez une offre pour examiner les dossiers reçus et suivre chaque étape.' }}</p></div>
+    @if (selectedOffer) { <button class="secondary-button" type="button" (click)="closeOffer()"><i class="pi pi-arrow-left" aria-hidden="true"></i> Toutes les offres</button> }
+  </header>
+
+  @if (loading) { <section class="applications-panel state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des dossiers…</section> }
+  @else if (!selectedOffer) {
+    @if (!offers.length) { <section class="applications-panel state empty"><i class="pi pi-inbox" aria-hidden="true"></i><strong>Aucune offre créée</strong><span>Les offres et leurs candidatures apparaîtront ici.</span></section> }
+    @else { <section class="offer-grid" aria-label="Offres et candidats">
+      @for (offer of offers; track offer.id) {
+        <button class="offer-tile" type="button" (click)="openOffer(offer)">
+          <span class="tile-icon"><i class="pi pi-briefcase" aria-hidden="true"></i></span><span class="tile-copy"><small>{{ offer.departement }} · {{ offer.poste }}</small><strong>{{ offer.titre }}</strong><span>{{ offer.nombreCandidatures }} candidature{{ offer.nombreCandidatures > 1 ? 's' : '' }} reçue{{ offer.nombreCandidatures > 1 ? 's' : '' }}</span></span>
+          <span class="tile-count">{{ offer.nombreCandidatures }}<small>dossier{{ offer.nombreCandidatures > 1 ? 's' : '' }}</small></span><i class="pi pi-chevron-right tile-arrow" aria-hidden="true"></i>
+        </button>
+      }
+    </section> }
+  } @else {
+    <section class="filter-bar" aria-label="Filtrer les candidatures">
+      <label for="candidate-status">Étape</label><select id="candidate-status" [(ngModel)]="selectedStatus"><option value="">Toutes les étapes · {{ offerCandidatures.length }}</option>
+        @for (status of statuses; track status.code) { <option [value]="status.code">{{ status.libelle }} · {{ status.count }}</option> }
+      </select><span class="filter-total">{{ filteredCandidatures.length }} résultat{{ filteredCandidatures.length > 1 ? 's' : '' }}</span>
+    </section>
+    <section class="applications-panel">
+      @if (!filteredCandidatures.length) { <div class="state empty"><i class="pi pi-inbox" aria-hidden="true"></i><strong>Aucun dossier pour ce filtre</strong><span>Essayez une autre étape ou revenez plus tard.</span></div> }
+      @else { <div class="candidate-grid">
+        @for (item of filteredCandidatures; track item.id) {
+          <button class="candidate-card" type="button" (click)="openCandidate(item)">
+            <span class="candidate-avatar">{{ item.candidat.slice(0, 1).toUpperCase() }}</span><span class="candidate-main"><strong>{{ item.candidat }}</strong><small>{{ item.email }}</small><span>{{ item.titreOffre }} · {{ item.poste }}</span></span><span class="status-pill">{{ item.statut }}</span><i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+          </button>
+        }
+      </div> }
+    </section>
+  }
+</main>
+
+@if (candidate; as person) {
+  <div class="dialog-backdrop" (click)="closeCandidate()">
+    <section class="candidate-dialog" role="dialog" aria-modal="true" aria-labelledby="candidate-dialog-title" (click)="$event.stopPropagation()">
+      <header class="dialog-heading"><div class="candidate-identity">@if (person['photoUrl']) { <img [src]="person['photoUrl']" alt="Photo de profil" /> } @else { <span class="avatar-fallback"><i class="pi pi-user" aria-hidden="true"></i></span> }<span><p class="eyebrow">DOSSIER CANDIDAT</p><h2 id="candidate-dialog-title">{{ person['candidat'] }}</h2><p>{{ person['email'] }} · {{ person['offre'] }}</p></span></div><button class="icon-button" type="button" aria-label="Fermer" (click)="closeCandidate()"><i class="pi pi-times" aria-hidden="true"></i></button></header>
+      <div class="dialog-scroll">
+        <div class="detail-topline"><span class="status-pill">{{ person['statut'] }}</span><span>Reçue le {{ person['envoyee_at'] | date:'dd/MM/yyyy à HH:mm' }}</span><button class="secondary-button" type="button" (click)="downloadCv()" [disabled]="downloadingId !== null"><i [class]="downloadingId ? 'pi pi-spin pi-spinner' : 'pi pi-file-pdf'" aria-hidden="true"></i>{{ downloadingId ? 'Téléchargement…' : 'Ouvrir le CV' }}</button></div>
+        <section class="detail-section"><h3>Parcours renseigné</h3>
+          @if (!person['parcours']?.length) { <p class="muted">Aucun élément de parcours renseigné.</p> }
+          @for (path of person['parcours']; track $index) { <article class="path-row"><strong>{{ path.type }} · {{ path.intitule }}</strong><span>{{ path.organisme }}{{ path.niveau ? ' · ' + path.niveau : '' }}</span><small>{{ path.date_debut | date:'MM/yyyy' }} — {{ path.en_cours ? 'En cours' : (path.date_fin | date:'MM/yyyy') }}</small>@if (path.description) { <p>{{ path.description }}</p> }</article> }
+        </section>
+        @if (person['entretien']; as interview) { <section class="detail-section"><h3>Entretien</h3><p><strong>{{ interview.type }}</strong> · {{ interview.planifie_at | date:'dd/MM/yyyy à HH:mm' }} · {{ interview.statut }}</p>@if (interview.note) { <p>{{ interview.note }}</p> }</section> }
+        @if (person['questionnaire']; as questionnaire) { <section class="detail-section"><h3>Questionnaire candidat</h3><div class="facts"><span>Règles acceptées : <strong>{{ questionnaire.regles_acceptees ? 'Oui' : 'Non' }}</strong></span><span>Date de naissance : <strong>{{ questionnaire.date_naissance | date:'dd/MM/yyyy' }}</strong></span><span>Début souhaité : <strong>{{ questionnaire.date_debut_souhaitee | date:'dd/MM/yyyy' }}</strong></span><span>Prétention de salaire de base : <strong>{{ questionnaire.salaire_base_souhaite | number:'1.0-2' }}</strong></span><span>Contrat souhaité : <strong>{{ questionnaire.type_contrat_souhaite }}</strong></span></div>@if (questionnaire.commentaire_candidat) { <p>{{ questionnaire.commentaire_candidat }}</p> }</section> }
+        <section class="detail-section action-section">
+          <h3>Action RH</h3>
+          @if (person['statut_code'] === 'ENVOYEE_RH') { <div class="action-row"><button class="primary-button" type="button" [disabled]="busy" (click)="perform('PRESELECTIONNER')">Présélectionner</button></div> }
+          @if (person['statut_code'] === 'PRESELECTIONNEE' || person['statut_code'] === 'ENTRETIEN_REFUSE') { <div class="form-grid"><label>Date et heure<input type="datetime-local" [(ngModel)]="entretienAt" /></label><label>Étape proposée<select [(ngModel)]="typeEntretien"><option value="ENTRETIEN">Entretien</option><option value="ENTRETIEN_TEST">Entretien + test</option></select></label><label class="wide">Message pour le candidat<textarea [(ngModel)]="note" rows="2" placeholder="Lieu, lien visio, pièces à préparer…"></textarea></label></div><button class="primary-button" type="button" [disabled]="busy" (click)="perform('PLANIFIER_ENTRETIEN')">Envoyer la proposition d’entretien</button> }
+          @if (person['statut_code'] === 'ENTRETIEN_ACCEPTE') { <label class="note-field">Note RH<textarea [(ngModel)]="note" rows="2"></textarea></label><button class="primary-button" type="button" [disabled]="busy" (click)="perform('MARQUER_ENTRETIEN_EFFECTUE')">Marquer l’entretien effectué</button> }
+          @if (person['statut_code'] === 'ENTRETIEN_EFFECTUE') { <label class="note-field">Commentaire<textarea [(ngModel)]="note" rows="2" placeholder="Notes de l’entretien (interne)"></textarea></label><div class="action-row"><button class="primary-button" type="button" [disabled]="busy" (click)="perform('RETENIR_APRES_ENTRETIEN')">Retenir et envoyer le questionnaire</button></div> }
+          @if (person['statut_code'] === 'QUESTIONNAIRE_REMPLI' || person['statut_code'] === 'CANDIDAT_PROPOSE_MODIFICATION') {
+            <div class="form-grid"><label>Salaire de base mensuel proposé<input type="number" min="1" step="1000" [(ngModel)]="salaire" /><small>Budget de salaire de base autorisé : {{ person['budget_salaire_base'] | number:'1.0-2' }} par personne</small></label><label>Date de début<input type="date" [(ngModel)]="dateDebut" /></label><label>Type de contrat<select [(ngModel)]="typeContrat"><option value="CDI">CDI, sans période d’essai</option><option value="CDI_PERIODE_ESSAI">CDI avec période d’essai</option></select></label></div>
+            <div class="action-row"><button class="primary-button" type="button" [disabled]="busy" (click)="perform(person['statut_code'] === 'CANDIDAT_PROPOSE_MODIFICATION' ? 'CONTRE_PROPOSER' : 'PROPOSER_CONTRAT')">{{ person['statut_code'] === 'CANDIDAT_PROPOSE_MODIFICATION' ? 'Envoyer une contre-proposition' : 'Envoyer le contrat au candidat' }}</button>@if (person['statut_code'] === 'CANDIDAT_PROPOSE_MODIFICATION') { <button class="secondary-button" type="button" [disabled]="busy" (click)="perform('ACCEPTER_MODIFICATION')">Accepter sa proposition</button> }</div>
+          }
+          @if (canReject(person['statut_code'])) { <div class="reject-action"><label>Motif de refus<textarea [(ngModel)]="rejectionReason" rows="2" placeholder="Expliquez brièvement la décision au candidat"></textarea></label><button class="danger-button" type="button" [disabled]="busy" (click)="perform('REJETER')">Recaler la candidature</button></div> }
+          @if (person['statut_code'] === 'EMBAUCHEE') { <p class="success-note"><i class="pi pi-check-circle"></i> Embauche finalisée · contrat {{ person['numero_contrat'] }}</p> }
+          @if (person['historique']?.length) { <details class="history"><summary>Historique des étapes</summary>@for (entry of person['historique']; track $index) { <p><strong>{{ entry.statut }}</strong> · {{ entry.created_at | date:'dd/MM/yyyy HH:mm' }}<small>{{ entry.acteur }}{{ entry.commentaire ? ' · ' + entry.commentaire : '' }}</small></p> }</details> }
+        </section>
+      </div>
+    </section>
+  </div>
+}

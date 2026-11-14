@@ -1,0 +1,72 @@
+<div class="public-page">
+  <div class="public-frame">
+    <p-toast position="bottom-right" styleClass="sirh-toast" />
+    @if (navigationOpen()) {
+      <button class="public-scrim" type="button" aria-label="Fermer le menu" (click)="closeNavigation()"></button>
+    }
+
+    <aside class="public-sidebar" [class.sidebar-open]="navigationOpen()" aria-label="Navigation">
+      <a class="public-brand" routerLink="/offres" aria-label="SIRH, offres d’emploi" (click)="closeNavigation()">
+        <span class="public-brand-symbol">S</span>
+        <span class="public-brand-wordmark">SIRH<span class="public-brand-period">.</span></span>
+      </a>
+
+      @if (sessionInitialized()) {
+        <div class="public-section-label">{{ currentRole() === 'simple_user' ? 'CANDIDAT' : currentRole() === 'manager' ? 'ESPACE MANAGER' : currentRole() === 'employe' ? 'ESPACE EMPLOYÉ' : currentRole() ? 'ESPACE SIRH' : 'VISITEUR' }}</div>
+        <nav class="public-nav" aria-label="Navigation principale">
+          @for (link of navLinks(); track link.route) {
+            <a [routerLink]="link.route" routerLinkActive="nav-active" [routerLinkActiveOptions]="{ exact: link.exact ?? false }" ariaCurrentWhenActive="page" (click)="closeNavigation()">
+              <i [class]="'pi ' + link.icon" aria-hidden="true"></i>
+              <span>{{ link.label }}</span>
+              <span class="public-active-mark" aria-hidden="true"></span>
+            </a>
+          }
+          @if (isFinanceMember()) {
+            <a routerLink="/espace/finance/recrutement/demandes" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()">
+              <i class="pi pi-wallet" aria-hidden="true"></i><span>Demandes à valider (Finance)</span><span class="public-active-mark" aria-hidden="true"></span>
+            </a>
+          }
+        </nav>
+      }
+
+      <div class="public-sidebar-bottom">
+        @if (sessionInitialized() && currentRole()) {
+          <nav class="public-nav" aria-label="Compte utilisateur">
+            <a routerLink="/espace/profil" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()">
+              <i class="pi pi-user" aria-hidden="true"></i><span>Mon profil</span>
+            </a>
+            <a href="#deconnexion" (click)="$event.preventDefault(); logout()">
+              <i class="pi pi-sign-out" aria-hidden="true"></i><span>Déconnexion</span>
+            </a>
+          </nav>
+        }
+        @if (sessionInitialized()) {
+          <span class="public-bottom-line"></span>
+          <span class="public-bottom-label">{{ currentRole() ?? 'PORTAIL RH' }}</span>
+        }
+      </div>
+    </aside>
+
+    <div class="public-content">
+      <header class="public-topbar">
+        <button class="public-menu-toggle" type="button" aria-label="Ouvrir le menu" [attr.aria-expanded]="navigationOpen()" (click)="toggleNavigation()">
+          <i class="pi" [class.pi-bars]="!navigationOpen()" [class.pi-times]="navigationOpen()" aria-hidden="true"></i>
+        </button>
+        <div class="public-topbar-context">
+          <span class="public-topbar-kicker">SIRH / RECRUTEMENT</span>
+          <span class="public-topbar-title">Offres d’emploi</span>
+        </div>
+        @if (sessionInitialized()) {
+          <a class="public-profile-bubble" [routerLink]="currentRole() ? '/espace/profil' : '/connexion'" [attr.aria-label]="currentRole() ? 'Accéder à mon profil' : 'Se connecter'">
+            @if (currentSession()?.photoUrl && !photoLoadFailed) { <img [src]="currentSession()?.photoUrl" alt="" (error)="onPhotoError()" /> }
+            @else { <i class="pi pi-user" aria-hidden="true"></i> }
+          </a>
+        }
+      </header>
+
+      <main class="public-main">
+        <router-outlet />
+      </main>
+    </div>
+  </div>
+</div>

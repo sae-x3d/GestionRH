@@ -1,0 +1,405 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.public-page {
+  height: 100dvh;
+  min-height: 0;
+  padding: 18px;
+  overflow: hidden;
+  background: url('/assets/images/bckg.jpg') center / cover no-repeat fixed;
+  color: #171717;
+}
+
+.public-frame {
+  position: relative;
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  width: 100%;
+  height: calc(100dvh - 36px);
+  min-height: 0;
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: 28px;
+  background: #fff;
+}
+
+.public-sidebar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 29px 17px 22px;
+  border-right: 1px solid #759b8d;
+  background: #c7dcd3;
+}
+
+.public-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  margin: 0 0 60px 5px;
+  color: #171717;
+  text-decoration: none;
+}
+
+.public-brand-symbol {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #171717;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.public-brand-wordmark {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.public-brand-period {
+  color: #176b63;
+}
+
+.public-section-label,
+.public-bottom-label,
+.public-topbar-kicker {
+  color: #355c4d;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.public-section-label {
+  display: block;
+  padding: 0 11px;
+  margin-bottom: 12px;
+}
+
+.public-nav,
+.public-auth-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.public-nav a,
+.public-auth-nav a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 43px;
+  padding: 0 11px;
+  border-radius: 9px;
+  color: #4b5c55;
+  text-decoration: none;
+  font-size: 12px;
+  transition: color 150ms ease, background 150ms ease;
+}
+
+.public-nav a:hover,
+.public-auth-nav a:hover {
+  color: #171717;
+  background: #f3f3f3;
+}
+
+.public-nav a.nav-active,
+.public-auth-nav a.nav-active {
+  color: #171717;
+  background: #ddebE5;
+  font-weight: 700;
+}
+
+.public-nav a > i,
+.public-auth-nav a > i {
+  width: 17px;
+  color: #607b70;
+  font-size: 14px;
+}
+
+.public-nav a.nav-active > i,
+.public-auth-nav a.nav-active > i {
+  color: #176b63;
+}
+
+.public-active-mark {
+  width: 4px;
+  height: 18px;
+  margin-left: auto;
+  border-radius: 5px;
+  background: #176b63;
+  opacity: 0;
+}
+
+.public-nav .nav-active .public-active-mark {
+  opacity: 1;
+}
+
+.public-auth-nav {
+  margin-top: 37px;
+}
+
+.public-sidebar-bottom {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  margin-top: auto;
+  padding: 12px 11px 0;
+  background: #c7dcd3;
+}
+
+.public-bottom-line {
+  width: 100%;
+  height: 1px;
+  background: #e8e8e8;
+}
+
+.public-bottom-label {
+  font-size: 8px;
+}
+
+.public-content {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+}
+
+.public-topbar {
+  min-height: 82px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 clamp(24px, 4vw, 58px);
+  border-bottom: 1px solid #759b8d;
+  background: #9fc4b5;
+}
+
+.public-topbar-context {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.public-topbar-title {
+  color: #222;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.public-profile-bubble {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  margin-left: auto;
+  border: 1px solid #9cc8c0;
+  border-radius: 50%;
+  background: #ddebE5;
+  color: #171717;
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.public-profile-bubble img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.public-main {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: clamp(24px, 4vw, 52px);
+  background: #fff;
+}
+
+.public-menu-toggle,
+.public-scrim {
+  display: none;
+}
+
+@media (max-width: 900px) and (min-width: 621px) {
+  .public-frame {
+    grid-template-columns: 74px minmax(0, 1fr);
+  }
+
+  .public-sidebar {
+    align-items: center;
+    padding-inline: 10px;
+  }
+
+  .public-brand {
+    margin: 0 0 60px;
+  }
+
+  .public-brand-wordmark,
+  .public-section-label,
+  .public-nav a > span:not(.public-active-mark),
+  .public-auth-nav a > span,
+  .public-bottom-label {
+    display: none;
+  }
+
+  .public-nav a,
+  .public-auth-nav a {
+    width: 48px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .public-nav a > i,
+  .public-auth-nav a > i {
+    width: auto;
+  }
+
+  .public-nav .public-active-mark {
+    position: absolute;
+    right: -7px;
+  }
+
+  .public-sidebar-bottom {
+    width: 100%;
+    padding: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .public-page {
+    height: auto;
+    min-height: 100vh;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .public-frame {
+    display: block;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+    border-radius: 0;
+  }
+
+  .public-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(280px, 82vw);
+    min-height: 100dvh;
+    height: 100dvh;
+    overflow-y: auto;
+    padding: 25px 18px 20px;
+    box-shadow: 12px 0 35px rgba(0, 0, 0, 0.08);
+    transform: translateX(-105%);
+    transition: transform 220ms ease;
+  }
+
+  .public-sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .public-brand {
+    margin: 0 0 45px 5px;
+  }
+
+  .public-brand-wordmark,
+  .public-section-label,
+  .public-nav a > span:not(.public-active-mark),
+  .public-auth-nav a > span,
+  .public-bottom-label {
+    display: initial;
+  }
+
+  .public-section-label {
+    display: block;
+  }
+
+  .public-nav a,
+  .public-auth-nav a {
+    width: auto;
+    justify-content: flex-start;
+    padding: 0 11px;
+  }
+
+  .public-nav a > i,
+  .public-auth-nav a > i {
+    width: 17px;
+  }
+
+  .public-nav .public-active-mark {
+    position: static;
+    margin-left: auto;
+  }
+
+  .public-sidebar-bottom {
+    padding-inline: 11px;
+  }
+
+  .public-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    display: block;
+    border: 0;
+    background: rgba(20, 20, 20, 0.42);
+  }
+
+  .public-topbar {
+    min-height: 70px;
+    padding-inline: 18px;
+    background: #9fc4b5;
+  }
+
+  .public-main {
+    min-height: 0;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .public-content {
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .public-menu-toggle {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #e7e7e7;
+    border-radius: 10px;
+    background: #fff;
+    color: #252525;
+    cursor: pointer;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,29 @@
+<main class="profile-page">
+  @if (loading) { <div class="profile-state"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement du profil…</div> }
+  @else if (profile; as person) {
+    <header class="page-heading"><p class="eyebrow">MON ESPACE <span>/</span> PROFIL</p><h1>Mon profil<span>.</span></h1><p>Complétez vos coordonnées avant de demander la vérification de votre compte.</p></header>
+    <section class="profile-card">
+      <div class="profile-status" [class.status-non_verifie]="person.status === 'NON_VERIFIE'" [class.status-pending]="person.status === 'PENDING'" [class.status-approved]="person.status === 'APPROVED'" [class.status-rejected]="person.status === 'REJECTED'"><span></span>{{ person.statusLabel }}</div>
+      <div class="identity"><label class="photo-control" [class.readonly]="!person.editable">
+        @if (photoPreview || person.photoUrl) { <img [src]="photoPreview || person.photoUrl" alt="Photo de profil" /> } @else { <i class="pi pi-user" aria-hidden="true"></i> }
+        @if (person.editable) { <span><i class="pi pi-camera" aria-hidden="true"></i> Ajouter une photo PNG<input type="file" accept="image/png,.png" (change)="selectPhoto($event)" /></span> }
+      </label><div><h2>{{ person.fullName || person.username }}</h2><p>{{ person.email }}</p><small>Identifiant : {{ person.username }}</small></div></div>
+      @if (person.editable) {
+        <form (submit)="$event.preventDefault(); save()">
+          <div class="fields"><label>Nom complet <span>*</span><input name="fullName" [(ngModel)]="fullName" maxlength="150" autocomplete="name" required /></label>
+            <label>Téléphone <span>*</span><input name="phoneNumber" [(ngModel)]="phoneNumber" maxlength="30" type="tel" autocomplete="tel" placeholder="+261 …" required /></label>
+            <label>Région <span>*</span><input name="region" [(ngModel)]="region" maxlength="120" autocomplete="address-level1" placeholder="Ex. Analamanga" required /></label></div>
+          <div class="actions"><button class="secondary-button" type="submit" [disabled]="saving || requesting"><i [class]="saving ? 'pi pi-spin pi-spinner' : 'pi pi-save'"></i>{{ saving ? 'Enregistrement…' : 'Enregistrer le profil' }}</button>
+            <button class="primary-button" type="button" (click)="requestVerification()" [disabled]="saving || requesting"><i [class]="requesting ? 'pi pi-spin pi-spinner' : 'pi pi-send'"></i>{{ requesting ? 'Envoi…' : 'Demander la vérification' }}</button></div>
+        </form>
+      } @else if (person.status === 'PENDING') {
+        <div class="notice"><i class="pi pi-clock" aria-hidden="true"></i><p><strong>Vérification en cours</strong><span>Votre profil est complet et a été transmis au gestionnaire. Vous serez notifié de sa décision.</span></p></div>
+      } @else if (person.status === 'APPROVED') {
+        <div class="notice success"><i class="pi pi-check-circle" aria-hidden="true"></i><p><strong>Compte vérifié</strong><span>Votre profil est validé. Pour une modification, contactez le service RH.</span></p></div>
+      } @else {
+        <div class="notice rejected"><i class="pi pi-exclamation-circle" aria-hidden="true"></i><p><strong>Vérification refusée</strong><span>Corrigez votre profil puis envoyez une nouvelle demande.</span></p></div>
+      }
+      <p class="required-note"><span>*</span> Le nom complet, le numéro de téléphone, la région et la photo sont requis pour la vérification.</p>
+    </section>
+  }
+</main>

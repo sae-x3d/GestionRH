@@ -1,0 +1,76 @@
+<div class="form-heading register-heading">
+  <span class="eyebrow">INSCRIPTION SIRH</span>
+  <h2>Votre espace commence ici.</h2>
+  <p>Renseignez vos informations pour commencer.</p>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div class="field-group">
+    <label for="register-name">Nom complet</label>
+    <span class="input-wrap">
+      <i class="pi pi-user" aria-hidden="true"></i>
+      <input id="register-name" type="text" pInputText formControlName="fullName" placeholder="Ex. Rakotoarison Harena" autocomplete="name" />
+    </span>
+    @if (form.controls.fullName.touched && form.controls.fullName.invalid) {
+      <small class="field-error">Le nom complet est obligatoire.</small>
+    }
+  </div>
+
+  <div class="field-group">
+    <label for="register-username">Nom d’utilisateur</label>
+    <span class="input-wrap">
+      <i class="pi pi-at" aria-hidden="true"></i>
+      <input id="register-username" type="text" pInputText formControlName="username" placeholder="Entrer un username" autocomplete="username" />
+    </span>
+    @if (form.controls.username.touched && form.controls.username.invalid) {
+      <small class="field-error">Choisissez un identifiant de 3 caractères minimum, avec lettres non accentuées, chiffres, points, tirets ou traits de soulignement.</small>
+    }
+  </div>
+
+  <div class="field-group">
+    <label for="register-email">Adresse e-mail</label>
+    <span class="input-wrap">
+      <i class="pi pi-envelope" aria-hidden="true"></i>
+      <input id="register-email" type="email" pInputText formControlName="email" placeholder="Email" autocomplete="email" />
+    </span>
+    @if (form.controls.email.touched && form.controls.email.invalid) {
+      <small class="field-error">Saisissez une adresse e-mail valide.</small>
+    }
+  </div>
+
+  <div class="field-grid">
+    <div class="field-group">
+      <label for="register-password">Mot de passe</label>
+      <span class="input-wrap">
+        <i class="pi pi-lock" aria-hidden="true"></i>
+        <p-password inputId="register-password" formControlName="password" [feedback]="false" [toggleMask]="true" [fluid]="true" autocomplete="new-password" placeholder="8 caractères minimum" inputStyleClass="auth-input-control" />
+      </span>
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <small class="field-error">8 caractères minimum.</small>
+      }
+    </div>
+    <div class="field-group">
+      <label for="register-confirm">Confirmer le mot de passe</label>
+      <span class="input-wrap">
+        <i class="pi pi-lock" aria-hidden="true"></i>
+        <p-password inputId="register-confirm" formControlName="confirmPassword" [feedback]="false" [toggleMask]="true" [fluid]="true" autocomplete="new-password" placeholder="Répétez le mot de passe" inputStyleClass="auth-input-control" />
+      </span>
+      @if (form.controls.confirmPassword.touched && form.controls.confirmPassword.invalid) {
+        <small class="field-error">Les deux mots de passe doivent correspondre.</small>
+      }
+    </div>
+  </div>
+
+  <label class="remember-row terms-row">
+    <input type="checkbox" formControlName="acceptTerms" />
+    <span class="custom-check"><i class="pi pi-check" aria-hidden="true"></i></span>
+    <span>J’accepte les conditions d’utilisation et la politique de confidentialité.</span>
+  </label>
+  @if (form.controls.acceptTerms.touched && form.controls.acceptTerms.invalid) {
+    <small class="field-error terms-error">Veuillez accepter les conditions pour continuer.</small>
+  }
+
+  <p-button type="submit" [label]="loading ? 'Création…' : 'Créer mon compte'" [disabled]="loading" [icon]="loading ? 'pi pi-spinner pi-spin' : 'pi pi-arrow-right'" iconPos="right" styleClass="submit-button" />
+</form>
+
+<p class="form-switch">Vous avez déjà un compte ? <a routerLink="/connexion">Se connecter</a></p>

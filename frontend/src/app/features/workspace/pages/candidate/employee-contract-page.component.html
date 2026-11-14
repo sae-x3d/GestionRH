@@ -1,0 +1,23 @@
+<main class="contract-page">
+  <header class="page-heading">
+    <div><p class="eyebrow">MON ESPACE <span>/</span> CONTRAT</p><h1>Mon contrat de travail</h1><p>Consultez les conditions enregistrées dans votre dossier RH.</p></div>
+    @if (contract) { <a class="print-button" href="/api/employe/contrat/document" target="_blank" rel="noopener"><i class="pi pi-file-pdf" aria-hidden="true"></i> Consulter le contrat PDF</a> }
+  </header>
+  @if (loading) { <section class="state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement du contrat…</section> }
+  @else if (!contract) { <section class="state empty"><i class="pi pi-file" aria-hidden="true"></i><strong>Aucun contrat disponible</strong><span>Le document sera créé automatiquement lorsque votre embauche sera confirmée.</span></section> }
+  @else {
+    <article class="contract-summary">
+      <header class="document-header"><p class="eyebrow">DOCUMENT CONTRACTUEL PDF</p><h2>{{ contract['type_contrat'] }}</h2><p>Référence {{ contract['numero'] }}</p></header>
+      <div class="contract-facts">
+        <div><span>Statut</span><strong>{{ contract['statut_contrat'] }}</strong></div>
+        <div><span>Matricule</span><strong>{{ contract['matricule'] }}</strong></div>
+        <div><span>Poste</span><strong>{{ contract['poste'] }}</strong></div>
+        <div><span>Département</span><strong>{{ contract['departement'] }}</strong></div>
+        <div><span>Date de début</span><strong>{{ contract['date_debut'] | date:'dd/MM/yyyy' }}</strong></div>
+        @if (contract['date_fin']) { <div><span>Date de fin</span><strong>{{ contract['date_fin'] | date:'dd/MM/yyyy' }}</strong></div> }
+        <div><span>Salaire mensuel brut de base</span><strong>{{ contract['salaire_base_mensuel'] | number:'1.0-2' }}</strong></div>
+      </div>
+      <section class="premium-note"><strong>Document complet</strong><p>Le contrat PDF reprend les informations personnelles, le matricule, les conditions acceptées au questionnaire d’embauche et les clauses communes du modèle RH.</p></section>
+    </article>
+  }
+</main>

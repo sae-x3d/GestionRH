@@ -1,0 +1,9 @@
+package com.sirh.backend.modules.recrutement.repository;
+
+import java.util.Optional;
+import com.sirh.backend.modules.recrutement.entity.OffreEmploiEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface OffreEmploiRepository extends JpaRepository<OffreEmploiEntity, Integer> {
+    Optional<OffreEmploiEntity> findByDemandeId(Integer demandeId);
+}

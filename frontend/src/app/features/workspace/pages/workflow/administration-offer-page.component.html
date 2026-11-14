@@ -1,0 +1,48 @@
+<main class="offer-workflow-page">
+  <header class="offer-heading"><div><p class="eyebrow">ADMINISTRATION <span>/</span> RECRUTEMENT</p><h1>Demandes approuvées</h1><p>Les demandes validées par les RH et la Finance attendent ici la création de leur offre d’emploi.</p></div><span class="queue-badge"><i class="pi pi-file-plus" aria-hidden="true"></i>{{ requests.length }} à transformer</span></header>
+  <section class="offer-panel" aria-labelledby="approved-requests-title">
+    <div class="panel-heading"><div><span class="eyebrow">ÉTAPE FINALE</span><h2 id="approved-requests-title">À transformer en offre</h2></div></div>
+    @if (loading) {
+      <div class="empty-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement…</div>
+    } @else if (requests.length === 0) {
+      <div class="empty-state"><i class="pi pi-check-circle" aria-hidden="true"></i><strong>Aucune demande approuvée en attente</strong><span>Les demandes validées par la Finance apparaîtront ici.</span></div>
+    } @else {
+      <div class="table-scroll"><table><thead><tr><th>Poste demandé</th><th>Département</th><th>Manager</th><th>Personnes recherchées</th><th>Budget de salaire de base / personne</th><th>Statut</th><th>Envoyée le</th><th></th></tr></thead><tbody>
+        @for (request of requests; track request.id) {
+          <tr tabindex="0" (click)="open(request)" (keydown.enter)="open(request)" (keydown.space)="$event.preventDefault(); open(request)">
+            <td data-label="Poste"><strong>{{ request.poste }}</strong><small>Demande n°{{ request.id }}</small></td><td data-label="Département">{{ request.departement }}</td><td data-label="Manager">{{ request.demandeur }}</td><td data-label="Personnes recherchées">{{ request.effectif }}</td><td data-label="Budget de salaire de base / personne">{{ request.budgetSalaireBase | number:'1.0-2' }}</td><td data-label="Statut"><span class="status-badge">{{ request.statut }}</span></td><td data-label="Envoyée le">{{ request.soumiseAt | date:'dd/MM/yyyy' }}</td><td class="arrow"><i class="pi pi-chevron-right" aria-hidden="true"></i></td>
+          </tr>
+        }
+      </tbody></table></div>
+    }
+  </section>
+</main>
+
+<p-dialog header="Créer une offre à partir de la demande" [(visible)]="dialogVisible" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" [style]="{ width: 'min(760px, calc(100vw - 30px))' }" styleClass="offer-dialog">
+  @if (detailLoading) {
+    <div class="empty-state"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement du dossier…</div>
+  } @else if (selected; as request) {
+    <div class="offer-dialog-body">
+      <section class="approved-demand"><div class="approved-title"><div><span class="eyebrow">DEMANDE N°{{ request.id }} · {{ request.departement }}</span><h2>{{ request.poste }}</h2></div><span class="status-badge">{{ request.statut }}</span></div>
+        <div class="demand-facts"><span>Manager : <strong>{{ request.demandeur }}</strong></span><span>Personnes recherchées : <strong>{{ request.effectif }}</strong></span><span>Budget de salaire de base accepté / personne : <strong>{{ request.budgetSalaireBase | number:'1.0-2' }}</strong></span><span>Date souhaitée : <strong>{{ request.dateSouhaitee ? (request.dateSouhaitee | date:'dd/MM/yyyy') : 'Non précisée' }}</strong></span></div>
+        <p class="demand-justification">{{ request.justification }}</p>
+        @if (request.historique.length > 0) { <div class="approval-history"><span class="eyebrow">VALIDATIONS</span>@for (entry of request.historique; track $index) { <p><i class="pi pi-check-circle" aria-hidden="true"></i><strong>{{ entry.etape }} · {{ entry.validateur }}</strong><span>{{ entry.decision }}@if (entry.commentaire) { — {{ entry.commentaire }} }</span></p> }</div> }
+      </section>
+      @if (request.actionnable && request.dateSouhaitee && closingDateRangeAvailable) {
+      <form class="offer-form" [formGroup]="form" (ngSubmit)="createOffer()">
+        <div><p class="eyebrow">NOUVELLE OFFRE</p><h2>Rédigez l’annonce</h2><p class="form-intro">Le poste, le département, le budget accepté et la date souhaitée sont repris de la demande validée. Rédigez le titre et le contenu de l’annonce.</p></div>
+        <div class="offer-reference-grid"><div><span>Poste</span><strong>{{ request.poste }}</strong></div><div><span>Département</span><strong>{{ request.departement }}</strong></div><div><span>Budget de salaire de base accepté / personne</span><strong>{{ request.budgetSalaireBase | number:'1.0-2' }}</strong></div><div><span>Date souhaitée</span><strong>{{ request.dateSouhaitee | date:'dd/MM/yyyy' }}</strong></div></div>
+        <label for="offer-title">Grand titre de l’annonce <span>*</span><input id="offer-title" formControlName="titre" maxlength="150" placeholder="Ex. Rejoignez notre équipe comme Responsable des opérations" /></label>
+        <label for="offer-description">Texte complet de l’annonce <span>*</span><textarea id="offer-description" formControlName="description" rows="10" maxlength="10000" placeholder="Rédigez librement une annonce complète : présentation du poste, missions, profil recherché, conditions et modalités de candidature."></textarea><small>Ce texte sera affiché dans le détail de l’annonce.</small></label>
+        <label for="offer-skills">Compétences recherchées <textarea id="offer-skills" formControlName="competences" rows="3" maxlength="5000" placeholder="Ajoutez les compétences attendues si vous souhaitez les présenter séparément."></textarea></label>
+        <label for="offer-closing-date">Date limite de dépôt des dossiers <span>*</span><input id="offer-closing-date" type="date" formControlName="dateCloture" [min]="minClosingDate" [max]="maxClosingDate" /><small>La date doit être après aujourd’hui et avant la date souhaitée de recrutement.</small></label>
+        <div class="offer-actions"><span><i class="pi pi-info-circle" aria-hidden="true"></i> L’offre sera publiée immédiatement après sa création.</span><p-button type="submit" [label]="saving ? 'Publication…' : 'Créer et publier l’offre'" [icon]="saving ? 'pi pi-spin pi-spinner' : 'pi pi-megaphone'" [disabled]="saving" /></div>
+      </form>
+      } @else if (request.actionnable) {
+        <p class="read-only-note"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i> @if (!request.dateSouhaitee) { La demande doit préciser une date souhaitée de recrutement. } @else { La date souhaitée est trop proche : il faut pouvoir fixer une date limite après aujourd’hui et avant la date souhaitée. }</p>
+      } @else {
+        <p class="read-only-note"><i class="pi pi-check-circle" aria-hidden="true"></i> Une offre a déjà été publiée à partir de cette demande.</p>
+      }
+    </div>
+  }
+</p-dialog>

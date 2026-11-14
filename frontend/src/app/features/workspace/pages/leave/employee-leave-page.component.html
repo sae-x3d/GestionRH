@@ -1,0 +1,26 @@
+<main class="leave-page">
+  <header class="page-heading"><div><p class="eyebrow">MON ESPACE / FUTUR</p><h1>Mes congés</h1><p class="page-intro">Consultez vos soldes et transmettez une demande. Le solde est réservé pendant les validations et débité après décision finale des RH.</p></div></header>
+  @if (loading) { <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des soldes et demandes…</div> }
+  @else if (data) {
+    <section class="balance-grid" aria-label="Mes soldes de congé">
+      @for (balance of data.soldes; track balance.typeId) { <article class="balance-card"><span>{{ balance.type }}</span><strong>{{ balance.solde | number:'1.0-2' }}</strong><small>{{ balance.acquisitionActive ? 'jours disponibles' : 'pas de décompte automatique' }}</small></article> }
+    </section>
+    <section class="panel">
+      <div class="section-heading"><div><p class="eyebrow">NOUVELLE DEMANDE</p><h2>Planifier un congé</h2></div></div>
+      <form class="leave-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <label>Type de congé<select formControlName="typeCongeId"><option [ngValue]="null">Choisir un type</option>@for (type of data.types; track type.id) { <option [ngValue]="type.id">{{ type.libelle }}{{ type.justificatifRequis ? ' · justificatif requis' : '' }}</option> }</select></label>
+        <label>Date de début<input pInputText type="date" formControlName="dateDebut" [min]="minDate" /></label>
+        <label>Date de fin<input pInputText type="date" formControlName="dateFin" [min]="form.controls.dateDebut.value || minDate" /></label>
+        <label class="field-wide">Motif<textarea pInputText rows="3" maxlength="2000" formControlName="motif" placeholder="Indiquez le contexte de votre demande"></textarea></label>
+        @if (selectedType?.justificatifRequis) { <label class="field-wide">Justificatif (PDF, PNG ou JPEG, 15 Mo maximum)<input type="file" accept="application/pdf,image/png,image/jpeg" (change)="selectJustificatif($event)" /><small>{{ justificatif?.name || 'Obligatoire pour ce type de congé.' }}</small></label> }
+        @if (selectedType?.acquisitionActive) { <p class="balance-hint field-wide">Solde disponible : <strong>{{ selectedBalance | number:'1.0-2' }} jour(s)</strong>. Le système décompte les jours ouvrés et réservera le solde pendant l’approbation.</p> }
+        @if (selectedType?.justificatifRequis) { <p class="balance-hint field-wide">Un justificatif devra être fourni aux RH pour finaliser le traitement de ce congé.</p> }
+        <div class="form-actions field-wide"><span>La demande suit une validation manager puis RH.</span><p-button type="submit" [label]="submitting ? 'Envoi…' : 'Envoyer la demande'" [icon]="submitting ? 'pi pi-spin pi-spinner' : 'pi pi-send'" [disabled]="submitting" /></div>
+      </form>
+    </section>
+    <section class="panel"><div class="section-heading"><div><p class="eyebrow">SUIVI</p><h2>Mes demandes</h2></div><span class="request-count">{{ data.demandes.length }} demande(s)</span></div>
+      @if (!data.demandes.length) { <div class="empty-state">Vous n’avez pas encore de demande.</div> }
+      @else { <div class="requests-list">@for (request of data.demandes; track request.id) { <article class="request-row"><div><strong>{{ request.type }}</strong><span>{{ request.dateDebut | date:'dd/MM/yyyy' }} – {{ request.dateFin | date:'dd/MM/yyyy' }} · {{ request.jours }} jour(s)</span><small>Demandé le {{ request.soumiseAt | date:'dd/MM/yyyy' }}{{ request.motif ? ' · ' + request.motif : '' }}</small>@if (request.justificatifRequis && !request.justificatifPresent && ['A_VALIDER_MANAGER', 'A_VALIDER_RH'].includes(request.statutCode)) { <label>Ajouter le justificatif requis<input type="file" accept="application/pdf,image/png,image/jpeg" (change)="attachForRequest(request.id, $event)" /></label> } @else if (request.justificatifPresent) { <small>Justificatif transmis</small> }</div><span class="status-pill">{{ request.statut }}</span></article> }</div> }
+    </section>
+  }
+</main>

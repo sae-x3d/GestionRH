@@ -1,0 +1,27 @@
+.leave-page { display:grid; gap:20px; }
+.page-heading h1 { margin:8px 0; font-size:clamp(28px,3vw,40px); }
+.eyebrow { color:#176b63; font-size:10px; font-weight:800; letter-spacing:.14em; }
+.page-intro { max-width:760px; color:#65756d; line-height:1.6; }
+.panel { min-width:0; padding:clamp(18px,2.5vw,30px); border:1px solid #dfe8e3; border-radius:18px; background:#fff; }
+.section-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px; }
+.section-heading h2 { margin:6px 0; font-size:clamp(20px,2vw,28px); }
+.balance-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr)); gap:12px; }
+.balance-card { display:grid; gap:7px; padding:18px; border:1px solid #dfe8e3; border-radius:15px; background:#fff; }
+.balance-card span { color:#52675d; font-size:13px; font-weight:700; }
+.balance-card strong { color:#176b63; font-size:30px; }
+.balance-card small,.request-row small { color:#74847b; }
+.leave-form { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+.leave-form label { display:grid; align-content:start; gap:8px; color:#34473d; font-size:12px; font-weight:700; }
+.leave-form input,.leave-form select,.leave-form textarea { width:100%; min-height:42px; padding:10px 12px; border:1px solid #d9e3dd; border-radius:9px; background:#fff; font:inherit; }
+.leave-form textarea { resize:vertical; }
+.field-wide { grid-column:1/-1; }
+.balance-hint { margin:0; color:#566b60; font-size:13px; }
+.form-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:6px; color:#6b7c73; font-size:12px; }
+.request-count { padding:8px 12px; border-radius:30px; background:#edf4f0; color:#176b63; font-size:12px; font-weight:700; }
+.requests-list { display:grid; }
+.request-row { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:15px 4px; border-bottom:1px solid #e7eeea; }
+.request-row div { display:grid; gap:5px; }
+.request-row div > span { color:#475a50; font-size:13px; }
+.request-row small { font-size:11px; }
+.status-pill { padding:7px 10px; border-radius:30px; background:#edf4f0; color:#176b63; font-size:11px; font-weight:700; }
+@media(max-width:760px) { .leave-form { grid-template-columns:1fr; } .field-wide { grid-column:auto; } .form-actions { align-items:flex-start; flex-direction:column; } .request-row { align-items:flex-start; } }

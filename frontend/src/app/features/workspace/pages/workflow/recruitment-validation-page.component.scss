@@ -1,0 +1,80 @@
+:host { display: block; min-width: 0; color: #1b2924; }
+.workflow-page { width: 100%; margin: 0; padding: 0; }
+.workflow-heading, .panel-heading, .detail-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.workflow-heading { margin-bottom: 27px; }
+.eyebrow { margin: 0 0 8px; color: #57766a; font-size: 10px; font-weight: 750; letter-spacing: .15em; }
+.eyebrow span { padding: 0 5px; color: #a4b2ac; }
+h1, h2, p { overflow-wrap: anywhere; }
+h1 { margin: 0; color: #1c2923; font-size: clamp(26px, 3vw, 36px); line-height: 1.12; letter-spacing: -.045em; }
+.workflow-heading > div > p:last-child { max-width: 660px; margin: 10px 0 0; color: #6c7972; font-size: 13px; line-height: 1.6; }
+.queue-badge { display: flex; flex: 0 0 auto; align-items: center; gap: 9px; padding: 11px 14px; border: 1px solid #dce8e2; border-radius: 999px; background: #f4f8f6; color: #315b4d; font-size: 12px; font-weight: 700; }
+.workflow-panel { padding: clamp(18px, 3vw, 28px); border: 1px solid #e5ebe8; border-radius: 17px; background: #fff; box-shadow: 0 10px 30px rgb(26 57 44 / 4%); }
+.panel-heading { align-items: center; margin-bottom: 18px; }
+.panel-heading .eyebrow { margin-bottom: 5px; }
+h2 { margin: 0; color: #24332b; font-size: 20px; letter-spacing: -.025em; }
+.empty-state { display: flex; min-height: 170px; align-items: center; justify-content: center; flex-direction: column; gap: 10px; color: #78857e; font-size: 13px; text-align: center; }
+.empty-state > i { color: #6e9280; font-size: 25px; }
+.empty-state strong { color: #35443c; font-size: 14px; }
+.table-scroll { overflow-x: auto; border: 1px solid #e6ece9; border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; text-align: left; }
+thead th { padding: 13px 12px; background: #f6f9f7; color: #748179; font-size: 10px; letter-spacing: .055em; white-space: nowrap; }
+tbody tr { cursor: pointer; transition: background 140ms ease; }
+tbody tr:hover, tbody tr:focus-visible { outline: none; background: #f7faf8; }
+tbody td { padding: 14px 12px; border-top: 1px solid #edf1ef; color: #536159; font-size: 12px; white-space: nowrap; }
+tbody td:first-child { white-space: normal; }
+tbody td strong, tbody td small { display: block; }
+tbody td strong { color: #27362e; font-size: 12px; }
+tbody td small { margin-top: 4px; color: #849089; font-size: 10px; }
+.status-badge { display: inline-flex; padding: 6px 9px; border-radius: 999px; background: #edf4ff; color: #385e93; font-size: 10px; font-weight: 700; white-space: nowrap; }
+.arrow { color: #779083; }
+.detail-body { display: grid; gap: 20px; }
+.detail-heading { align-items: center; padding-bottom: 14px; border-bottom: 1px solid #e9eeeb; }
+.detail-heading .eyebrow { margin-bottom: 6px; }
+.detail-heading h2 { color: #1c2a23; font-size: 22px; }
+.detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 22px; }
+.detail-grid > div { display: grid; min-width: 0; gap: 6px; }
+.detail-grid span, .justification > span, .history-label { color: #7b8981; font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+.detail-grid strong { color: #2e3c34; font-size: 13px; overflow-wrap: anywhere; }
+.justification { padding: 15px; border-radius: 11px; background: #f6f8f7; }
+.justification p { margin: 8px 0 0; color: #46544c; font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
+.history { display: grid; gap: 12px; }
+.history article { display: flex; gap: 10px; color: #50745f; }
+.history article > i { padding-top: 2px; }
+.history article > div { display: grid; gap: 4px; }
+.history article strong { color: #35443c; font-size: 12px; }
+.history article small { color: #829088; font-size: 10px; }
+.history article p { margin: 2px 0 0; color: #56645c; font-size: 12px; }
+.decision-area { display: grid; gap: 9px; padding-top: 14px; border-top: 1px solid #e9eeeb; }
+.decision-area label { color: #37463e; font-size: 12px; font-weight: 700; }
+.decision-area label span { color: #bd4e3f; }
+.decision-area label small { color: #89948e; font-size: 10px; font-weight: 500; }
+.decision-area textarea { width: 100%; padding: 11px 12px; border: 1px solid #dce5e0; border-radius: 9px; color: #29352f; font: inherit; font-size: 13px; resize: vertical; }
+.decision-area textarea:focus { border-color: #668f7c; outline: 3px solid rgb(102 143 124 / 13%); }
+.decision-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 9px; margin-top: 3px; }
+.decision-actions button { min-height: 40px; padding: 0 14px; border: 0; border-radius: 9px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.decision-actions button:disabled { opacity: .6; cursor: default; }
+.approve-action { background: #306b50; color: white; }
+.approve-action:hover:not(:disabled) { background: #24583f; }
+.danger-action { background: #a94c40; color: #fff; }
+.danger-outline { border: 1px solid #e5c8c3 !important; background: #fff; color: #9f4d42; }
+.secondary-action { border: 1px solid #dce3df !important; background: white; color: #4c5a52; }
+.read-only-note { display:flex; align-items:flex-start; gap:8px; margin:0; padding:12px; border-radius:9px; background:#f4f7f5; color:#65736b; font-size:12px; line-height:1.5; }
+.read-only-note i { padding-top:2px; }
+:host ::ng-deep .workflow-dialog { max-width: calc(100vw - 28px); border-radius: 16px; overflow: hidden; }
+:host ::ng-deep .workflow-dialog .p-dialog-header { padding: 20px 24px 13px; }
+:host ::ng-deep .workflow-dialog .p-dialog-content { padding: 10px 24px 24px; }
+@media (max-width: 760px) {
+  .workflow-page { padding: 23px 16px; }
+  .workflow-heading { flex-direction: column; }
+  .table-scroll table { min-width: 900px; }
+}
+@media (max-width: 520px) {
+  .workflow-page { padding: 19px 12px; }
+  .workflow-panel { padding: 16px 12px; }
+  .detail-heading { align-items: flex-start; flex-direction: column; }
+  .detail-grid { grid-template-columns: minmax(0, 1fr); gap: 13px; }
+  .decision-actions { align-items: stretch; flex-direction: column-reverse; }
+  .decision-actions button { width: 100%; }
+  :host ::ng-deep .workflow-dialog .p-dialog-header { padding: 16px 16px 10px; }
+  :host ::ng-deep .workflow-dialog .p-dialog-content { padding: 9px 16px 18px; }
+}

@@ -1,0 +1,154 @@
+<main class="recruitment-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">MON ÉQUIPE <span>/</span> EFFECTIF</p>
+      <h1>Demande de recrutement</h1>
+      <p class="page-intro">Transmettez un besoin de recrutement pour votre département et suivez son traitement.</p>
+    </div>
+    @if (options) {
+      <div class="department-chip"><i class="pi pi-building" aria-hidden="true"></i><span>{{ options.departement.nom }}</span></div>
+    }
+  </header>
+
+  <section class="panel request-panel" aria-labelledby="request-form-title">
+    <div class="section-heading">
+      <div><p class="eyebrow">NOUVEAU BESOIN</p><h2 id="request-form-title">Décrire le poste recherché</h2></div>
+      <span class="section-index">01</span>
+    </div>
+
+    @if (loading) {
+      <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des postes et motifs…</div>
+    } @else if (!options) {
+      <div class="inline-state error-state" role="status">Le formulaire est indisponible. Réessayez après avoir vérifié votre rattachement au département.</div>
+    } @else if (options.postes.length === 0) {
+      <div class="inline-state" role="status">Aucun poste actif n’est disponible pour votre département. Les postes sont créés par les RH.</div>
+    } @else {
+      <form class="request-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="form-field field-wide">
+          <label for="request-post">Poste existant <span class="required-mark">*</span></label>
+          <select id="request-post" formControlName="posteId">
+            <option [ngValue]="null">Sélectionner un poste</option>
+            @for (post of options.postes; track post.id) {
+              <option [ngValue]="post.id">{{ post.intitule }}</option>
+            }
+          </select>
+          @if (selectedPost) {
+            <small class="field-hint">Fourchette de salaire de base : {{ selectedPost.salaireBaseMin | number:'1.0-2' }} – {{ selectedPost.salaireBaseMax | number:'1.0-2' }} par personne</small>
+            <small class="field-hint">Effectif actif : {{ selectedPost.effectifActif }} / cible autorisée : {{ selectedPost.effectifAutorise }} · Postes vacants disponibles : {{ selectedPost.postesVacantsDisponibles }}</small>
+            @if (selectedPost.effectifActif < selectedPost.effectifMinimal) {
+              <div class="inline-state error-state" role="status">Sous-effectif : {{ selectedPost.effectifActif }} salarié(s) actif(s) pour un minimum RH de {{ selectedPost.effectifMinimal }} sur ce poste.</div>
+            }
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="request-reason">Motif <span class="required-mark">*</span></label>
+          <select id="request-reason" formControlName="motifId">
+            <option [ngValue]="null">Sélectionner un motif</option>
+            @for (reason of options.motifs; track reason.id) {
+              <option [ngValue]="reason.id">{{ reason.libelle }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="request-count">Nombre de personnes recherchées <span class="required-mark">*</span></label>
+          <input id="request-count" pInputText type="number" min="1" step="1" formControlName="effectif" />
+          <small class="field-hint">{{ selectedPost ? ('Cible : ' + selectedPost.effectifAutorise + ' · Actifs : ' + selectedPost.effectifActif + ' · Vacants : ' + selectedPost.postesVacantsDisponibles) : 'Nombre de personnes à recruter' }}</small>
+        </div>
+
+        <div class="form-field">
+          <label for="request-budget">Budget de salaire de base par personne <span class="required-mark">*</span></label>
+          <input id="request-budget" pInputText type="number" min="0.01" step="0.01" formControlName="budget" />
+          <small class="field-hint">Le montant doit respecter la fourchette du poste.</small>
+        </div>
+
+        <div class="form-field">
+          <label for="request-date">Date souhaitée <span class="required-mark">*</span></label>
+          <input id="request-date" pInputText type="date" formControlName="dateSouhaitee" [min]="minDesiredDate" required />
+          <small class="field-hint">Elle doit laisser au moins un jour après la date limite de candidature.</small>
+        </div>
+
+        <div class="form-field field-wide">
+          <label for="request-justification">Justification <span class="required-mark">*</span></label>
+          <textarea id="request-justification" pInputText rows="5" maxlength="5000" formControlName="justification" placeholder="Expliquez le besoin et son contexte…"></textarea>
+          <small class="field-hint">Maximum 5 000 caractères.</small>
+        </div>
+
+        <div class="form-actions field-wide">
+          <span class="required-note"><span class="required-mark">*</span> Champs obligatoires</span>
+          <p-button type="submit" [label]="submitting ? 'Envoi en cours…' : 'Envoyer la demande'" [icon]="submitting ? 'pi pi-spin pi-spinner' : 'pi pi-send'" [disabled]="submitting" />
+        </div>
+      </form>
+    }
+  </section>
+
+  <section class="panel requests-panel" aria-labelledby="manager-requests-title">
+    <div class="section-heading">
+      <div><p class="eyebrow">SUIVI DU DÉPARTEMENT</p><h2 id="manager-requests-title">Demandes de recrutement</h2></div>
+      <span class="request-count">{{ requests.length }} demande{{ requests.length > 1 ? 's' : '' }}</span>
+    </div>
+
+    @if (requestsLoading) {
+      <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des demandes…</div>
+    } @else if (requests.length === 0) {
+      <div class="empty-state"><span class="empty-icon"><i class="pi pi-inbox" aria-hidden="true"></i></span><strong>Aucune demande envoyée</strong><span>Vos demandes apparaîtront ici après leur envoi.</span></div>
+    } @else {
+      <div class="requests-table-wrap">
+        <table class="requests-table">
+          <thead><tr><th>Poste</th><th>Demandeur</th><th>Motif</th><th>Personnes recherchées</th><th>Budget de salaire de base / personne</th><th>Statut</th><th>Envoyée le</th><th><span class="sr-only">Détails</span></th></tr></thead>
+          <tbody>
+            @for (request of requests; track request.id) {
+              <tr tabindex="0" (click)="openDetails(request)" (keydown.enter)="openDetails(request)" (keydown.space)="$event.preventDefault(); openDetails(request)">
+                <td data-label="Poste"><strong>{{ request.poste }}</strong><small>Demande n°{{ request.id }}</small></td>
+                <td data-label="Demandeur">{{ request.demandeur }}</td>
+                <td data-label="Motif">{{ request.motif }}</td>
+                <td data-label="Personnes recherchées">{{ request.effectif }}</td>
+                <td data-label="Budget de salaire de base / personne">{{ request.budgetSalaireBase | number:'1.0-2' }}</td>
+                <td data-label="Statut"><span class="status-pill" [attr.data-status]="request.statut">{{ request.statut }}</span></td>
+                <td data-label="Envoyée le">{{ request.soumiseAt | date:'dd/MM/yyyy' }}</td>
+                <td class="row-action"><i class="pi pi-chevron-right" aria-hidden="true"></i><span class="sr-only">Afficher les détails</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="table-hint"><i class="pi pi-info-circle" aria-hidden="true"></i> Seules les demandes de votre département sont affichées. Sélectionnez une ligne pour consulter le détail et les actions disponibles.</p>
+    }
+  </section>
+</main>
+
+<p-dialog header="Détail de la demande" [(visible)]="detailVisible" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" [style]="{ width: 'min(640px, calc(100vw - 32px))' }" styleClass="request-detail-dialog" (onHide)="closeDetails()">
+  @if (detailLoading) {
+    <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement du détail…</div>
+  } @else if (selectedRequest; as request) {
+  <div class="detail-content">
+      <div class="detail-title-row"><div><p class="eyebrow">DEMANDE N°{{ request.id }}</p><h3>{{ request.poste }}</h3></div><span class="status-pill" [attr.data-status]="request.statut">{{ request.statut }}</span></div>
+      <div class="detail-grid">
+        <div class="detail-item"><span>Département</span><strong>{{ request.departement }}</strong></div>
+        <div class="detail-item"><span>Motif</span><strong>{{ request.motif }}</strong></div>
+        <div class="detail-item"><span>Personnes recherchées</span><strong>{{ request.effectif }} personne{{ request.effectif > 1 ? 's' : '' }}</strong></div>
+        <div class="detail-item"><span>Budget de salaire de base par personne</span><strong>{{ request.budgetSalaireBase | number:'1.0-2' }}</strong></div>
+        <div class="detail-item"><span>Date souhaitée</span><strong>{{ request.dateSouhaitee ? (request.dateSouhaitee | date:'dd/MM/yyyy') : 'Non précisée' }}</strong></div>
+        <div class="detail-item"><span>Envoyée le</span><strong>{{ request.soumiseAt | date:'dd/MM/yyyy, HH:mm' }}</strong></div>
+      </div>
+      <div class="detail-justification"><span>Justification</span><p>{{ request.justification }}</p></div>
+      @if (request.historique.length > 0) {
+        <div class="detail-history"><span class="history-title">Historique des validations</span>
+          @for (entry of request.historique; track $index) {
+            <div class="history-entry"><span class="history-dot"></span><div><strong>{{ entry.etape }} — {{ entry.decision }}</strong><small>{{ entry.validateur }} · {{ entry.decideeAt | date:'dd/MM/yyyy, HH:mm' }}</small>@if (entry.commentaire) { <p>{{ entry.commentaire }}</p> }</div></div>
+          }
+        </div>
+      }
+      @if (request.annulable) {
+        @if (cancelConfirmation) {
+          <div class="cancel-confirmation" role="alert"><span>Confirmer l’annulation de cette demande ?</span><div><button class="secondary-button" type="button" (click)="cancelConfirmation = false" [disabled]="cancelling">Garder la demande</button><p-button label="Confirmer l’annulation" icon="pi pi-times" severity="danger" (onClick)="cancelRequest()" [disabled]="cancelling" /></div></div>
+        } @else {
+          <p-button label="Annuler la demande" icon="pi pi-times" severity="danger" [outlined]="true" (onClick)="cancelConfirmation = true" />
+        }
+      } @else {
+        <p class="not-cancellable"><i class="pi pi-lock" aria-hidden="true"></i> Cette demande ne peut plus être annulée car son traitement a commencé.</p>
+      }
+    </div>
+  }
+</p-dialog>

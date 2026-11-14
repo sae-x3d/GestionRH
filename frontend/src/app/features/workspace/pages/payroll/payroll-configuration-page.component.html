@@ -1,0 +1,54 @@
+<main class="payroll-config-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">ADMINISTRATION / PARAMÉTRAGE</p>
+      <h1>Règles de paie</h1>
+      <p class="page-intro">Configurez les taux et seuils applicables avec leur date d’effet. Chaque modification crée une nouvelle version et conserve l’historique.</p>
+    </div>
+    <span class="authority-badge"><i class="pi pi-shield" aria-hidden="true"></i> Administration</span>
+  </header>
+
+  @if (loading) {
+    <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des règles de paie…</div>
+  } @else if (!parameters.length) {
+    <div class="inline-state error-state" role="alert">Aucun paramètre de paie trouvé. Réimportez les scripts SQL du bloc 8.</div>
+  } @else {
+    <section class="config-notice">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      <p>Les valeurs marquées <strong>à vérifier</strong> viennent de la spécification du projet et doivent être confirmées avant une paie réelle. Les règles fiscales et les cotisations sont historisées par date d’effet.</p>
+    </section>
+    <section class="parameter-list" aria-label="Paramètres en vigueur">
+      @for (parameter of parameters; track parameter.id) {
+        <article class="parameter-card">
+          <div class="parameter-description">
+            <div class="parameter-title-row"><span class="parameter-code">{{ parameter.code }}</span>
+              @if (parameter.aVerifier) { <span class="review-badge">À vérifier</span> }
+              @if (!parameter.enVigueur) { <span class="history-badge">Historique</span> }
+            </div>
+            <h2>{{ parameter.libelle }}</h2>
+            <p>{{ parameter.regime ?? 'Tous régimes' }} · Du {{ parameter.dateDebut | date:'dd/MM/yyyy' }}
+              @if (parameter.dateFin) { au {{ parameter.dateFin | date:'dd/MM/yyyy' }} } @else { · sans date de fin }
+            </p>
+            <small>{{ parameter.sourceRegle }}</small>
+            @if (parameter.motifModification) { <small class="change-reason">Motif : {{ parameter.motifModification }}</small> }
+          </div>
+          <div class="parameter-editor">
+            <label>Valeur actuelle
+              <span class="read-value">{{ parameter.valeur }} <small>{{ parameter.unite }}</small></span>
+            </label>
+            <label>Nouvelle valeur
+              <input pInputText type="number" min="0" step="0.000001" [(ngModel)]="parameter.nouvelleValeur" [disabled]="!parameter.modifiable || savingId !== null" [attr.aria-label]="'Nouvelle valeur : ' + parameter.libelle" />
+            </label>
+            <label>Date d’effet
+              <input pInputText type="date" [(ngModel)]="parameter.dateEffet" [disabled]="!parameter.modifiable || savingId !== null" [attr.aria-label]="'Date d’effet : ' + parameter.libelle" />
+            </label>
+            <label class="reason-field">Motif
+              <input pInputText type="text" maxlength="500" [(ngModel)]="parameter.motif" [disabled]="!parameter.modifiable || savingId !== null" placeholder="Justification de la modification" [attr.aria-label]="'Motif : ' + parameter.libelle" />
+            </label>
+            <p-button [label]="parameter.modifiable ? 'Enregistrer' : 'Archivé'" [icon]="parameter.modifiable ? 'pi pi-save' : 'pi pi-lock'" [disabled]="savingId !== null || !parameter.modifiable" [loading]="savingId === parameter.id" (onClick)="save(parameter)" />
+          </div>
+        </article>
+      }
+    </section>
+  }
+</main>

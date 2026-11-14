@@ -1,0 +1,53 @@
+<main class="application-page">
+  <a class="back-link" [routerLink]="['/offres', offer?.id]"><i class="pi pi-arrow-left" aria-hidden="true"></i> Retour à l’offre</a>
+  @if (loading) {
+    <div class="application-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement de l’offre…</div>
+  } @else if (!offer) {
+    <div class="application-state empty"><i class="pi pi-search" aria-hidden="true"></i><strong>Cette offre n’est plus disponible</strong><a routerLink="/offres">Revoir les offres</a></div>
+  } @else if (step === 'sent') {
+    <section class="success-card"><span class="success-icon"><i class="pi pi-check" aria-hidden="true"></i></span><p class="eyebrow">CANDIDATURE TRANSMISE</p><h1>Votre dossier est entre les mains des RH.</h1><p>Votre candidature pour <strong>{{ offer.titre }}</strong> a bien été envoyée. Vous pourrez suivre son traitement dans votre espace candidat.</p><span class="application-reference">Référence candidature n°{{ applicationId }}</span><a routerLink="/offres">Retour aux offres</a></section>
+  } @else {
+    <header class="application-heading"><p class="eyebrow">CANDIDATURE <span>/</span> {{ offer.departement }}</p><h1>Postuler à <em>{{ offer.titre }}</em></h1><p>Votre CV sert de support. Détaillez ici votre parcours pour aider les RH à comprendre votre candidature.</p></header>
+    <div class="application-layout">
+      <aside class="offer-reminder"><span class="reminder-icon"><i class="pi pi-briefcase" aria-hidden="true"></i></span><p class="eyebrow">VOUS POSTULEZ POUR</p><h2>{{ offer.titre }}</h2><p class="reminder-post">{{ offer.poste }} · {{ offer.departement }}</p><div class="reminder-budget"><span>Budget de salaire de base accepté / personne</span><strong>{{ offer.budgetSalaireBase | number:'1.0-2' }}</strong></div><p class="reminder-text">{{ offer.effectifRestant }} poste{{ offer.effectifRestant > 1 ? 's' : '' }} restant{{ offer.effectifRestant > 1 ? 's' : '' }}. Préparez un CV au format PDF et renseignez les études, formations et expériences que vous souhaitez présenter.</p><span class="deadline-note"><i class="pi pi-clock" aria-hidden="true"></i> Dossiers jusqu’au {{ offer.dateCloture | date:'dd/MM/yyyy' }}</span></aside>
+
+      <section class="application-panel" aria-label="Formulaire de candidature">
+        @if (step === 'form') {
+          <div class="panel-title"><div><p class="eyebrow">VOTRE DOSSIER</p><h2>Présentez votre parcours</h2></div><span class="step-badge">1 / 2</span></div>
+          <div class="file-grid">
+            <label class="file-field photo-field"><span class="file-label">Photo de profil <small>Facultatif · PNG · 4 Mo max</small></span><span class="photo-upload">
+              @if (photoPreview) { <img [src]="photoPreview" alt="Aperçu de la photo de profil" /> } @else { <i class="pi pi-user" aria-hidden="true"></i> }
+              <span>{{ photoFile?.name || 'Choisir une photo PNG' }}</span><input type="file" accept="image/png,.png" (change)="selectPhoto($event)" aria-label="Choisir une photo de profil au format PNG" />
+            </span></label>
+            <label class="file-field"><span class="file-label">Votre CV <b>*</b><small>PDF uniquement · 10 Mo max</small></span><span class="cv-upload"><i class="pi pi-file-pdf" aria-hidden="true"></i><span>{{ cvFile?.name || 'Choisir votre CV PDF' }}</span><input type="file" accept="application/pdf,.pdf" (change)="selectCv($event)" aria-label="Choisir votre CV au format PDF" /></span></label>
+          </div>
+
+          <section class="paths-section"><div class="paths-heading"><div><p class="eyebrow">EXPÉRIENCE ET FORMATION</p><h3>Les étapes de votre parcours</h3></div><button class="secondary-button" type="button" (click)="addPath()"><i class="pi pi-plus" aria-hidden="true"></i> Ajouter une étape</button></div>
+            @for (item of paths; track $index; let index = $index) {
+              <article class="path-card"><div class="path-card-heading"><span>Étape {{ index + 1 }}</span><button class="icon-button" type="button" (click)="removePath(index)" aria-label="Supprimer cette étape"><i class="pi pi-trash" aria-hidden="true"></i></button></div>
+                <div class="path-fields">
+                  <label>Type de parcours <b>*</b><select [(ngModel)]="item.typeCode" [name]="'type-' + index" (ngModelChange)="changeType(item)"><option value="">Choisir un type</option>@for (type of options?.typesParcours ?? []; track type.code) { <option [value]="type.code">{{ type.libelle }}</option> }</select></label>
+                  @if (item.typeCode === 'ETUDE') { <label>Niveau d’étude <b>*</b><select [(ngModel)]="item.niveauEtudeCode" [name]="'level-' + index"><option value="">Choisir un niveau</option>@for (level of options?.niveauxEtude ?? []; track level.code) { <option [value]="level.code">{{ level.libelle }}</option> }</select></label> }
+                  <label>Intitulé <b>*</b><input [(ngModel)]="item.intitule" [name]="'title-' + index" maxlength="200" placeholder="Ex. Licence en gestion" /></label>
+                  <label>Établissement ou organisation <b>*</b><input [(ngModel)]="item.organisme" [name]="'organization-' + index" maxlength="200" placeholder="Université, entreprise, organisme…" /></label>
+                  <label class="wide-field">Détails<textarea [(ngModel)]="item.description" [name]="'description-' + index" maxlength="5000" rows="3" placeholder="Missions, spécialité, résultats ou compétences acquises…"></textarea></label>
+                  <label>Date de début <b>*</b><input type="date" [(ngModel)]="item.dateDebut" [name]="'start-' + index" /></label>
+                  <label>Date de fin @if (!item.enCours) { <b>*</b> }<input type="date" [(ngModel)]="item.dateFin" [name]="'end-' + index" [disabled]="item.enCours" [min]="item.dateDebut || null" /></label>
+                  <label class="ongoing-field"><input type="checkbox" [(ngModel)]="item.enCours" [name]="'ongoing-' + index" (ngModelChange)="item.dateFin = $event ? '' : item.dateFin" /><span>En cours</span></label>
+                </div>
+              </article>
+            }
+          </section>
+          <div class="form-footer"><span><b>*</b> Champs obligatoires</span><button class="primary-button" type="button" (click)="review()">Vérifier ma candidature <i class="pi pi-arrow-right" aria-hidden="true"></i></button></div>
+        } @else {
+          <div class="panel-title"><div><p class="eyebrow">AVANT ENVOI</p><h2>Vérifiez votre dossier</h2></div><span class="step-badge">2 / 2</span></div>
+          <p class="review-intro">Votre candidature sera transmise aux ressources humaines avec les informations et fichiers ci-dessous.</p>
+          <section class="review-offer"><span class="eyebrow">OFFRE</span><h3>{{ offer.titre }}</h3><p>{{ offer.poste }} · {{ offer.departement }}</p><span>{{ offer.effectifRestant }} poste{{ offer.effectifRestant > 1 ? 's' : '' }} restant{{ offer.effectifRestant > 1 ? 's' : '' }}</span><span>Budget de salaire de base accepté : {{ offer.budgetSalaireBase | number:'1.0-2' }} / personne</span></section>
+          <section class="review-files"><h3>Fichiers joints</h3><p><i class="pi pi-file-pdf" aria-hidden="true"></i> {{ cvFile?.name }} <span>sera enregistré sous cv_username.pdf</span></p><p><i class="pi pi-image" aria-hidden="true"></i> {{ photoFile?.name || 'Aucune nouvelle photo' }} @if (photoFile) { <span>sera enregistrée sous pdp_username.png</span> }</p></section>
+          <section class="review-paths"><h3>Parcours détaillé</h3>@for (item of paths; track $index) { <article><span>{{ typeLabel(item.typeCode) }}@if (item.niveauEtudeCode) { · {{ levelLabel(item.niveauEtudeCode) }} }</span><strong>{{ item.intitule }}</strong><small>{{ item.organisme }} · {{ item.dateDebut | date:'dd/MM/yyyy' }} – {{ item.enCours ? 'En cours' : (item.dateFin | date:'dd/MM/yyyy') }}</small>@if (item.description) { <p>{{ item.description }}</p> }</article> }</section>
+          <div class="form-footer review-actions"><button class="secondary-button" type="button" (click)="step = 'form'"><i class="pi pi-arrow-left" aria-hidden="true"></i> Modifier</button><button class="primary-button" type="button" [disabled]="sending" (click)="submit()">{{ sending ? 'Envoi…' : 'Confirmer et envoyer aux RH' }} <i [class]="sending ? 'pi pi-spin pi-spinner' : 'pi pi-send'" aria-hidden="true"></i></button></div>
+        }
+      </section>
+    </div>
+  }
+</main>

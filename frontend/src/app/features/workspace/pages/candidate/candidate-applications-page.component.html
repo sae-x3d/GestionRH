@@ -1,0 +1,47 @@
+<main class="candidate-page">
+  <header class="page-heading"><div><p class="eyebrow">MON ESPACE <span>/</span> RECRUTEMENT</p><h1>Mes candidatures</h1><p>Suivez vos dossiers, répondez aux invitations et consultez vos propositions de contrat.</p></div><span class="count-badge">{{ applicationsList.length }} dossier{{ applicationsList.length > 1 ? 's' : '' }}</span></header>
+  @if (loading) { <section class="state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement de vos candidatures…</section> }
+  @else if (!applicationsList.length) { <section class="state empty"><i class="pi pi-inbox" aria-hidden="true"></i><strong>Vous n’avez pas encore candidaté</strong><span>Les dossiers envoyés apparaîtront ici avec leur progression.</span></section> }
+  @else { <section class="application-list" aria-label="Suivi de mes candidatures">
+    @for (item of applicationsList; track item['id']) {
+      <button class="application-card" type="button" (click)="open(item)"><span class="card-icon"><i class="pi pi-briefcase" aria-hidden="true"></i></span><span class="card-copy"><small>{{ item['departement'] }} · {{ item['poste'] }}</small><strong>{{ item['offre'] }}</strong><span>Envoyée le {{ item['envoyee_at'] | date:'dd/MM/yyyy' }}</span></span><span class="status-pill">{{ item['statut'] }}</span><i class="pi pi-chevron-right" aria-hidden="true"></i></button>
+    }
+  </section> }
+</main>
+
+@if (selected; as dossier) {
+  <div class="dialog-backdrop" (click)="close()">
+    <section class="candidate-dialog" role="dialog" aria-modal="true" aria-labelledby="tracking-title" (click)="$event.stopPropagation()">
+      <header class="dialog-heading"><div><p class="eyebrow">SUIVI DE CANDIDATURE</p><h2 id="tracking-title">{{ dossier['offre'] }}</h2><p>{{ dossier['poste'] }} · {{ dossier['departement'] }}</p></div><button class="icon-button" type="button" aria-label="Fermer" (click)="close()"><i class="pi pi-times" aria-hidden="true"></i></button></header>
+      <div class="dialog-scroll">
+        <div class="status-line"><span class="status-pill">{{ dossier['statut'] }}</span><span>Envoyée le {{ dossier['envoyee_at'] | date:'dd/MM/yyyy' }}</span></div>
+        @if (dossier['statut_code'] === 'ENTRETIEN_PROPOSE') {
+          <section class="notice-box"><h3>Une rencontre vous est proposée</h3><p>{{ dossier['type_entretien'] }} · {{ dossier['entretien_at'] | date:'EEEE d MMMM yyyy à HH:mm' }}</p><div class="action-row"><button class="primary-button" type="button" [disabled]="busy" (click)="answer('ACCEPTER_ENTRETIEN')">Accepter l’horaire</button><button class="secondary-button" type="button" [disabled]="busy" (click)="answer('REFUSER_ENTRETIEN')">Je ne peux pas être présent</button></div></section>
+        }
+        @if (dossier['statut_code'] === 'QUESTIONNAIRE_A_REMPLIR') {
+          <section class="form-section"><p class="eyebrow">ÉTAPE SUIVANTE</p><h3>Questionnaire préalable à l’embauche</h3><p>Ces informations seront examinées par les ressources humaines. Le montant indiqué est votre prétention de salaire de base mensuelle ; la proposition finale sera confirmée par les RH.</p>
+            <label class="checkbox-line"><input type="checkbox" [(ngModel)]="reglesAcceptees" /> J’ai pris connaissance des règles de l’entreprise et je m’engage à les respecter.</label>
+            <div class="form-grid"><label>Date de naissance<input type="date" [(ngModel)]="dateNaissance" /></label><label>Date de début souhaitée<input type="date" [(ngModel)]="dateDebut" /></label><label>Prétention de salaire de base mensuelle<input type="number" min="1" step="1000" [(ngModel)]="salaire" /></label><label>Type de contrat souhaité<select [(ngModel)]="typeContrat"><option value="CDI">CDI sans période d’essai</option><option value="CDI_PERIODE_ESSAI">CDI avec période d’essai</option></select></label></div>
+            <button class="primary-button" type="button" [disabled]="busy" (click)="answer('SOUMETTRE_QUESTIONNAIRE')">Envoyer le questionnaire</button>
+          </section>
+        }
+        @if (dossier['statut_code'] === 'CONTRAT_PROPOSE' || dossier['statut_code'] === 'CANDIDAT_PROPOSE_MODIFICATION') {
+          <section class="contract-offer"><p class="eyebrow">PROPOSITION DES RESSOURCES HUMAINES</p><h3>Conditions proposées</h3><div class="facts"><span>Salaire mensuel brut de base <strong>{{ dossier['salaire_base_final'] | number:'1.0-2' }}</strong></span><span>Type de contrat <strong>{{ dossier['type_contrat_final'] }}</strong></span><span>Date de début <strong>{{ dossier['date_debut_finale'] | date:'dd/MM/yyyy' }}</strong></span></div>
+            @if (dossier['statut_code'] === 'CANDIDAT_PROPOSE_MODIFICATION') { <p class="pending-note">Votre proposition de modification est en cours d’examen par les RH.</p> }
+            @else if (!proposing) { <div class="action-row"><button class="primary-button" type="button" [disabled]="busy" (click)="answer('ACCEPTER_CONTRAT')">Accepter le contrat</button><button class="secondary-button" type="button" [disabled]="busy" (click)="proposing = true">Proposer des modifications</button><button class="danger-button" type="button" [disabled]="busy" (click)="answer('REFUSER_CONTRAT')">Refuser</button></div> }
+            @if (proposing) { <div class="form-grid proposal-form"><label>Votre salaire de base mensuel souhaité<input type="number" min="1" step="1000" [(ngModel)]="salaire" /></label><label>Date de début souhaitée<input type="date" [(ngModel)]="dateDebut" /></label><label>Type de contrat souhaité<select [(ngModel)]="typeContrat"><option value="CDI">CDI sans période d’essai</option><option value="CDI_PERIODE_ESSAI">CDI avec période d’essai</option></select></label><label class="full">Commentaire<textarea rows="3" [(ngModel)]="commentaire" placeholder="Expliquez brièvement votre proposition"></textarea></label></div><button class="primary-button" type="button" [disabled]="busy" (click)="answer('PROPOSER_MODIFICATION')">Envoyer ma proposition</button> }
+          </section>
+        }
+        @if (dossier['statut_code'] === 'EMBAUCHEE') {
+          <section class="contract-print">
+            <div class="contract-top"><p class="eyebrow">CONTRAT PDF GÉNÉRÉ</p><h2>{{ dossier['type_contrat'] }}</h2><p class="contract-number">Référence {{ dossier['numero_contrat'] }}</p></div>
+            <p>Votre contrat est généré au format PDF à partir du modèle RH et enregistré dans votre dossier administratif.</p>
+            <p><strong>Salaire mensuel brut de base :</strong> {{ dossier['salaire_base_mensuel'] | number:'1.0-2' }}</p>
+            <a class="primary-button print-button" href="/api/employe/contrat/document" target="_blank" rel="noopener"><i class="pi pi-file-pdf" aria-hidden="true"></i> Consulter le contrat PDF</a>
+          </section>
+        }
+        @if (dossier['statut_code'] === 'REFUSEE' || dossier['statut_code'] === 'CONTRAT_REFUSE') { <div class="closed-note"><i class="pi pi-info-circle" aria-hidden="true"></i> Cette étape du recrutement est terminée. Consultez les notifications pour les messages des ressources humaines.</div> }
+      </div>
+    </section>
+  </div>
+}

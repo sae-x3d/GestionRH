@@ -1,0 +1,71 @@
+<section class="planning-page">
+  <header class="page-heading">
+    <div><p class="eyebrow">MON ÉQUIPE <span>/</span> ORGANISATION DU TEMPS</p><h1>Planning de l’équipe</h1><p>Planifiez les horaires et repos de votre département, seul ou pour plusieurs agents à la fois.</p></div>
+    <div class="week-switcher"><button type="button" class="icon-button" aria-label="Semaine précédente" (click)="previousWeek()"><i class="pi pi-angle-left"></i></button><div><strong>{{ weekStart | date:'dd MMM' }} — {{ week?.semaineFin | date:'dd MMM yyyy' }}</strong><button type="button" class="text-button" (click)="goToCurrentWeek()">Cette semaine</button></div><button type="button" class="icon-button" aria-label="Semaine suivante" (click)="nextWeek()"><i class="pi pi-angle-right"></i></button></div>
+  </header>
+
+  @if (loading) { <div class="state-box"><i class="pi pi-spin pi-spinner"></i> Chargement de l’équipe et du planning…</div> }
+  @else if (week) {
+    <section class="department-banner"><span class="department-icon"><i class="pi pi-sitemap"></i></span><div><small>DÉPARTEMENT</small><strong>{{ week.departement?.nom }}</strong></div><span class="team-size">{{ employees.length }} agent{{ employees.length === 1 ? '' : 's' }} actif{{ employees.length === 1 ? '' : 's' }}</span></section>
+
+    <section class="coverage-section" aria-label="Effectifs planifiés par jour">
+      <div class="section-title"><div><p class="eyebrow">COUVERTURE DE LA SEMAINE</p><h2>Présence prévue par jour</h2></div><span class="section-note">Les compteurs viennent des affectations enregistrées.</span></div>
+      <div class="coverage-grid">
+        @for (day of days; track day.date) {
+          <article class="coverage-card">
+            <span class="coverage-date">{{ day.label }} <b>{{ day.number }}</b></span>
+            <strong class="coverage-main">{{ summary(day.date, 'planifies') }}</strong>
+            <span class="coverage-label">agents planifiés</span>
+            <div class="coverage-detail"><span><i class="dot dot-rest"></i>{{ summary(day.date, 'repos') }} repos</span><span><i class="dot dot-arrived"></i>{{ summary(day.date, 'arrives') }} arrivés</span></div>
+            <span class="unplanned">{{ summary(day.date, 'absents') }} en congé / absence</span>
+            <span class="unplanned">{{ summary(day.date, 'nonPlanifies') }} sans planning</span>
+          </article>
+        }
+      </div>
+    </section>
+
+    <section class="bulk-panel">
+      <div class="bulk-heading"><div><p class="eyebrow">AFFECTATION GROUPÉE</p><h2>Planifier plusieurs agents</h2><p>Une affectation applique le même horaire ou repos à chaque agent et date sélectionnés.</p></div><span class="step-number">01</span></div>
+      @if (week.planning?.statut_code === 'PUBLIE') { <div class="locked-notice"><i class="pi pi-lock"></i> Planning publié · rouvrez-le pour effectuer une correction.</div> }
+      <div class="selection-toolbar">
+        <div><strong>1. Agents</strong><span>{{ selectedEmployeesCount }} sélectionné{{ selectedEmployeesCount === 1 ? '' : 's' }}</span></div>
+        <label class="select-all"><input type="checkbox" [checked]="employees.length > 0 && selectedEmployeesCount === employees.length" (change)="toggleAllEmployees($any($event.target).checked)" [disabled]="!week.modifiable"> Toute l’équipe</label>
+      </div>
+      <div class="employee-picker">
+        @for (employee of employees; track employee.employe_id) {
+          <label class="employee-chip" [class.selected]="isEmployeeSelected(employee.employe_id)"><input type="checkbox" [checked]="isEmployeeSelected(employee.employe_id)" (change)="toggleEmployee(employee.employe_id, $any($event.target).checked)" [disabled]="!week.modifiable"><span class="employee-avatar">{{ employee.nom.slice(0, 1) }}</span><span class="employee-copy"><strong>{{ employee.nom }}</strong><small>{{ employee.matricule }} · {{ employee.poste }}</small></span><i class="pi pi-check-circle"></i></label>
+        } @empty { <div class="empty-copy">Aucun salarié actif dans ce département.</div> }
+      </div>
+      <div class="selection-toolbar date-toolbar"><div><strong>2. Dates</strong><span>{{ selectedDates.length }} date{{ selectedDates.length === 1 ? '' : 's' }} sélectionnée{{ selectedDates.length === 1 ? '' : 's' }}</span></div><div class="quick-actions"><button type="button" (click)="selectWeekdays()" [disabled]="!week.modifiable">Lun–Ven</button><button type="button" (click)="selectAllDays()" [disabled]="!week.modifiable">Toute la semaine</button><button type="button" (click)="selectedDates = []" [disabled]="!week.modifiable">Effacer</button></div></div>
+      <div class="date-picker">
+        @for (day of days; track day.date) {
+          <label class="date-option" [class.selected]="isDateSelected(day.date)"><input type="checkbox" [checked]="isDateSelected(day.date)" (change)="toggleDate(day.date, $any($event.target).checked)" [disabled]="!week.modifiable"><span>{{ day.label }}</span><strong>{{ day.number }}</strong></label>
+        }
+      </div>
+      <div class="assignment-form">
+        <label class="field"><span>Type de journée</span><select [(ngModel)]="typeJourId" [disabled]="!week.modifiable">@for (type of week.typesJour; track type.id) { <option [ngValue]="type.id">{{ type.libelle }}</option> }</select></label>
+        @if (selectedType === 'TRAVAIL') {
+          <label class="field"><span>Début</span><input type="time" [(ngModel)]="heureDebut" [disabled]="!week.modifiable"></label>
+          <label class="field"><span>Fin</span><input type="time" [(ngModel)]="heureFin" [disabled]="!week.modifiable"></label>
+          <label class="field"><span>Début de pause</span><input type="time" [(ngModel)]="pauseDebut" [disabled]="!week.modifiable"></label>
+          <label class="field"><span>Fin de pause</span><input type="time" [(ngModel)]="pauseFin" [disabled]="!week.modifiable"></label>
+        }
+        <label class="field observation-field"><span>Observation <small>(facultative)</small></span><input type="text" maxlength="500" placeholder="Ex. équipe d’astreinte, intervention prévue…" [(ngModel)]="observation" [disabled]="!week.modifiable"></label>
+      </div>
+      <div class="bulk-footer"><span><i class="pi pi-info-circle"></i> Les changements sont historisés. Publier demande un planning complet sur 7 jours.</span><button class="primary-button" type="button" (click)="assign()" [disabled]="saving || !week.modifiable"><i class="pi" [class.pi-spin]="saving" [class.pi-spinner]="saving" [class.pi-check]="!saving"></i>{{ saving ? 'Enregistrement…' : 'Appliquer les affectations' }}</button></div>
+    </section>
+
+    <section class="team-grid-panel">
+      <div class="section-title"><div><p class="eyebrow">VUE HEBDOMADAIRE</p><h2>{{ week.planning?.statut ?? 'Aucun planning créé' }}</h2></div><div class="publication-actions">
+        @if (week.planning?.statut_code === 'BROUILLON') { <button class="secondary-button" type="button" (click)="publish()" [disabled]="saving"><i class="pi pi-send"></i> Publier la semaine</button> }
+        @if (week.planning?.statut_code === 'PUBLIE') { <button class="secondary-button" type="button" (click)="reopen()" [disabled]="saving"><i class="pi pi-lock-open"></i> Rouvrir pour correction</button> }
+      </div></div>
+      <div class="table-scroll"><table><thead><tr><th class="employee-column"><span>AGENT</span></th>@for (day of days; track day.date) { <th><span>{{ day.label }}</span><b>{{ day.number }}</b><small>{{ summary(day.date, 'planifies') }} prévus</small></th> }</tr></thead><tbody>
+        @for (employee of employees; track employee.employe_id) {
+          <tr><th class="employee-column"><strong>{{ employee.nom }}</strong><small>{{ employee.matricule }}</small></th>@for (day of days; track day.date) { <td><span class="assignment-cell" [class.rest]="assignmentFor(employee.employe_id, day.date)?.type_code === 'REPOS'" [class.unplanned]="!assignmentFor(employee.employe_id, day.date)" [title]="assignmentFor(employee.employe_id, day.date)?.observation ?? ''">{{ formatSlot(assignmentFor(employee.employe_id, day.date)) }}@if (assignmentFor(employee.employe_id, day.date)?.pointe) { <i class="pi pi-check-circle" title="Arrivée pointée"></i>}</span></td> }</tr>
+        } @empty { <tr><td colspan="8" class="empty-copy">Aucun agent à afficher.</td></tr> }
+      </tbody></table></div>
+      <div class="legend"><span><i class="legend-work"></i> Service planifié</span><span><i class="legend-rest"></i> Repos</span><span><i class="legend-empty"></i> Non planifié</span><span><i class="pi pi-check-circle"></i> Arrivée pointée</span></div>
+    </section>
+  }
+</section>

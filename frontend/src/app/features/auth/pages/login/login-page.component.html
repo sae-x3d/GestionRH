@@ -1,0 +1,42 @@
+<div class="form-heading">
+  <span class="eyebrow">ACCÈS SIRH</span>
+  <h2>Bon retour.</h2>
+  <p>Connectez-vous pour accéder à votre espace professionnel.</p>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div class="field-group">
+    <label for="login-email">Adresse e-mail ou identifiant</label>
+    <span class="input-wrap">
+      <i class="pi pi-envelope" aria-hidden="true"></i>
+      <input id="login-email" type="text" pInputText formControlName="email" placeholder="E-mail ou identifiant" autocomplete="username" />
+    </span>
+    @if (form.controls.email.touched && form.controls.email.invalid) {
+      <small class="field-error">Saisissez votre e-mail ou votre identifiant.</small>
+    }
+  </div>
+
+  <div class="field-group">
+    <div class="label-row">
+      <label for="login-password">Mot de passe</label>
+      <a class="text-link" href="#mot-de-passe" (click)="$event.preventDefault()">Mot de passe oublié ?</a>
+    </div>
+    <span class="input-wrap">
+      <i class="pi pi-lock" aria-hidden="true"></i>
+      <p-password inputId="login-password" formControlName="password" [feedback]="false" [toggleMask]="true" [fluid]="true" autocomplete="current-password" placeholder="Mot de passe" inputStyleClass="auth-input-control" />
+    </span>
+    @if (form.controls.password.touched && form.controls.password.invalid) {
+      <small class="field-error">Le mot de passe est obligatoire.</small>
+    }
+  </div>
+
+  <label class="remember-row">
+    <input type="checkbox" />
+    <span class="custom-check"><i class="pi pi-check" aria-hidden="true"></i></span>
+    <span>Se souvenir de moi</span>
+  </label>
+
+  <p-button type="submit" [label]="loading ? 'Connexion…' : 'Se connecter'" [disabled]="loading || form.invalid" [icon]="loading ? 'pi pi-spinner pi-spin' : 'pi pi-arrow-right'" iconPos="right" styleClass="submit-button" />
+</form>
+
+<p class="form-switch">Vous n’avez pas de compte ? <a routerLink="/inscription">Créer un compte</a></p>

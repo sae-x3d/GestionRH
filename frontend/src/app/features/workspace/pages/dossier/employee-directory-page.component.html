@@ -1,0 +1,60 @@
+<main class="directory-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">{{ manager ? 'MON ÉQUIPE' : 'RESSOURCES HUMAINES' }} <span>/</span> PERSONNEL</p>
+      <h1>{{ manager ? 'Effectif de mon département' : 'Annuaire des salariés' }}<span>.</span></h1>
+      <p>{{ manager ? 'Consultez les informations professionnelles des salariés de votre département.' : 'Recherchez et ouvrez les dossiers administratifs des salariés.' }}</p>
+    </div>
+    <span class="count-badge">{{ data?.totalElements ?? 0 }} salarié{{ (data?.totalElements ?? 0) === 1 ? '' : 's' }}</span>
+  </header>
+
+  <form class="filters" (submit)="$event.preventDefault(); resetPage()">
+    <label class="search"><i class="pi pi-search" aria-hidden="true"></i><input name="q" [(ngModel)]="search" placeholder="Nom, prénom ou matricule" /></label>
+    @if (!manager) {
+      <select name="department" aria-label="Filtrer par département" [(ngModel)]="departmentId" (ngModelChange)="postId = null; resetPage()">
+        <option [ngValue]="null">Tous les départements</option>
+        @for (item of data?.departements ?? []; track item.id) { <option [ngValue]="item.id">{{ item.nom }}</option> }
+      </select>
+      <select name="post" aria-label="Filtrer par poste" [(ngModel)]="postId" (ngModelChange)="resetPage()">
+        <option [ngValue]="null">Tous les postes</option>
+        @for (item of posts; track item.id) { <option [ngValue]="item.id">{{ item.intitule }}</option> }
+      </select>
+      <select name="status" aria-label="Filtrer par statut administratif" [(ngModel)]="status" (ngModelChange)="resetPage()">
+        <option value="">Tous les statuts</option>
+        @for (item of data?.statuts ?? []; track item.code) { <option [value]="item.code">{{ item.libelle }}</option> }
+      </select>
+    }
+    <select name="sortBy" aria-label="Trier les salariés par" [(ngModel)]="sortBy" (ngModelChange)="resetPage()">
+      <option value="nom">Nom</option><option value="matricule">Matricule</option><option value="poste">Poste</option><option value="statut">Statut</option>
+      @if (!manager) { <option value="departement">Département</option> }
+      <option value="dateEmbauche">Date d’embauche</option>
+    </select>
+    <button class="sort-direction" type="button" (click)="toggleSortDirection()" [attr.aria-label]="sortDirection === 'asc' ? 'Tri croissant, cliquer pour inverser' : 'Tri décroissant, cliquer pour inverser'">
+      <i class="pi" [class.pi-sort-amount-up-alt]="sortDirection === 'asc'" [class.pi-sort-amount-down]="sortDirection === 'desc'" aria-hidden="true"></i>
+      {{ sortDirection === 'asc' ? 'Croissant' : 'Décroissant' }}
+    </button>
+    <button type="submit" aria-label="Rechercher"><i class="pi pi-arrow-right"></i></button>
+    <span>{{ data?.totalElements ?? 0 }} résultat{{ (data?.totalElements ?? 0) === 1 ? '' : 's' }}</span>
+  </form>
+
+  <section class="directory-panel">
+    @if (loading) { <div class="state"><i class="pi pi-spin pi-spinner"></i> Chargement des salariés…</div> }
+    @else if (!data?.content?.length) { <div class="state empty"><i class="pi pi-users"></i><strong>Aucun salarié trouvé</strong><span>Modifiez les filtres ou vérifiez votre périmètre d’accès.</span></div> }
+    @else {
+      <div class="table-scroll"><table>
+        <thead><tr><th>Salarié</th><th>Matricule</th><th>Poste</th><th>Département</th><th>Provenance</th>@if (!manager) { <th>Managers du département</th> }<th>Statut</th><th>Embauche</th><th></th></tr></thead>
+        <tbody>
+          @for (item of data!.content; track item.id) {
+            <tr tabindex="0" (click)="open(item.id)" (keydown.enter)="open(item.id)">
+              <td data-label="Salarié"><strong>{{ item.nom }}</strong>@if (!manager) { <small>{{ item.email }}</small> }</td>
+              <td data-label="Matricule">{{ item.matricule }}</td><td data-label="Poste">{{ item.poste }}</td><td data-label="Département">{{ item.departement }}</td><td data-label="Provenance">{{ item.provenance }}</td>
+              @if (!manager) { <td data-label="Managers du département" class="managers">{{ item.responsables_departement || 'Aucun manager actif' }}</td> }
+              <td data-label="Statut"><span class="status">{{ item.statut }}</span></td><td data-label="Embauche">{{ item.date_embauche | date:'dd/MM/yyyy' }}</td><td class="open"><i class="pi pi-arrow-up-right"></i></td>
+            </tr>
+          }
+        </tbody>
+      </table></div>
+      <footer class="pagination"><span>Page {{ data!.page + 1 }} / {{ data!.totalPages }}</span><button type="button" (click)="previous()" [disabled]="data!.page === 0">Précédent</button><button type="button" (click)="next()" [disabled]="data!.page + 1 >= data!.totalPages">Suivant</button></footer>
+    }
+  </section>
+</main>

@@ -1,0 +1,27 @@
+:host { display: block; }
+.absence-page { width: min(100%, 1400px); margin: 0 auto; padding: clamp(20px, 3vw, 42px); display: grid; gap: 24px; color: #1d2c24; }
+.page-heading h1 { margin: 8px 0; font-size: clamp(2rem, 4vw, 3.2rem); }
+.eyebrow { color: #287d68; font-size: .72rem; font-weight: 800; letter-spacing: .14em; }
+.page-intro { color: #687a71; max-width: 760px; }
+.panel { background: #fff; border: 1px solid #dfe9e3; border-radius: 22px; padding: clamp(18px, 2.5vw, 30px); }
+.section-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
+.section-heading h2 { margin: 4px 0; font-size: 1.45rem; }
+.absence-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+label { display: grid; gap: 7px; color: #54675d; font-size: .9rem; font-weight: 650; }
+input, select, textarea { width: 100%; min-height: 44px; border: 1px solid #d7e2db; border-radius: 10px; padding: 10px 12px; color: #1d2c24; background: #fff; font: inherit; }
+textarea { resize: vertical; }
+.wide { grid-column: 1 / -1; }
+.check { display: flex; align-items: center; gap: 10px; }
+.check input { width: 18px; min-height: 18px; }
+.actions { display: flex; align-items: center; justify-content: space-between; gap: 18px; color: #74847b; font-size: .82rem; }
+button { border: 0; border-radius: 11px; padding: 12px 18px; background: #208c72; color: #fff; font: inherit; font-weight: 750; cursor: pointer; }
+button:disabled { opacity: .55; cursor: wait; }
+.month-filter { display: flex; grid-template-columns: auto auto; align-items: center; gap: 10px; }
+.month-filter input { width: auto; }
+.absence-table { overflow-x: auto; }
+.table-head, .absence-row { min-width: 860px; display: grid; grid-template-columns: 1.2fr .9fr 1.4fr 1fr .65fr; gap: 14px; align-items: center; padding: 13px 10px; }
+.table-head { color: #718279; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.absence-row { border-top: 1px solid #edf1ee; font-size: .9rem; }
+.absence-row small { display: block; margin-top: 5px; color: #78877f; }
+.empty-state, .inline-state { padding: 24px; color: #728279; text-align: center; }
+@media (max-width: 700px) { .absence-page { padding: 16px; } .absence-form { grid-template-columns: 1fr; } .wide { grid-column: auto; } .actions { align-items: stretch; flex-direction: column; } .section-heading { align-items: stretch; flex-direction: column; } }

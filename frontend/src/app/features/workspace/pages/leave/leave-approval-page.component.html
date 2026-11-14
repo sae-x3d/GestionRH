@@ -1,0 +1,17 @@
+<main class="leave-approval-page">
+  <header class="page-heading"><div><p class="eyebrow">{{ role === 'manager' ? 'MON ÉQUIPE / CONGÉS' : 'RESSOURCES HUMAINES / CONGÉS' }}</p><h1>{{ role === 'manager' ? 'Demandes de mon équipe' : 'Demandes à valider' }}</h1><p class="page-intro">{{ role === 'manager' ? 'Vérifiez la couverture de votre équipe avant de transmettre votre décision aux RH.' : 'Contrôlez les règles, les soldes et la couverture avant la décision finale.' }}</p></div><span class="request-count">{{ requests.length }} en attente</span></header>
+  @if (loading) { <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des demandes…</div> }
+  @else if (!requests.length) { <section class="panel empty-state"><i class="pi pi-check-circle" aria-hidden="true"></i><strong>Aucune demande en attente</strong><span>Les nouvelles demandes apparaîtront ici.</span></section> }
+  @else {
+    <section class="requests-grid">@for (request of requests; track request.id) {
+      <article class="panel request-card"><header><div><p class="eyebrow">DEMANDE N°{{ request.id }}</p><h2>{{ request.employe }}</h2><span>{{ request.poste }} · {{ request.departement }}</span></div><span class="status-pill">{{ request.statut }}</span></header>
+        <div class="request-facts"><div><small>Type</small><strong>{{ request.type }}</strong></div><div><small>Période</small><strong>{{ request.dateDebut | date:'dd/MM/yyyy' }} – {{ request.dateFin | date:'dd/MM/yyyy' }}</strong></div><div><small>Jours ouvrés demandés</small><strong>{{ request.jours }}</strong></div><div><small>Transmise le</small><strong>{{ request.soumiseAt | date:'dd/MM/yyyy, HH:mm' }}</strong></div></div>
+        @if (request.motif) { <p class="request-reason"><strong>Motif :</strong> {{ request.motif }}</p> }
+        @if (role === 'rh' && request.justificatifPresent) { <a class="request-document" [href]="'/api/rh/conges/demandes/' + request.id + '/justificatif'">Télécharger le justificatif confidentiel</a> }
+        @if (role === 'rh' && request.justificatifRequis && !request.justificatifPresent) { <p class="request-reason">Le justificatif requis n’a pas encore été transmis ; l’approbation finale sera bloquée.</p> }
+        <label class="comment-field">Commentaire de décision<textarea pInputText rows="2" maxlength="2000" [(ngModel)]="comments[request.id]" [ngModelOptions]="{standalone: true}" placeholder="Obligatoire en cas de refus"></textarea></label>
+        <footer><p-button label="Refuser" icon="pi pi-times" severity="danger" [outlined]="true" [disabled]="actionId !== null" (onClick)="decide(request,'REFUSEE')" /><p-button [label]="role === 'manager' ? 'Transmettre aux RH' : 'Approuver le congé'" icon="pi pi-check" [disabled]="actionId !== null" [loading]="actionId === request.id" (onClick)="decide(request,'APPROUVEE')" /></footer>
+      </article>
+    }</section>
+  }
+</main>

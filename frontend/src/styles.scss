@@ -1,0 +1,48 @@
+@import 'primeicons/primeicons.css';
+
+:root {
+  color-scheme: light;
+  font-family: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.sirh-toast {
+  position: absolute !important;
+  right: 16px !important;
+  bottom: 16px !important;
+  left: auto !important;
+  width: min(360px, calc(100% - 32px));
+  max-width: calc(100% - 32px);
+}
+
+@media (max-width: 620px) {
+  .sirh-toast {
+    bottom: 12px !important;
+    right: 12px !important;
+    width: calc(100% - 24px);
+    max-width: calc(100% - 24px);
+  }
+}

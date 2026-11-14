@@ -1,0 +1,20 @@
+<main class="offer-detail-page">
+  <a class="back-link" routerLink="/offres"><i class="pi pi-arrow-left" aria-hidden="true"></i> Retour aux offres</a>
+  @if (loading) {
+    <div class="offer-detail-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement de l’annonce…</div>
+  } @else if (offer; as current) {
+    <article class="offer-article">
+      <header class="article-header">
+        <p class="eyebrow">{{ current.departement }} <span>/</span> {{ current.poste }}</p>
+        <h1>{{ current.titre }}</h1>
+        <div class="article-facts"><span><i class="pi pi-wallet" aria-hidden="true"></i>Budget de salaire de base accepté : <strong>{{ current.budgetSalaireBase | number:'1.0-2' }} par personne</strong></span><span><i class="pi pi-users" aria-hidden="true"></i><strong>{{ current.effectifRestant }}</strong> poste{{ current.effectifRestant > 1 ? 's' : '' }} restant{{ current.effectifRestant > 1 ? 's' : '' }}</span><span><i class="pi pi-calendar" aria-hidden="true"></i>Dossiers jusqu’au <strong>{{ current.dateCloture | date:'dd/MM/yyyy' }}</strong></span></div>
+      </header>
+      <section class="article-copy"><h2>À propos du poste</h2><p>{{ current.description }}</p>
+        @if (current.competences) { <div class="article-skills"><h2>Compétences recherchées</h2><p>{{ current.competences }}</p></div> }
+      </section>
+      <footer class="article-footer"><div><span>Offre publiée le {{ current.datePublication | date:'dd/MM/yyyy' }}</span><span class="closing-reminder">Candidatures ouvertes jusqu’au {{ current.dateCloture | date:'dd/MM/yyyy' }}</span></div><button class="apply-button" type="button" (click)="apply()">Postuler <i class="pi pi-arrow-right" aria-hidden="true"></i></button></footer>
+    </article>
+  } @else {
+    <div class="offer-detail-state missing"><i class="pi pi-search" aria-hidden="true"></i><strong>Cette offre n’est plus disponible</strong><span>Elle a peut-être été clôturée ou retirée.</span><a routerLink="/offres">Voir les autres offres</a></div>
+  }
+</main>

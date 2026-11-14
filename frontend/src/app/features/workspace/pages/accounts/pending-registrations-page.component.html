@@ -1,0 +1,48 @@
+<main class="pending-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">GESTIONNAIRE <span>/</span> COMPTES</p>
+      <h1>Profils à vérifier</h1>
+      <p>Examinez les profils complétés par les candidats avant de leur permettre de postuler.</p>
+    </div>
+    <span class="count-badge">{{ registrations.length }} en attente</span>
+  </header>
+  <section class="registration-panel">
+    @if (!loading && registrations.length) {
+      <div class="registration-filters">
+        <label><i class="pi pi-search" aria-hidden="true"></i><input type="search" [(ngModel)]="search" placeholder="Rechercher par nom, identifiant ou e-mail" aria-label="Rechercher une inscription" /></label>
+        <span>{{ filteredRegistrations.length }} résultat{{ filteredRegistrations.length === 1 ? '' : 's' }}</span>
+      </div>
+    }
+    @if (loading) {
+      <div class="state"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des inscriptions…</div>
+    } @else if (!registrations.length) {
+      <div class="state empty"><i class="pi pi-check-circle" aria-hidden="true"></i><strong>Aucune demande de vérification</strong><span>Les profils complets envoyés par les candidats apparaîtront ici.</span></div>
+    } @else if (!filteredRegistrations.length) {
+      <div class="state empty"><i class="pi pi-search" aria-hidden="true"></i><strong>Aucun résultat</strong><span>Essayez avec un autre nom, identifiant ou e-mail.</span></div>
+    } @else {
+      <div class="registration-list">
+        @for (item of filteredRegistrations; track item.id) {
+          <article class="registration-row">
+            <div class="candidate-avatar">@if (item.photo_url) { <img [src]="item.photo_url" alt="" /> } @else { <i class="pi pi-user" aria-hidden="true"></i> }</div>
+            <div class="registration-copy"><strong>{{ item.full_name }}</strong><span>{{ item.username }} · {{ item.email }}</span><small>Demande du {{ item.verification_requested_at | date:'dd/MM/yyyy à HH:mm' }}</small></div>
+            <button class="details-button" type="button" (click)="open(item)">Examiner <i class="pi pi-arrow-right" aria-hidden="true"></i></button>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</main>
+@if (selected; as item) {
+  <div class="dialog-backdrop" (click)="close()">
+    <section class="review-dialog" role="dialog" aria-modal="true" aria-labelledby="review-title" (click)="$event.stopPropagation()">
+      <header><div><p class="eyebrow">INSCRIPTION CANDIDAT</p><h2 id="review-title">{{ item.full_name }}</h2><p>{{ item.email }} · {{ item.username }}</p></div><button type="button" class="close-button" aria-label="Fermer" (click)="close()"><i class="pi pi-times" aria-hidden="true"></i></button></header>
+      <div class="review-content">
+        <p>Le compte restera limité tant qu’il n’est pas validé. Une validation autorise la personne à postuler aux offres d’emploi.</p>
+        <div class="profile-facts"><span><small>Téléphone</small><strong>{{ item.phone_number }}</strong></span><span><small>Région</small><strong>{{ item.region }}</strong></span><span><small>Adresse e-mail</small><strong>{{ item.email }}</strong></span></div>
+        <label>Commentaire en cas de refus<textarea rows="3" [(ngModel)]="comment" placeholder="Indiquez le motif à communiquer au candidat"></textarea></label>
+        <footer><button class="reject-button" type="button" [disabled]="savingId !== null" (click)="decide('REJECTED')">Refuser l’inscription</button><button class="approve-button" type="button" [disabled]="savingId !== null" (click)="decide('APPROVED')"><i [class]="savingId === item.id ? 'pi pi-spin pi-spinner' : 'pi pi-check'" aria-hidden="true"></i>{{ savingId === item.id ? 'Traitement…' : 'Valider le compte' }}</button></footer>
+      </div>
+    </section>
+  </div>
+}

@@ -1,0 +1,63 @@
+<main class="workflow-page">
+  <header class="workflow-heading">
+    <div><p class="eyebrow">{{ isFinance ? 'VALIDATION FINANCE' : 'RESSOURCES HUMAINES' }} <span>/</span> RECRUTEMENT</p><h1>{{ isFinance ? 'Demandes de recrutement' : 'Demandes de recrutement' }}</h1><p>{{ isFinance ? 'Consultez les demandes transmises à la Finance, leur statut et leur historique.' : 'Suivez les demandes transmises par les managers et validez celles qui attendent les RH.' }}</p></div>
+    <span class="queue-badge"><i class="pi pi-inbox" aria-hidden="true"></i>{{ requests.length }} demande{{ requests.length === 1 ? '' : 's' }}</span>
+  </header>
+
+  <section class="workflow-panel" aria-labelledby="workflow-list-title">
+    <div class="panel-heading"><div><span class="eyebrow">SUIVI ET VALIDATION</span><h2 id="workflow-list-title">Demandes concernées</h2></div></div>
+    @if (loading) {
+      <div class="empty-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des demandes…</div>
+    } @else if (requests.length === 0) {
+      <div class="empty-state"><i class="pi pi-check-circle" aria-hidden="true"></i><strong>Aucune demande à afficher</strong><span>Les demandes qui passent par votre étape apparaîtront ici.</span></div>
+    } @else {
+      <div class="table-scroll"><table><thead><tr><th>Poste / demandeur</th><th>Département</th><th>Motif</th><th>Personnes recherchées</th><th>Budget de salaire de base / personne</th><th>Statut</th><th>Date</th><th></th></tr></thead><tbody>
+        @for (request of requests; track request.id) {
+          <tr tabindex="0" (click)="open(request)" (keydown.enter)="open(request)" (keydown.space)="$event.preventDefault(); open(request)">
+            <td data-label="Poste"><strong>{{ request.poste }}</strong><small>{{ request.demandeur }} · n°{{ request.id }}</small></td>
+            <td data-label="Département">{{ request.departement }}</td><td data-label="Motif">{{ request.motif }}</td><td data-label="Personnes recherchées">{{ request.effectif }}</td><td data-label="Budget de salaire de base / personne">{{ request.budgetSalaireBase | number:'1.0-2' }}</td>
+            <td data-label="Statut"><span class="status-badge">{{ request.statut }}</span></td><td data-label="Date">{{ request.soumiseAt | date:'dd/MM/yyyy' }}</td><td class="arrow"><i class="pi pi-chevron-right" aria-hidden="true"></i></td>
+          </tr>
+        }
+      </tbody></table></div>
+    }
+  </section>
+</main>
+
+<p-dialog header="Examen de la demande" [(visible)]="detailVisible" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" [style]="{ width: 'min(720px, calc(100vw - 30px))' }" styleClass="workflow-dialog">
+  @if (detailLoading) {
+    <div class="empty-state"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement du dossier…</div>
+  } @else if (selected; as request) {
+    <div class="detail-body">
+      <header class="detail-heading"><div><span class="eyebrow">DEMANDE N°{{ request.id }} · {{ request.departement }}</span><h2>{{ request.poste }}</h2></div><span class="status-badge">{{ request.statut }}</span></header>
+      <div class="detail-grid">
+        <div><span>Demandeur</span><strong>{{ request.demandeur }}</strong></div><div><span>Motif</span><strong>{{ request.motif }}</strong></div>
+        <div><span>Personnes recherchées</span><strong>{{ request.effectif }} personne{{ request.effectif > 1 ? 's' : '' }}</strong></div><div><span>Budget de salaire de base par personne</span><strong>{{ request.budgetSalaireBase | number:'1.0-2' }}</strong></div>
+        <div><span>Date souhaitée</span><strong>{{ request.dateSouhaitee ? (request.dateSouhaitee | date:'dd/MM/yyyy') : 'Non précisée' }}</strong></div><div><span>Envoyée le</span><strong>{{ request.soumiseAt | date:'dd/MM/yyyy, HH:mm' }}</strong></div>
+      </div>
+      <section class="justification"><span>Justification du manager</span><p>{{ request.justification }}</p></section>
+      @if (request.historique.length > 0) {
+        <section class="history"><span class="history-label">Historique</span>
+          @for (entry of request.historique; track $index) {
+            <article><i class="pi pi-check-circle" aria-hidden="true"></i><div><strong>{{ entry.etape }} — {{ entry.decision }}</strong><small>{{ entry.validateur }} · {{ entry.decideeAt | date:'dd/MM/yyyy, HH:mm' }}</small>@if (entry.commentaire) { <p>{{ entry.commentaire }}</p> }</div></article>
+          }
+        </section>
+      }
+      @if (request.actionnable) {
+      <section class="decision-area">
+        @if (rejectMode) {
+          <label for="reject-comment">Motif du refus <span>*</span></label>
+          <textarea id="reject-comment" [(ngModel)]="comment" maxlength="2000" rows="3" placeholder="Expliquez la décision au manager…"></textarea>
+          <div class="decision-actions"><button class="secondary-action" type="button" (click)="rejectMode = false" [disabled]="busy">Retour</button><button class="danger-action" type="button" (click)="reject()" [disabled]="busy">{{ busy ? 'Enregistrement…' : 'Confirmer le refus' }}</button></div>
+        } @else {
+          <label for="decision-comment">Commentaire <small>(facultatif)</small></label>
+          <textarea id="decision-comment" [(ngModel)]="comment" maxlength="2000" rows="2" placeholder="Ajouter une note à l’historique…"></textarea>
+          <div class="decision-actions"><button class="danger-outline" type="button" (click)="beginReject()" [disabled]="busy">Refuser</button><button class="approve-action" type="button" (click)="approve()" [disabled]="busy">{{ busy ? 'Enregistrement…' : (isFinance ? 'Valider et transmettre à l’Administration' : 'Valider et transmettre à la Finance') }}</button></div>
+        }
+      </section>
+      } @else {
+        <p class="read-only-note"><i class="pi pi-lock" aria-hidden="true"></i> Cette demande a déjà quitté votre file d’action. Le détail et son historique restent consultables en lecture seule.</p>
+      }
+    </div>
+  }
+</p-dialog>

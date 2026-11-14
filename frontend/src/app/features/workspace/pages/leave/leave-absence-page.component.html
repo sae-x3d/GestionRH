@@ -1,0 +1,21 @@
+<main class="absence-page">
+  <header class="page-heading"><div><p class="eyebrow">RESSOURCES HUMAINES / TEMPS</p><h1>Planning des absences</h1><p class="page-intro">Consultez les absences enregistrées et saisissez celles qui ne proviennent pas d’une demande de congé approuvée.</p></div></header>
+  <section class="panel absence-entry"><div class="section-heading"><div><p class="eyebrow">SAISIE RH</p><h2>Enregistrer une absence</h2></div></div>
+    <div class="absence-form">
+      <label>Salarié<select [(ngModel)]="form.employeId"><option [ngValue]="null">Choisir un salarié</option>@for (employee of employees; track employee.id) { <option [ngValue]="employee.id">{{ employee.matricule }} · {{ employee.nom }} — {{ employee.departement }}</option> }</select></label>
+      <label>Type<select [(ngModel)]="form.typeCode">@for (type of types; track type.code) { <option [value]="type.code">{{ type.libelle }}{{ type.justificatifRequis ? ' · justificatif attendu' : '' }}</option> }</select></label>
+      <label>Début<input type="date" [(ngModel)]="form.dateDebut" /></label><label>Fin<input type="date" [(ngModel)]="form.dateFin" /></label>
+      <label class="wide">Motif<textarea rows="3" maxlength="2000" [(ngModel)]="form.motif" placeholder="Motif et contexte à conserver dans le dossier"></textarea></label>
+      @if (selectedType?.justificatifRequis) { <label class="wide">Justificatif requis (PDF, PNG ou JPEG, 15 Mo max.)<input type="file" accept="application/pdf,image/png,image/jpeg" (change)="selectJustificatif($event)" /><small>{{ justificatif?.name || 'Le document sera accessible aux RH habilités.' }}</small></label> }
+      <label class="check"><input type="checkbox" [(ngModel)]="form.justifiee" /> Justificatif reçu et vérifié</label>
+      <div class="actions wide"><span>Cette saisie ne débite aucun solde de congé. Le planning existant est conservé avec son historique.</span><button type="button" [disabled]="saving" (click)="record()">{{ saving ? 'Enregistrement…' : 'Enregistrer l’absence' }}</button></div>
+    </div>
+  </section>
+  <section class="panel"><div class="section-heading"><div><p class="eyebrow">SUIVI</p><h2>Absences enregistrées</h2></div><label class="month-filter">Mois<input type="month" [value]="filterStart.slice(0,7)" (change)="filterStart = ($any($event.target).value + '-01'); updateRange()" /></label></div>
+    @if (loading) { <p class="inline-state">Chargement des absences…</p> } @else if (!absences.length) { <div class="empty-state">Aucune absence pour cette période.</div> } @else {
+      <div class="absence-table"><div class="table-head"><span>Salarié</span><span>Département</span><span>Type et motif</span><span>Période</span><span>Justificatif</span></div>
+        @for (absence of absences; track absence.id) { <article class="absence-row"><strong>{{ absence.matricule }} · {{ absence.employe }}</strong><span>{{ absence.departement }}</span><span>{{ absence.type }}<small>{{ absence.motif }}</small></span><span>{{ absence.dateDebut | date:'dd/MM/yyyy' }} – {{ absence.dateFin | date:'dd/MM/yyyy' }}</span><span>{{ absence.justificatifPresent ? 'Justificatif' : absence.justifiee ? 'Vérifié' : 'À contrôler' }} @if (absence.justificatifPresent) { <a [href]="'/api/rh/conges/absences/' + absence.id + '/justificatif'">Télécharger</a> }</span></article> }
+      </div>
+    }
+  </section>
+</main>

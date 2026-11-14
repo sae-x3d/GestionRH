@@ -1,0 +1,24 @@
+:host { display: block; }
+.payroll-page { display: grid; gap: 24px; width: 100%; color: #1d3028; }
+.page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
+.eyebrow { margin: 0 0 10px; color: #247a6d; font-size: .72rem; font-weight: 800; letter-spacing: .16em; }
+h1 { margin: 0; font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -.045em; }
+.page-intro { margin: 12px 0 0; color: #65766e; line-height: 1.6; }
+.count-badge,.status { padding: 8px 12px; border: 1px solid #c8ddd4; border-radius: 999px; background: #eef6f1; color: #23695f; font-size: .76rem; font-weight: 750; white-space: nowrap; }
+.bulletin-list { display: grid; gap: 12px; }
+.bulletin-card { display: grid; grid-template-columns: 46px minmax(220px,1fr) minmax(145px,auto) auto; align-items: center; gap: 18px; padding: 20px; border: 1px solid #dce8e2; border-radius: 17px; background: #fff; box-shadow: 0 10px 32px rgb(23 54 43 / 5%); }
+.bulletin-icon { display: grid; width: 44px; height: 44px; place-items: center; border-radius: 13px; background: #eef6f1; color: #267967; font-size: 1.2rem; }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; color: #6a7c73; font-size: .78rem; }
+.status { padding: 4px 8px; font-size: .66rem; }
+.bulletin-info h2 { margin: 7px 0 3px; font-size: 1rem; }
+.bulletin-info p,.bulletin-info small { margin: 0; color: #6a7c73; font-size: .8rem; }
+.bulletin-info small { display: block; margin-top: 5px; }
+.amount { display: grid; gap: 4px; text-align: right; }
+.amount span,.amount small { color: #74847c; font-size: .72rem; }
+.amount strong { color: #1d493a; font-size: 1.1rem; }
+.download { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 14px; border: 0; border-radius: 10px; background: #1e7766; color: white; font: inherit; font-size: .78rem; font-weight: 750; cursor: pointer; }
+.download:disabled { opacity: .65; cursor: wait; }
+.state { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 150px; border: 1px dashed #cbdcd4; border-radius: 17px; color: #64776e; }
+.empty { flex-direction: column; gap: 9px; text-align: center; }.empty i { color: #7ea493; font-size: 1.5rem; }.empty strong { color: #294a3b; }.empty span { font-size: .85rem; }
+@media (max-width: 800px) { .bulletin-card { grid-template-columns: 44px 1fr auto; }.amount { grid-column: 2; text-align: left; }.download { grid-column: 2 / -1; justify-self: start; } }
+@media (max-width: 520px) { .page-heading { align-items: flex-start; flex-direction: column; }.bulletin-card { grid-template-columns: 40px 1fr; gap: 12px; padding: 15px; }.bulletin-icon { width: 40px; height: 40px; }.amount,.download { grid-column: 1 / -1; width: 100%; text-align: left; }.download { justify-self: stretch; }.amount { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; } }

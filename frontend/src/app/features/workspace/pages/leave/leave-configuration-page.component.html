@@ -1,0 +1,43 @@
+<main class="leave-config-page">
+  <header class="page-heading"><div><p class="eyebrow">RESSOURCES HUMAINES / PARAMÉTRAGE</p><h1>Congés et effectifs</h1><p class="page-intro">Configurez les seuils de présence par poste et les règles d’acquisition des congés.</p></div></header>
+
+  @if (loading) {
+    <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des paramètres…</div>
+  } @else if (!data) {
+    <div class="inline-state error-state" role="alert">Les paramètres sont indisponibles. Réessayez plus tard.</div>
+  } @else {
+    <section class="panel" aria-labelledby="staffing-title">
+      <div class="section-heading"><div><p class="eyebrow">COUVERTURE DES ÉQUIPES</p><h2 id="staffing-title">Effectif minimal par poste</h2></div></div>
+      <p class="section-intro">Le seuil déclenche une alerte quand l’effectif actif descend en dessous. Il ne modifie pas la cible autorisée du poste.</p>
+      @if (!data.effectifs.length) { <div class="empty-state">Aucun poste actif à paramétrer.</div> }
+      @else {
+        <div class="table-wrap"><table><thead><tr><th>Département</th><th>Poste</th><th>Actifs / cible</th><th>Minimum actuel</th><th>Nouveau minimum</th><th>Motif du changement</th><th></th></tr></thead>
+          <tbody>@for (rule of data.effectifs; track rule.posteId) {
+            <tr><td>{{ rule.departement }}</td><td><strong>{{ rule.poste }}</strong></td><td>{{ rule.effectifActif }} / {{ rule.effectifAutorise }}</td><td>{{ rule.effectifMinimal }}</td>
+              <td><input pInputText type="number" min="0" step="1" [(ngModel)]="rule.nouveauMinimum" [attr.aria-label]="'Nouveau minimum ' + rule.poste" /></td>
+              <td><input pInputText type="text" maxlength="500" [(ngModel)]="rule.motif" placeholder="Justification de la règle" [attr.aria-label]="'Motif pour ' + rule.poste" /></td>
+              <td><p-button label="Enregistrer" icon="pi pi-save" [disabled]="savingKey !== null" [loading]="savingKey === 'poste-' + rule.posteId" (onClick)="saveMinimum(rule)" /></td>
+            </tr>
+          }</tbody>
+        </table></div>
+      }
+    </section>
+
+    <section class="panel" aria-labelledby="leave-types-title">
+      <div class="section-heading"><div><p class="eyebrow">DROITS À CONGÉ</p><h2 id="leave-types-title">Acquisition mensuelle</h2></div></div>
+      <p class="section-intro">Les taux sont configurables par RH et conservés avec leur date d’effet. Aucun taux légal n’est présumé par l’application.</p>
+      <div class="leave-types-grid">@for (type of data.typesConge; track type.typeId) {
+        <article class="leave-type-card"><div><span class="type-code">{{ type.code }}</span><h3>{{ type.libelle }}</h3><p>{{ type.justificatifRequis ? 'Justificatif requis' : 'Justificatif non requis par défaut' }}</p></div>
+          <label class="type-policy"><input type="checkbox" [(ngModel)]="type.actif" /> Type utilisable par les salariés</label>
+          <label class="type-policy"><input type="checkbox" [(ngModel)]="type.justificatifRequis" /> Justificatif obligatoire</label>
+          <p-button label="Enregistrer les règles" icon="pi pi-save" [disabled]="savingKey !== null" [loading]="savingKey === 'policy-' + type.typeId" (onClick)="saveTypePolicy(type)" />
+          @if (type.acquisitionActive) {
+            <label>Jours acquis par mois<input pInputText type="number" min="0" step="0.001" [(ngModel)]="type.nouveauTaux" [attr.aria-label]="'Taux mensuel ' + type.libelle" /></label>
+            <p-button label="Enregistrer le taux" icon="pi pi-save" [disabled]="savingKey !== null" [loading]="savingKey === 'type-' + type.typeId" (onClick)="saveAccrual(type)" />
+          } @else { <span class="read-only-note">Ce type n’acquiert pas automatiquement de solde.</span> }
+          @if (type.dateDebut) { <small>Règle en vigueur depuis le {{ type.dateDebut | date:'dd/MM/yyyy' }}</small> }
+        </article>
+      }</div>
+    </section>
+  }
+</main>

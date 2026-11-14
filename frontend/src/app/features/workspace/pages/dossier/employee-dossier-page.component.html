@@ -1,0 +1,110 @@
+<main class="dossier-page">
+  @if (loading) {
+    <section class="state"><i class="pi pi-spin pi-spinner"></i> Chargement du dossier…</section>
+  } @else if (dossier; as person) {
+    <header class="dossier-heading">
+      <div><p class="eyebrow">{{ isRh ? 'RH / PERSONNEL' : self ? 'MON ESPACE / DOSSIER' : 'MON ÉQUIPE / DOSSIER' }}</p>
+        <h1>{{ person['nom'] }}<span>.</span></h1><p>{{ person['matricule'] }} · {{ person['poste'] }} · {{ person['departement'] }} · Provenance : {{ person['provenance'] }}</p>
+      </div><span class="status">{{ person['statut'] }}</span>
+    </header>
+    <section class="identity-card">
+      <div class="avatar">@if (person['photoUrl']) { <img [src]="person['photoUrl']" alt="Photo du salarié" /> } @else { <i class="pi pi-user"></i> }</div>
+      <div><span>FICHE SALARIÉ</span><h2>{{ person['nom'] }}</h2><p>{{ person['matricule'] }} · {{ person['poste'] }}</p><small>Embauché le {{ person['date_embauche'] | date:'dd/MM/yyyy' }} · Ancienneté {{ person['anciennete'] }}</small></div>
+    </section>
+    <nav class="tabs" aria-label="Sections du dossier">@for (item of tabs; track item.id) { <button type="button" [class.active]="tab === item.id" (click)="setTab(item.id)">{{ item.label }}</button> }</nav>
+
+    @if (tab === 'overview') {
+      <section class="bento-grid">
+        <article class="panel summary"><p class="eyebrow">SITUATION ACTUELLE</p><h2>Vue d’ensemble</h2>
+          <dl><div><dt>Département</dt><dd>{{ person['departement'] }}</dd></div><div><dt>Poste</dt><dd>{{ person['poste'] }}</dd></div><div><dt>Provenance</dt><dd>{{ person['provenance'] }}</dd></div><div><dt>Matricule</dt><dd>{{ person['matricule'] }}</dd></div><div><dt>Statut administratif</dt><dd>{{ person['statut'] }}</dd></div><div><dt>Date d’embauche</dt><dd>{{ person['date_embauche'] | date:'dd/MM/yyyy' }}</dd></div></dl>
+        </article>
+        @if (person['contratActif']; as contract) {
+          <article class="panel"><p class="eyebrow">CONTRAT ACTIF</p><h2>{{ contract['type'] }}</h2><p>{{ contract['numero'] }} · {{ contract['statut'] }}</p><p>Depuis le {{ contract['dateDebut'] | date:'dd/MM/yyyy' }}</p>@if (isRh || self) { <strong>{{ contract['salaireBase'] | number:'1.0-0' }} Ar / mois</strong> }</article>
+        }
+        @if (isRh || self) {
+          <article class="panel alert-panel"><p class="eyebrow">SUIVI ADMINISTRATIF</p><h2>À régulariser</h2>
+            @if ((person['documentsManquants'] ?? []).length === 0 && (person['documentsExpirants'] ?? []).length === 0) { <p>Aucun document manquant ou arrivant à expiration.</p> }
+            @else { @for (item of person['documentsManquants'] ?? []; track item.code) { <p><i class="pi pi-exclamation-circle"></i> Manquant : {{ item.libelle }}</p> } @for (item of person['documentsExpirants'] ?? []; track item.id) { <p><i class="pi pi-clock"></i> {{ item.libelle }} · {{ item.dateExpiration | date:'dd/MM/yyyy' }}</p> } }
+          </article>
+        }
+      </section>
+    } @else if (tab === 'personal') {
+      <section class="panel"><p class="eyebrow">COORDONNÉES ET CONTACTS</p><h2>Informations personnelles</h2>
+        @if (person['informationsPersonnelles']; as info) { <dl><div><dt>Téléphone</dt><dd>{{ info['phoneNumber'] || 'Non renseigné' }}</dd></div><div><dt>Région</dt><dd>{{ info['region'] || 'Non renseignée' }}</dd></div><div><dt>Adresse</dt><dd>{{ info['adresse'] || 'Non renseignée' }}</dd></div><div><dt>Ville / code postal</dt><dd>{{ info['ville'] || '—' }} {{ info['codePostal'] || '' }}</dd></div><div><dt>Pays</dt><dd>{{ info['pays'] || 'Non renseigné' }}</dd></div><div><dt>Contact d’urgence</dt><dd>{{ info['contactUrgenceNom'] || 'Non renseigné' }} · {{ info['contactUrgenceTelephone'] || '' }}</dd></div></dl> }
+        @else { <p>Ces informations sont réservées au salarié concerné et aux RH.</p> }
+      </section>
+    } @else if (tab === 'professional') {
+      <section class="panel"><p class="eyebrow">AFFECTATION</p><h2>Situation professionnelle</h2>
+        <dl><div><dt>Poste</dt><dd>{{ person['poste'] }}</dd></div><div><dt>Département</dt><dd>{{ person['departement'] }}</dd></div>
+          <div><dt>Managers du département</dt><dd>{{ person['responsables_departement'] || 'Aucun manager actif renseigné' }}</dd></div>
+          <div><dt>Statut administratif</dt><dd>{{ person['statut'] }}</dd></div><div><dt>Historique des statuts</dt><dd>{{ (person['historiqueStatuts'] ?? []).length }} événement{{ (person['historiqueStatuts'] ?? []).length === 1 ? '' : 's' }}</dd></div>
+        </dl>
+      </section>
+      @if (isRh) {
+        <section class="panel status-panel"><p class="eyebrow">GESTION RH</p><h2>Modifier le statut administratif</h2>
+          <form class="correction-form" (submit)="$event.preventDefault(); changeStatus()">
+            <label>Nouveau statut<select name="statusCode" [(ngModel)]="statusCode"><option value="">Choisir un statut</option>@for (item of availableStatusOptions(person['statut_code']); track item['code']) { <option [value]="item['code']">{{ item['libelle'] }}</option> }</select></label>
+            <label>Date d’effet<input name="statusDate" type="date" [(ngModel)]="statusDate" required /></label>
+            <label>Motif<textarea name="statusReason" [(ngModel)]="statusReason" rows="3" maxlength="2000" required></textarea></label>
+            <button type="submit" [disabled]="savingStatus">{{ savingStatus ? 'Enregistrement…' : 'Enregistrer le statut' }}</button>
+          </form>
+        </section>
+      }
+      @if ((person['historiqueAffectations'] ?? []).length) {
+        <section class="panel"><p class="eyebrow">PARCOURS PROFESSIONNEL</p><h2>Historique des affectations</h2><div class="timeline">
+          @for (item of person['historiqueAffectations']; track $index) { <article><span class="timeline-dot"></span><div><strong>{{ item['nouveauPoste'] }} · {{ item['nouveauDepartement'] }}</strong><small>{{ item['dateEffet'] | date:'dd/MM/yyyy' }} · {{ item['acteur'] || 'Système' }}</small><p>@if (item['ancienPoste']) { Depuis {{ item['ancienPoste'] }} · {{ item['ancienDepartement'] }}. } {{ item['motif'] }}</p></div></article> }
+        </div></section>
+      }
+      @if ((person['contratsHistorique'] ?? []).length && (isRh || self)) {
+        <section class="panel"><p class="eyebrow">PARCOURS CONTRACTUEL</p><h2>Historique des contrats</h2><div class="timeline">
+          @for (contract of person['contratsHistorique']; track contract['id']) { <article><span class="timeline-dot"></span><div><strong>{{ contract['numero'] }} · {{ contract['type'] }}</strong><small>{{ contract['statut'] }} · du {{ contract['dateDebut'] | date:'dd/MM/yyyy' }} @if (contract['dateFin']) { au {{ contract['dateFin'] | date:'dd/MM/yyyy' }} }</small>@if (isRh) { <p>Salaire de base : {{ contract['salaireBase'] | number:'1.0-0' }} Ar / mois</p> }</div><button class="file-action" type="button" (click)="downloadContract(contract)"><i class="pi pi-file-pdf"></i> Consulter le contrat PDF</button></article> }
+        </div></section>
+      }
+    } @else if (tab === 'documents') {
+      <section class="panel"><p class="eyebrow">DOSSIER PRIVÉ</p><h2>Documents administratifs</h2><p>PDF, PNG ou JPEG, 15 Mo maximum. Chaque nouvel envoi crée une version conservée dans le dossier.</p>
+                @if ((isRh || self) && person['cvCandidature']; as cv) {
+          <article class="document-row linked-file"><i class="pi pi-file-pdf"></i><div><strong>CV de la candidature retenue</strong><span>{{ cv['offre'] }} · déposé le {{ cv['envoyeeAt'] | date:'dd/MM/yyyy' }}</span><small>{{ cv['nomFichier'] }} · document de recrutement</small></div><button type="button" (click)="downloadRecruitmentCv()" aria-label="Télécharger le CV"><i class="pi pi-download"></i></button></article>
+        }
+        @if (self || isRh) {
+          @if (versioningDocumentId) { <p class="version-note">Vous ajoutez une nouvelle version d’un document existant. Les versions précédentes restent archivées.</p> }
+          <form class="upload-form" (submit)="$event.preventDefault(); uploadDocument()">
+            <label>Catégorie<select name="typeId" [(ngModel)]="selectedTypeId"><option [ngValue]="null">Choisir une catégorie</option>@for (type of documentTypes; track type.id) { <option [ngValue]="type.id">{{ type.libelle }}{{ type.obligatoire ? ' · obligatoire' : '' }}</option> }</select></label>
+            <label>Fichier<input type="file" accept="application/pdf,image/png,image/jpeg,.pdf,.png,.jpg,.jpeg" (change)="selectFile($event)" /></label>
+            <label>Date d’émission<input type="date" [(ngModel)]="issueDate" name="issueDate" /></label><label>Date d’expiration<input type="date" [(ngModel)]="expiryDate" name="expiryDate" /></label>
+            <button type="submit" [disabled]="uploading"><i [class]="uploading ? 'pi pi-spin pi-spinner' : 'pi pi-upload'"></i>{{ uploading ? 'Envoi…' : versioningDocumentId ? 'Enregistrer la nouvelle version' : 'Ajouter le document' }}</button>
+          </form>
+        }
+        @if (!documents.length) { <div class="empty"><i class="pi pi-folder-open"></i><strong>Aucun document enregistré</strong></div> }
+        @else { <div class="document-list">@for (item of documents; track item['id']) {
+          <article class="document-row"><i class="pi pi-file"></i><div><strong>{{ item['type'] }}</strong><span>{{ item['nomFichier'] }} · version {{ item['version'] }}</span><small>@if (item['dateExpiration']) { Expire le {{ item['dateExpiration'] | date:'dd/MM/yyyy' }} } @else { Sans date d’expiration } @if (item['expire']) { · EXPIRÉ }</small></div>
+            <button type="button" (click)="download(item)" aria-label="Télécharger la version actuelle"><i class="pi pi-download"></i></button>
+            <button type="button" (click)="toggleVersions(item)" [attr.aria-expanded]="versionsExpandedDocumentId === item['id']" aria-label="Afficher les versions"><i class="pi pi-history"></i></button>
+            @if (self || isRh) { <button type="button" (click)="startNewVersion(item)" aria-label="Ajouter une version"><i class="pi pi-refresh"></i></button> }
+            @if (isRh) { <button type="button" (click)="archive(item)" [disabled]="archiveBusy === item['id']" aria-label="Archiver"><i class="pi pi-inbox"></i></button> }
+          </article>
+          @if (versionsExpandedDocumentId === item['id']) {
+            @if (versionsLoadingDocumentId === item['id']) { <div class="version-list-state"><i class="pi pi-spin pi-spinner"></i> Chargement des versions…</div> }
+            @else { <div class="version-list">@for (version of versionsFor(item['id']); track version['versionId']) { <article><span>Version {{ version['numeroVersion'] }}</span><small>{{ version['nomFichier'] }} · {{ version['ajouteAt'] | date:'dd/MM/yyyy' }}</small><button type="button" (click)="downloadVersion(item, version)">Télécharger</button></article> }</div> }
+          }
+        }</div> }
+      </section>
+    } @else if (tab === 'history') {
+      <section class="panel"><p class="eyebrow">TRAÇABILITÉ</p><h2>Historique du dossier</h2><div class="timeline">
+        @for (item of person['evenements'] ?? []; track $index) { <article><span class="timeline-dot"></span><div><strong>{{ item['type'] }}</strong><small>{{ item['dateEvenement'] | date:'dd/MM/yyyy à HH:mm' }} · {{ item['acteur'] || 'Système' }}</small><p>{{ item['resume'] }} @if (item['motif']) { · {{ item['motif'] }} }</p></div></article> }
+        @for (item of person['historiqueStatuts'] ?? []; track $index) { <article><span class="timeline-dot"></span><div><strong>Statut : {{ item['statut'] }}</strong><small>Effet le {{ item['dateEffet'] | date:'dd/MM/yyyy' }} · {{ item['acteur'] || 'Système' }}</small><p>{{ item['motif'] }}</p></div></article> }
+          @for (item of person['historiqueAffectations'] ?? []; track $index) { <article><span class="timeline-dot"></span><div><strong>{{ item['provenance'] }} : {{ item['nouveauPoste'] }}</strong><small>Effet le {{ item['dateEffet'] | date:'dd/MM/yyyy' }} · {{ item['acteur'] || 'Système' }}</small><p>{{ item['motif'] }}</p></div></article> }
+        @if (!(person['evenements'] ?? []).length && !(person['historiqueStatuts'] ?? []).length && !(person['historiqueAffectations'] ?? []).length) { <div class="empty"><i class="pi pi-history"></i><strong>Aucun événement historisé</strong></div> }
+      </div></section>
+    } @else {
+      @if (editableRequests) {
+        <section class="panel"><p class="eyebrow">CORRECTION DU DOSSIER</p><h2>Demander une modification</h2><p>Le dossier n’est mis à jour qu’après validation par les RH.</p>
+          <form class="correction-form" (submit)="$event.preventDefault(); submitCorrection()"><label>Champ<select name="field" [(ngModel)]="selectedField">@for (field of correctionFields; track field.code) { <option [value]="field.code">{{ field.label }}</option> }</select></label><label>Nouvelle valeur<input name="newValue" [(ngModel)]="newValue" maxlength="250" required /></label><label>Motif<textarea name="reason" [(ngModel)]="reason" rows="3" maxlength="2000" required></textarea></label><label>Pièce justificative (facultative)<input type="file" accept="application/pdf,image/png,image/jpeg,.pdf,.png,.jpg,.jpeg" (change)="selectCorrectionFile($event)" /></label><button type="submit" [disabled]="savingRequest">{{ savingRequest ? 'Envoi…' : 'Soumettre la demande' }}</button></form>
+        </section>
+      }
+      <section class="panel requests-panel"><p class="eyebrow">SUIVI</p><h2>{{ isRh ? 'Demandes de correction' : 'Mes demandes de correction' }}</h2>
+        @if (!corrections.length) { <div class="empty"><i class="pi pi-check-circle"></i><strong>Aucune demande</strong></div> }
+        @else { @for (item of corrections; track item['id']) { <article class="request-row"><div><strong>{{ item['champ'] }} · {{ item['statut'] }}</strong>@if (isRh) { <small>{{ item['employe'] }} · {{ item['matricule'] }}</small> }<p>{{ item['ancienneValeur'] || 'Non renseigné' }} → {{ item['nouvelleValeur'] }}</p><small>Motif : {{ item['motif'] }}</small>@if (item['commentaireDecision']) { <small>Réponse RH : {{ item['commentaireDecision'] }}</small> }@if (item['pieceJointe']) { <button type="button" class="text-action" (click)="downloadCorrectionAttachment(item)"><i class="pi pi-paperclip"></i> {{ item['pieceJointe'] }}</button> }</div><time>{{ item['soumiseAt'] | date:'dd/MM/yyyy' }}</time>@if (self && item['statutCode'] === 'SOUMISE') { <button type="button" class="cancel-request" [disabled]="savingRequest" (click)="cancelCorrection(item)">Annuler</button> }</article> } }
+      </section>
+    }
+  }
+</main>
