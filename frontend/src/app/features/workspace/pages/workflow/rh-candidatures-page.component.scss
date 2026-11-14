@@ -14,6 +14,12 @@ h1 { margin: 0; color: #1c2923; font-size: clamp(26px, 3vw, 36px); line-height: 
 .tile-copy small, .candidate-main small { overflow: hidden; color: #7a8980; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .tile-copy strong, .candidate-main strong { overflow: hidden; color: #26372e; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .tile-copy > span, .candidate-main > span { color: #66756c; font-size: 10px; }
+.offer-tile .tile-copy { flex: 1 1 150px; }
+.staffing-copy { display: grid; min-width: 118px; gap: 4px; padding-left: 12px; border-left: 1px solid #e8eeea; }
+.staffing-copy strong { color: #385d48; font-size: 11px; }
+.staffing-copy span, .staffing-copy small { color: #748179; font-size: 9px; line-height: 1.4; }
+.offer-status { flex: 0 0 auto; padding: 6px 8px; border-radius: 999px; background: #edf5f0; color: #38634a; font-size: 9px; font-weight: 750; white-space: nowrap; }
+.offer-status.closed { background: #f2f0ed; color: #777168; }
 .tile-count { display: grid; min-width: 50px; margin-left: auto; color: #325d47; font-size: 20px; font-weight: 750; text-align: center; }
 .tile-count small { margin-top: 2px; color: #7a8980; font-size: 9px; font-weight: 500; }
 .tile-arrow { color: #819188; font-size: 12px; }
@@ -79,6 +85,10 @@ h1 { margin: 0; color: #1c2923; font-size: clamp(26px, 3vw, 36px); line-height: 
   .page-heading { align-items: flex-start; flex-direction: column; }
   .offer-grid, .candidate-grid { grid-template-columns: 1fr; }
   .offer-tile { padding: 13px; }
+  .offer-tile { flex-wrap: wrap; }
+  .offer-tile .tile-copy { flex: 1 1 calc(100% - 58px); }
+  .staffing-copy { flex: 1 1 130px; margin-left: 55px; padding-left: 10px; }
+  .offer-status { margin-left: auto; }
   .candidate-card { gap: 9px; }
   .status-pill { max-width: 115px; }
   .filter-bar { align-items: flex-start; flex-direction: column; }

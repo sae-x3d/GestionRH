@@ -34,6 +34,7 @@ export class PublicLayoutComponent {
     switch (role) {
       case 'simple_user': return [
         ...common,
+        { label: 'Mes candidatures', icon: 'pi-file-edit', route: '/espace/candidatures' },
         { label: 'Notifications', icon: 'pi-bell', route: '/espace/notifications' }
       ];
       case 'employe': return [

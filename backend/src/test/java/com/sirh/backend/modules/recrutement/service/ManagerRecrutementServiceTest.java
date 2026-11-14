@@ -22,6 +22,7 @@ import com.sirh.backend.modules.recrutement.repository.StatutDemandeRepository;
 import com.sirh.backend.modules.recrutement.repository.ValidationDemandeRepository;
 import com.sirh.backend.modules.recrutement.repository.EtapeCircuitRepository;
 import com.sirh.backend.modules.recrutement.repository.DecisionValidationRepository;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
@@ -29,6 +30,8 @@ import org.springframework.web.server.ResponseStatusException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -46,6 +49,7 @@ class ManagerRecrutementServiceTest {
     private DecisionValidationRepository decisions;
     private AuthUserRepository users;
     private NotificationCenterService notificationCenter;
+    private JdbcTemplate jdbc;
     private ManagerRecrutementService service;
 
     @BeforeEach
@@ -61,8 +65,12 @@ class ManagerRecrutementServiceTest {
         decisions = mock(DecisionValidationRepository.class);
         users = mock(AuthUserRepository.class);
         notificationCenter = mock(NotificationCenterService.class);
+        jdbc = mock(JdbcTemplate.class);
         service = new ManagerRecrutementService(departements, postes, motifs, statuts, circuits, demandes,
-            validations, etapes, decisions, users, notificationCenter);
+            validations, etapes, decisions, users, notificationCenter, jdbc);
+
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), any(Object[].class)))
+            .thenAnswer(invocation -> invocation.<String>getArgument(0).contains("effectif_autorise") ? 2 : 0);
 
         var department = mock(DepartementEntity.class);
         when(department.getId()).thenReturn(12);

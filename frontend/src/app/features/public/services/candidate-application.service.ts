@@ -21,7 +21,8 @@ export interface ReceivedCandidature {
 
 export interface RhOfferCandidates {
   id: number; titre: string; poste: string; departement: string;
-  effectifRestant: number; nombreCandidatures: number;
+  effectif: number; effectifRecrute: number; effectifRestant: number;
+  nombreCandidatures: number; statutCode: string; statut: string; dateCloture: string;
 }
 
 @Injectable({ providedIn: 'root' })

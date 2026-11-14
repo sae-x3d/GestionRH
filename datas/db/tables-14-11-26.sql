@@ -1124,25 +1124,6 @@ CREATE TABLE IF NOT EXISTS statuts_bulletin_paie (
     libelle VARCHAR(100) NOT NULL UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS variables_paie (
-    id SERIAL PRIMARY KEY,
-    periode_id INTEGER NOT NULL REFERENCES periodes_paie(id) ON DELETE RESTRICT,
-    employe_id INTEGER NOT NULL REFERENCES employes(id) ON DELETE RESTRICT,
-    rubrique_id INTEGER NOT NULL REFERENCES rubriques_paie(id) ON DELETE RESTRICT,
-    quantite NUMERIC(12, 3) NOT NULL DEFAULT 1,
-    montant_unitaire NUMERIC(14, 2),
-    montant NUMERIC(14, 2) NOT NULL,
-    session_pointage_id INTEGER REFERENCES sessions_pointage(id) ON DELETE RESTRICT,
-    absence_id INTEGER REFERENCES absences(id) ON DELETE RESTRICT,
-    avance_id INTEGER REFERENCES avances_salariales(id) ON DELETE RESTRICT,
-    source_detail TEXT NOT NULL,
-    statut_id INTEGER NOT NULL REFERENCES statuts_variable_paie(id) ON DELETE RESTRICT,
-    saisi_par_id INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-    valide_par_id INTEGER REFERENCES users(id) ON DELETE RESTRICT,
-    valide_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE IF NOT EXISTS statuts_avance_paie (
     id SERIAL PRIMARY KEY,
     code VARCHAR(30) NOT NULL UNIQUE,
@@ -1160,6 +1141,25 @@ CREATE TABLE IF NOT EXISTS avances_salariales (
     valide_par_id INTEGER REFERENCES users(id) ON DELETE RESTRICT,
     valide_at TIMESTAMPTZ,
     motif VARCHAR(500) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS variables_paie (
+    id SERIAL PRIMARY KEY,
+    periode_id INTEGER NOT NULL REFERENCES periodes_paie(id) ON DELETE RESTRICT,
+    employe_id INTEGER NOT NULL REFERENCES employes(id) ON DELETE RESTRICT,
+    rubrique_id INTEGER NOT NULL REFERENCES rubriques_paie(id) ON DELETE RESTRICT,
+    quantite NUMERIC(12, 3) NOT NULL DEFAULT 1,
+    montant_unitaire NUMERIC(14, 2),
+    montant NUMERIC(14, 2) NOT NULL,
+    session_pointage_id INTEGER REFERENCES sessions_pointage(id) ON DELETE RESTRICT,
+    absence_id INTEGER REFERENCES absences(id) ON DELETE RESTRICT,
+    avance_id INTEGER REFERENCES avances_salariales(id) ON DELETE RESTRICT,
+    source_detail TEXT NOT NULL,
+    statut_id INTEGER NOT NULL REFERENCES statuts_variable_paie(id) ON DELETE RESTRICT,
+    saisi_par_id INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    valide_par_id INTEGER REFERENCES users(id) ON DELETE RESTRICT,
+    valide_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
