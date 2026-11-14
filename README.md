@@ -2,19 +2,12 @@
 
 <img src="README-hero.svg" alt="Animation de présentation du SIRH" width="100%">
 
-# OVAY NY BASE DE CLONEO LE APPLI
-
-### 💥 LE SIRH QUI A PLUS DE NAVS QUE TON NAVIGATEUR A D’ONGLETS 💥
-
-**RECRUTEMENT ! DOSSIERS ! PLANNING ! CONGÉS ! PAIE !**
-
-*Une base clonée ? Elle tremble déjà.*
 
 <br>
 
 `SPRING BOOT`　✦　`ANGULAR`　✦　`POSTGRESQL`
 
-### ⚡ 100 % RH · 200 % drama · 0 % calme ⚡
+### ⚡ 100 % RH · 200 % drama · 300 % boblite⚡
 
 </div>
 
@@ -22,8 +15,7 @@
 
 ## 🚨 ALERTE AU CLONAGE 🚨
 
-> Le dépôt a été cloné. La base regarde autour d’elle. Quelqu’un a crié **« OVAY NY BASE DE CLONEO LE APPLI »**. Depuis, les tables font semblant d’être occupées.
-
+Zavatra vaovao mintsy ty
 ```text
 ╔══════════════════════════════════════════════════════════════╗
 ║  👔  UN MANAGER DEMANDE       →  📬  RH EXAMINE              ║
@@ -45,7 +37,7 @@
 
 <div align="center">
 
-### 🧨 LA BASE EST CLONÉE. LE SIRH EST LANCÉ. LE RH EST AU COURANT. 🧨
+### 🧨 ATAOVY MLAY. 🧨
 
 **FIN DU COMMUNIQUÉ. RETOUR AUX TABLES.**
 
