@@ -12,7 +12,7 @@ INSERT INTO statuts_validation_compte (code, libelle) VALUES
 INSERT INTO statuts_administratifs_employe (code, libelle) VALUES
  ('EN_PREPARATION','En preparation'),('ACTIF','Actif'),('EN_PREAVIS','En preavis'),('SORTI','Sorti');
 INSERT INTO types_documents_employe (code, libelle, obligatoire, visible_manager) VALUES
- ('PIECE_IDENTITE','Piece d identite',TRUE,FALSE),('DIPLOME','Diplome',FALSE,FALSE),
+ ('PIECE_IDENTITE','Carte nationale d identite (CIN)',TRUE,FALSE),('DIPLOME','Diplome',FALSE,FALSE),
  ('ATTESTATION_EMPLOI','Attestation professionnelle',FALSE,FALSE),('JUSTIFICATIF_DOMICILE','Justificatif de domicile',FALSE,FALSE),
  ('CV','CV du salarie',FALSE,FALSE),('CONTRAT_TRAVAIL','Contrat de travail',TRUE,FALSE),
  ('AUTRE','Autre document administratif',FALSE,FALSE);
@@ -43,10 +43,10 @@ INSERT INTO statuts_demande_conge (code, libelle) VALUES
 INSERT INTO decisions_conge (code, libelle) VALUES ('APPROUVEE','Approuvee'),('REFUSEE','Refusee');
 INSERT INTO types_mouvement_solde_conge (code, libelle) VALUES
  ('ACQUISITION','Jours acquis'),('PRISE','Conge consomme'),('REGULARISATION','Regularisation RH');
-INSERT INTO types_absence (code, libelle, justificatif_requis, compte_effectif, impacte_planning) VALUES
- ('MALADIE','Absence pour maladie',TRUE,FALSE,TRUE),('ABSENCE_AUTORISEE','Absence autorisee',FALSE,FALSE,TRUE),
- ('ABSENCE_INJUSTIFIEE','Absence injustifiee',FALSE,FALSE,TRUE),('RETARD','Retard',FALSE,FALSE,FALSE),
- ('SORTIE_ANTICIPEE','Depart anticipe',FALSE,FALSE,FALSE);
+INSERT INTO types_absence (code, libelle, justificatif_requis, compte_effectif, impacte_planning, retenue_paie) VALUES
+ ('MALADIE','Absence pour maladie',TRUE,FALSE,TRUE,FALSE),('ABSENCE_AUTORISEE','Absence autorisee',FALSE,FALSE,TRUE,FALSE),
+ ('ABSENCE_INJUSTIFIEE','Absence injustifiee',FALSE,FALSE,TRUE,TRUE),('RETARD','Retard',FALSE,FALSE,FALSE,FALSE),
+ ('SORTIE_ANTICIPEE','Depart anticipe',FALSE,FALSE,FALSE,FALSE);
 INSERT INTO statuts_demande_recrutement (code, libelle) VALUES
  ('BROUILLON','Brouillon'),('SOUMISE','Soumise'),('A_VALIDER_RH','A valider par les RH'),
  ('A_VALIDER_FINANCE','A valider par la Finance'),('A_CREER_OFFRE','A transformer en offre'),('OFFRE_CREEE','Offre creee'),
@@ -61,7 +61,7 @@ INSERT INTO types_notifications (code, libelle) VALUES
  ('COMPTE_STATUT','Mise a jour du compte'),('INSCRIPTION_A_TRAITER','Nouvelle inscription a traiter'),
  ('DOSSIER_A_VALIDER','Demande de dossier a traiter'),('DOSSIER_STATUT','Mise a jour du dossier salarie'),
  ('CONGE_A_VALIDER','Demande de conge a valider'),('CONGE_STATUT','Mise a jour de demande de conge'),
- ('EFFECTIF_SOUS_MINIMUM','Alerte de sous-effectif');
+ ('EFFECTIF_SOUS_MINIMUM','Alerte de sous-effectif'),('BULLETIN_PAIE','Bulletin de paie disponible');
 INSERT INTO statuts_candidature (code, libelle) VALUES
  ('ENVOYEE_RH','Transmise aux RH'),('PRESELECTIONNEE','Preselectionnee'),('ENTRETIEN_PROPOSE','Entretien propose'),
  ('ENTRETIEN_ACCEPTE','Entretien accepte'),('ENTRETIEN_REFUSE','Entretien refuse'),('ENTRETIEN_EFFECTUE','Entretien effectue'),
@@ -375,7 +375,9 @@ INSERT INTO types_anomalie_pointage (code,libelle,niveau_id) VALUES
  ('POINTAGE_HORS_PLANNING','Pointage hors planning',(SELECT id FROM niveaux_anomalie_pointage WHERE code='A_VERIFIER')),
  ('RAS','Aucune anomalie',(SELECT id FROM niveaux_anomalie_pointage WHERE code='INFO'));
 INSERT INTO regles_temps_travail (code,libelle,valeur_minutes,cree_par_id) VALUES
- ('RETARD_TOLERE','Tolerance de retard pour le signalement',5,(SELECT id FROM users WHERE username='demo_administration'));
+ ('TOLERANCE_RETARD','Tolerance de retard pour le signalement',5,(SELECT id FROM users WHERE username='demo_administration')),
+ ('TOLERANCE_PAUSE','Tolerance de depassement de pause',5,(SELECT id FROM users WHERE username='demo_administration')),
+ ('TOLERANCE_DEPART','Tolerance de depart anticipe',5,(SELECT id FROM users WHERE username='demo_administration'));
 
 INSERT INTO parametres_horaires_planning (code,libelle,heure_debut,heure_fin,pause_debut,pause_fin) VALUES
  ('JOUR_STANDARD','Horaire administratif',TIME '08:30',TIME '17:30',TIME '12:30',TIME '13:30');
@@ -501,6 +503,7 @@ FROM (VALUES
  ('SME_MENSUEL','Salaire minimum mensuel indicatif',350000::numeric,'MGA/mois','GENERAL','Valeur de demonstration a confirmer avant paie'),
  ('SME_MENSUEL','Salaire minimum mensuel indicatif',350000::numeric,'MGA/mois','AGRICOLE','Valeur de demonstration a confirmer avant paie'),
  ('TAUX_CNAPS_SALARIAL','Taux CNaPS salarial indicatif',0.01::numeric,'ratio',NULL,'A verifier selon les textes applicables'),
+ ('CNAPS_PLAFOND_MULTIPLICATEUR','Multiplicateur du plafond CNaPS SME',8::numeric,'multiplicateur',NULL,'Valeur indiquée par le cadrage; vérifier avant usage'),
  ('TAUX_CNAPS_PATRONAL','Taux CNaPS patronal indicatif',0.13::numeric,'ratio','GENERAL','A verifier selon les textes applicables'),
  ('TAUX_CNAPS_PATRONAL','Taux CNaPS patronal indicatif',0.08::numeric,'ratio','AGRICOLE','A verifier selon les textes applicables'),
  ('TAUX_SANTE_SALARIAL','Taux sante salarial indicatif',0.01::numeric,'ratio',NULL,'A verifier selon affiliation'),
@@ -510,6 +513,14 @@ FROM (VALUES
  ('PRIME_QUALITE_PLAFOND','Plafond prime qualite',0::numeric,'MGA/mois',NULL,'0 sans plafond; aucune evaluation automatique sans module'),
  ('PRIME_ANCIENNETE_TAUX','Taux prime anciennete indicatif',0::numeric,'ratio',NULL,'A parametrer selon politique de remuneration'),
  ('PRIME_FONCTION_MONTANT','Prime responsabilite indicative',0::numeric,'MGA/mois',NULL,'A parametrer selon poste et politique interne'),
+ ('HEURES_SUP_SEUIL_1','Seuil hebdomadaire premiere tranche heures sup',12::numeric,'heure/semaine',NULL,'Cadre fourni dans finalbloc.txt; verifier avant usage'),
+ ('HEURES_SUP_SEUIL_2','Seuil hebdomadaire plafond heures sup',20::numeric,'heure/semaine',NULL,'Cadre fourni dans finalbloc.txt; verifier avant usage'),
+ ('MAJORATION_HEURES_SUP_1','Majoration premiere tranche heures sup',0.30::numeric,'ratio',NULL,'Cadre fourni dans finalbloc.txt; verifier avant usage'),
+ ('MAJORATION_HEURES_SUP_2','Majoration deuxieme tranche heures sup',0.50::numeric,'ratio',NULL,'Cadre fourni dans finalbloc.txt; verifier avant usage'),
+ ('MAJORATION_DIMANCHE','Majoration travail du dimanche',1.00::numeric,'ratio',NULL,'Multiplicateur total 2x; cadre fourni dans finalbloc.txt, a verifier'),
+ ('MAJORATION_NUIT','Majoration travail de nuit',0.50::numeric,'ratio',NULL,'Multiplicateur total 1.5x; cadre fourni dans finalbloc.txt, a verifier'),
+ ('HEURE_NUIT_DEBUT','Heure de debut du travail de nuit',22::numeric,'heure',NULL,'Cadre fourni dans finalbloc.txt; verifier avant usage'),
+ ('HEURE_NUIT_FIN','Heure de fin du travail de nuit',4::numeric,'heure',NULL,'Cadre fourni dans finalbloc.txt; verifier avant usage'),
  ('MINIMUM_IRSA','Minimum de perception IRSA indicatif',3000::numeric,'MGA/mois',NULL,'A confirmer avant calcul de paie')
 ) AS x(code,libelle,valeur,unite,regime_code,source)
 LEFT JOIN regimes_paie r ON r.code=x.regime_code;

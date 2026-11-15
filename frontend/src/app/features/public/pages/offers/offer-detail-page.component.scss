@@ -1,28 +1,28 @@
 :host { display: block; min-width: 0; color: #1b2924; }
 .offer-detail-page { width: 100%; max-width: none; min-height: calc(100vh - 120px); margin: 0; padding: 0; background: #fff; }
-.back-link { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 25px; color: #587666; font-size: 12px; font-weight: 650; text-decoration: none; }
+.back-link { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 25px; color: #587666; font-size: 15.6px; font-weight: 650; text-decoration: none; }
 .back-link:hover { color: #2f5e46; }
 .offer-article { overflow: hidden; border: 1px solid #e2eae5; border-radius: 18px; background: #fff; box-shadow: 0 12px 34px rgb(26 57 44 / 5%); }
 .article-header { padding: clamp(23px, 5vw, 45px); background: #f7faf8; }
-.eyebrow { margin: 0 0 15px; color: #587769; font-size: 10px; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
+.eyebrow { margin: 0 0 15px; color: #587769; font-size: 13px; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
 .eyebrow span { padding: 0 5px; color: #a5b2ac; }
 h1 { max-width: 760px; margin: 0; color: #1e2d25; font-size: clamp(30px, 5.5vw, 54px); line-height: 1.06; letter-spacing: -.05em; overflow-wrap: anywhere; }
-.article-facts { display: flex; flex-wrap: wrap; gap: 12px 20px; margin-top: 23px; color: #65756b; font-size: 11px; }
+.article-facts { display: flex; flex-wrap: wrap; gap: 12px 20px; margin-top: 23px; color: #65756b; font-size: 14.3px; }
 .article-facts span { display: inline-flex; align-items: center; gap: 6px; }
 .article-facts i { color: #73917f; }
 .article-facts strong { color: #33463a; }
-.article-copy { padding: clamp(23px, 5vw, 45px); color: #53635a; font-size: 14px; line-height: 1.8; white-space: pre-line; }
+.article-copy { padding: clamp(23px, 5vw, 45px); color: #53635a; font-size: 18.2px; line-height: 1.8; white-space: pre-line; }
 .article-copy h2 { margin: 0 0 11px; color: #26382e; font-size: 17px; letter-spacing: -.02em; }
 .article-copy p { margin: 0; }
 .article-skills { margin-top: 30px; padding-top: 22px; border-top: 1px solid #e9eeeb; }
-.article-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px clamp(23px, 5vw, 45px); border-top: 1px solid #edf1ef; color: #78857d; font-size: 11px; }
+.article-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px clamp(23px, 5vw, 45px); border-top: 1px solid #edf1ef; color: #78857d; font-size: 14.3px; }
 .article-footer > div { display: grid; gap: 5px; }
 .closing-reminder { color: #476c55; font-weight: 700; }
-.apply-button { display: inline-flex; align-items: center; gap: 8px; padding: 11px 16px; border: 0; border-radius: 9px; background: #315c46; color: #fff; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.apply-button { display: inline-flex; align-items: center; gap: 8px; padding: 11px 16px; border: 0; border-radius: 9px; background: #315c46; color: #fff; font: inherit; font-size: 14.3px; font-weight: 700; cursor: pointer; }
 .apply-button:hover { background: #244b37; }
-.offer-detail-state { display: flex; min-height: 220px; align-items: center; justify-content: center; gap: 10px; color: #728078; font-size: 13px; }
+.offer-detail-state { display: flex; min-height: 220px; align-items: center; justify-content: center; gap: 10px; color: #728078; font-size: 16.9px; }
 .offer-detail-state.missing { flex-direction: column; gap: 9px; text-align: center; }
-.offer-detail-state.missing > i { color: #779482; font-size: 25px; }
-.offer-detail-state strong { color: #34453b; font-size: 14px; }
+.offer-detail-state.missing > i { color: #779482; font-size: 32.5px; }
+.offer-detail-state strong { color: #34453b; font-size: 18.2px; }
 .offer-detail-state a { margin-top: 6px; color: #527361; font-weight: 700; }
 @media (max-width: 600px) { .offer-detail-page { min-height: calc(100vh - 70px); padding: 19px 13px; } .article-footer { align-items: stretch; flex-direction: column; } .apply-button { justify-content: center; } .article-facts { display: grid; } }

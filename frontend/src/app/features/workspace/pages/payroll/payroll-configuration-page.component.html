@@ -50,5 +50,20 @@
         </article>
       }
     </section>
+    <section class="irsa-panel">
+      <div class="irsa-heading"><div><p class="eyebrow">FISCALITÉ / BARÈME PROGRESSIF</p><h2>Tranches IRSA</h2><p>Les tranches sont versionnées ensemble. La dernière borne supérieure reste vide pour couvrir les revenus les plus élevés.</p></div></div>
+      @if (irsaBrackets.length) {
+        <div class="irsa-list">
+          @for (bracket of irsaBrackets; track $index; let i = $index) {
+            <div class="irsa-row"><strong>Tranche {{ i + 1 }}</strong><label>À partir de (Ar)<input pInputText type="number" min="0" [(ngModel)]="bracket.borneInferieure" [disabled]="savingIrsa" /></label>
+              <label>Jusqu’à (Ar)<input pInputText type="number" min="0" [(ngModel)]="bracket.borneSuperieure" [disabled]="savingIrsa || i === irsaBrackets.length - 1" [placeholder]="i === irsaBrackets.length - 1 ? 'Sans plafond' : ''" /></label>
+              <label>Taux (%)<input pInputText type="number" min="0" max="100" step="0.01" [ngModel]="bracket.taux * 100" (ngModelChange)="bracket.taux = $event / 100" [disabled]="savingIrsa" /></label>
+              @if (i < irsaBrackets.length - 1) { <button type="button" class="remove-bracket" [disabled]="savingIrsa" (click)="removeIrsaBracket(i)" aria-label="Supprimer cette tranche">×</button> }
+            </div>
+          }
+        </div>
+        <div class="irsa-actions"><button type="button" class="add-bracket" [disabled]="savingIrsa" (click)="addIrsaBracket()">Ajouter une tranche</button><label>Date d’effet<input pInputText type="date" [(ngModel)]="irsaDateEffet" [disabled]="savingIrsa" /></label><label>Motif<input pInputText maxlength="500" [(ngModel)]="irsaMotif" [disabled]="savingIrsa" placeholder="Source et raison du changement" /></label><p-button label="Versionner le barème" icon="pi pi-save" [disabled]="savingIrsa || !irsaMotif.trim()" [loading]="savingIrsa" (onClick)="saveIrsa()" /></div>
+      } @else { <div class="inline-state">Aucun barème IRSA actif. Réimportez les scripts SQL du bloc 8.</div> }
+    </section>
   }
 </main>

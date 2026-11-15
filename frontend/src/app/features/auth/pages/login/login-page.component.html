@@ -1,18 +1,18 @@
 <div class="form-heading">
-  <span class="eyebrow">ACCÈS SIRH</span>
-  <h2>Bon retour.</h2>
-  <p>Connectez-vous pour accéder à votre espace professionnel.</p>
+  <span class="eyebrow">Ravi de vous revoir</span>
+  <h2>Connectez-vous</h2>
+  <p>Accédez à votre espace professionnel.</p>
 </div>
 
 <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
   <div class="field-group">
-    <label for="login-email">Adresse e-mail ou identifiant</label>
+    <label for="login-email">Adresse e-mail</label>
     <span class="input-wrap">
       <i class="pi pi-envelope" aria-hidden="true"></i>
-      <input id="login-email" type="text" pInputText formControlName="email" placeholder="E-mail ou identifiant" autocomplete="username" />
+      <input id="login-email" type="email" pInputText formControlName="email" placeholder="email" autocomplete="email" />
     </span>
     @if (form.controls.email.touched && form.controls.email.invalid) {
-      <small class="field-error">Saisissez votre e-mail ou votre identifiant.</small>
+      <small class="field-error">Saisissez une adresse e-mail valide.</small>
     }
   </div>
 
@@ -36,7 +36,10 @@
     <span>Se souvenir de moi</span>
   </label>
 
-  <p-button type="submit" [label]="loading ? 'Connexion…' : 'Se connecter'" [disabled]="loading || form.invalid" [icon]="loading ? 'pi pi-spinner pi-spin' : 'pi pi-arrow-right'" iconPos="right" styleClass="submit-button" />
+  <p-button type="submit" label="Se connecter" icon="pi pi-arrow-right" iconPos="right" styleClass="submit-button" />
 </form>
 
 <p class="form-switch">Vous n’avez pas de compte ? <a routerLink="/inscription">Créer un compte</a></p>
+@if (feedback) {
+  <p class="feedback-message" role="status"><i class="pi pi-info-circle" aria-hidden="true"></i>{{ feedback }}</p>
+}

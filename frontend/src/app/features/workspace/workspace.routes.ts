@@ -144,6 +144,11 @@ export const WORKSPACE_ROUTES: Routes = [
         loadComponent: () => import('./pages/payroll/payroll-bulletins-page.component').then((page) => page.PayrollBulletinsPageComponent)
       },
       {
+        path: 'rh/paie/periodes', canActivate: [roleGuard],
+        data: { roles: ['rh'], title: 'Préparation de la paie' },
+        loadComponent: () => import('./pages/payroll/payroll-periods-page.component').then((page) => page.PayrollPeriodsPageComponent)
+      },
+      {
         path: 'employe/paie', canActivate: [roleGuard],
         data: { roles: ['employe', 'manager'], title: 'Mes bulletins de paie', payrollView: 'employee' },
         loadComponent: () => import('./pages/payroll/payroll-bulletins-page.component').then((page) => page.PayrollBulletinsPageComponent)

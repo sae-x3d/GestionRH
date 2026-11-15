@@ -5,11 +5,13 @@ import com.sirh.backend.modules.paie.service.PayrollAdministrationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,7 +39,20 @@ public class PayrollAdministrationController {
         return service.updateParameter(user.getId(), id, request.valeur(), request.dateEffet(), request.motif());
     }
 
+    @GetMapping("/api/administration/paie/irsa")
+    public List<Map<String, Object>> irsa(@AuthenticationPrincipal AuthUserPrincipal user) {
+        return service.irsaBrackets(user.getId());
+    }
+
+    @PutMapping("/api/administration/paie/irsa")
+    public List<Map<String, Object>> updateIrsa(@AuthenticationPrincipal AuthUserPrincipal user,
+            @Valid @RequestBody UpdateIrsa request) {
+        return service.updateIrsaBrackets(user.getId(), request.dateEffet(), request.tranches(), request.motif());
+    }
+
     public record UpdatePayrollParameter(@NotNull @PositiveOrZero BigDecimal valeur,
             @NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateEffet,
             @NotBlank String motif) { }
+    public record UpdateIrsa(@NotNull @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateEffet,
+            @NotEmpty List<PayrollAdministrationService.IrsaBracket> tranches, @NotBlank String motif) { }
 }

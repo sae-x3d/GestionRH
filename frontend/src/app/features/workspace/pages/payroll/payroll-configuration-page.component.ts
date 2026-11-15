@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { NotificationService } from '../../../../core/notifications/notification.service';
-import { PayrollAdministrationService, PayrollParameter } from '../../services/payroll-administration.service';
+import { IrsaBracket, PayrollAdministrationService, PayrollParameter } from '../../services/payroll-administration.service';
 
 @Component({
   selector: 'app-payroll-configuration-page',
@@ -17,10 +17,38 @@ export class PayrollConfigurationPageComponent implements OnInit {
   private readonly service = inject(PayrollAdministrationService);
   private readonly notifications = inject(NotificationService);
   parameters: PayrollParameter[] = [];
+  irsaBrackets: IrsaBracket[] = [];
+  irsaDateEffet = this.today();
+  irsaMotif = '';
+  savingIrsa = false;
   loading = true;
   savingId: number | null = null;
 
-  ngOnInit(): void { this.load(); }
+  ngOnInit(): void { this.load(); this.loadIrsa(); }
+
+  addIrsaBracket(): void {
+    const last = this.irsaBrackets.at(-1);
+    if (!last || last.borneSuperieure === null || last.borneSuperieure <= last.borneInferieure) return;
+    const lower = last.borneSuperieure;
+    last.borneSuperieure = lower + 50000;
+    this.irsaBrackets.push({ borneInferieure: lower + 50000, borneSuperieure: null, taux: last.taux, sourceRegle: 'Barème configurable par Administration' });
+  }
+
+  removeIrsaBracket(index: number): void {
+    if (this.irsaBrackets.length <= 1) return;
+    this.irsaBrackets.splice(index, 1);
+    const last = this.irsaBrackets.at(-1);
+    if (last) last.borneSuperieure = null;
+  }
+
+  saveIrsa(): void {
+    if (this.savingIrsa || !this.irsaMotif.trim() || !this.irsaDateEffet) return;
+    this.savingIrsa = true;
+    this.service.updateIrsa(this.irsaDateEffet, this.irsaMotif, this.irsaBrackets).subscribe({
+      next: rows => { this.irsaBrackets = rows.filter(row => row.modifiable); this.irsaMotif = ''; this.savingIrsa = false; this.notifications.success('Barème IRSA versionné', 'La nouvelle grille est historisée et sera appliquée selon sa date d’effet.'); },
+      error: () => { this.savingIrsa = false; this.notifications.error('Barème non enregistré', 'Vérifiez les bornes contiguës, les taux entre 0 et 100 %, et la date d’effet.'); }
+    });
+  }
 
   save(parameter: PayrollParameter): void {
     const value = Number(parameter.nouvelleValeur);
@@ -50,6 +78,13 @@ export class PayrollConfigurationPageComponent implements OnInit {
         this.loading = false;
       },
       error: () => this.loading = false
+    });
+  }
+
+  private loadIrsa(): void {
+    this.service.getIrsa().subscribe({
+      next: rows => { this.irsaBrackets = rows.filter(row => row.modifiable).sort((a, b) => a.borneInferieure - b.borneInferieure); },
+      error: () => this.notifications.error('Barème indisponible', 'Les tranches IRSA ne peuvent pas être chargées.')
     });
   }
 

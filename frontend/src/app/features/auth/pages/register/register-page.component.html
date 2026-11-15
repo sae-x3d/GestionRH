@@ -1,6 +1,6 @@
 <div class="form-heading register-heading">
-  <span class="eyebrow">INSCRIPTION SIRH</span>
-  <h2>Votre espace commence ici.</h2>
+  <span class="eyebrow">Rejoignez-nous</span>
+  <h2>Créer un compte</h2>
   <p>Renseignez vos informations pour commencer.</p>
 </div>
 
@@ -23,7 +23,7 @@
       <input id="register-username" type="text" pInputText formControlName="username" placeholder="Entrer un username" autocomplete="username" />
     </span>
     @if (form.controls.username.touched && form.controls.username.invalid) {
-      <small class="field-error">Choisissez un identifiant de 3 caractères minimum, avec lettres non accentuées, chiffres, points, tirets ou traits de soulignement.</small>
+      <small class="field-error">Choisissez un identifiant de 3 caractères minimum.</small>
     }
   </div>
 
@@ -55,7 +55,7 @@
         <i class="pi pi-lock" aria-hidden="true"></i>
         <p-password inputId="register-confirm" formControlName="confirmPassword" [feedback]="false" [toggleMask]="true" [fluid]="true" autocomplete="new-password" placeholder="Répétez le mot de passe" inputStyleClass="auth-input-control" />
       </span>
-      @if (form.controls.confirmPassword.touched && form.controls.confirmPassword.invalid) {
+      @if (form.controls.confirmPassword.touched && (form.controls.confirmPassword.invalid || form.controls.confirmPassword.hasError('mismatch'))) {
         <small class="field-error">Les deux mots de passe doivent correspondre.</small>
       }
     </div>
@@ -70,7 +70,10 @@
     <small class="field-error terms-error">Veuillez accepter les conditions pour continuer.</small>
   }
 
-  <p-button type="submit" [label]="loading ? 'Création…' : 'Créer mon compte'" [disabled]="loading" [icon]="loading ? 'pi pi-spinner pi-spin' : 'pi pi-arrow-right'" iconPos="right" styleClass="submit-button" />
+  <p-button type="submit" label="Créer mon compte" icon="pi pi-arrow-right" iconPos="right" styleClass="submit-button" />
 </form>
 
 <p class="form-switch">Vous avez déjà un compte ? <a routerLink="/connexion">Se connecter</a></p>
+@if (feedback) {
+  <p class="feedback-message" role="status"><i class="pi pi-info-circle" aria-hidden="true"></i>{{ feedback }}</p>
+}

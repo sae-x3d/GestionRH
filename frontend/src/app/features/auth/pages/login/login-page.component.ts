@@ -18,6 +18,7 @@ export class LoginPageComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   loading = false;
+  feedback = '';
 
   readonly form = this.formBuilder.nonNullable.group({
     email: ['', Validators.required],

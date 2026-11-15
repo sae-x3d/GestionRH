@@ -574,7 +574,8 @@ public class TimeManagementService {
     }
 
     private int ruleMinutes(String code) {
-        List<Integer> rules = jdbc.queryForList("SELECT valeur_minutes FROM regles_temps_travail WHERE code = ? AND actif = TRUE AND date_debut <= CURRENT_DATE AND (date_fin IS NULL OR date_fin >= CURRENT_DATE) ORDER BY date_debut DESC LIMIT 1", Integer.class, code);
+        String legacyCode = "TOLERANCE_RETARD".equals(code) ? "RETARD_TOLERE" : code;
+        List<Integer> rules = jdbc.queryForList("SELECT valeur_minutes FROM regles_temps_travail WHERE code IN (?, ?) AND actif = TRUE AND date_debut <= CURRENT_DATE AND (date_fin IS NULL OR date_fin >= CURRENT_DATE) ORDER BY date_debut DESC LIMIT 1", Integer.class, code, legacyCode);
         if (rules.isEmpty()) throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Règle de temps manquante en base : " + code + ". Réimportez le script de données.");
         return rules.getFirst();
     }

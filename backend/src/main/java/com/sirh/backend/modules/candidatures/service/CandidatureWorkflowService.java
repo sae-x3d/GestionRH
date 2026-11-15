@@ -11,6 +11,8 @@ import com.sirh.backend.modules.candidatures.dto.CandidatureCandidateResponseReq
 import com.sirh.backend.modules.candidatures.dto.CandidatureWorkflowActionRequest;
 import com.sirh.backend.modules.candidatures.dto.RhOfferCandidateListResponse;
 import com.sirh.backend.modules.notifications.service.NotificationCenterService;
+import com.sirh.backend.modules.dossier.service.EmployeeDocumentStorageService;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -22,12 +24,14 @@ public class CandidatureWorkflowService {
     private final JdbcTemplate jdbc;
     private final NotificationCenterService notifications;
     private final ContractDocumentService contractDocuments;
+    private final EmployeeDocumentStorageService employeeDocumentStorage;
 
     public CandidatureWorkflowService(JdbcTemplate jdbc, NotificationCenterService notifications,
-            ContractDocumentService contractDocuments) {
+            ContractDocumentService contractDocuments, EmployeeDocumentStorageService employeeDocumentStorage) {
         this.jdbc = jdbc;
         this.notifications = notifications;
         this.contractDocuments = contractDocuments;
+        this.employeeDocumentStorage = employeeDocumentStorage;
     }
 
     @Transactional(readOnly = true)
@@ -210,7 +214,7 @@ public class CandidatureWorkflowService {
             """, Boolean.class, employeeId));
         if (!employee) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Un compte employé actif est requis.");
         return one("""
-            SELECT ct.id AS contrat_id, ct.candidature_id, ct.numero, ct.salaire_base_mensuel,
+            SELECT ct.id AS contrat_id, ct.candidature_id, e.id AS employe_id, ct.numero, ct.salaire_base_mensuel,
                    ct.date_debut, ct.date_fin, ct.genere_at,
                    st.code AS statut_code, st.libelle AS statut_contrat, ct.document_path,
                    tc.libelle AS type_contrat, COALESCE(u.full_name, u.username) AS salarie,
@@ -234,7 +238,7 @@ public class CandidatureWorkflowService {
     @Transactional
     public byte[] employeeContractDocument(Integer employeeId) {
         Map<String, Object> contract = employeeContract(employeeId);
-        return contractPdf(employeeId, (Integer) contract.get("contrat_id"));
+        return contractPdf((Integer) contract.get("employe_id"), (Integer) contract.get("contrat_id"));
     }
 
     @Transactional
@@ -327,6 +331,11 @@ public class CandidatureWorkflowService {
 
     @Transactional
     public Map<String, Object> respondAsCandidate(Integer candidateId, Integer candidatureId, CandidatureCandidateResponseRequest request) {
+        return respondAsCandidate(candidateId, candidatureId, request, null);
+    }
+
+    @Transactional
+    public Map<String, Object> respondAsCandidate(Integer candidateId, Integer candidatureId, CandidatureCandidateResponseRequest request, MultipartFile cin) {
         requireCandidateOwner(candidateId, candidatureId);
         Map<String, Object> app = lockedApplication(candidatureId);
         String current = (String) app.get("statut_code");
@@ -355,7 +364,8 @@ public class CandidatureWorkflowService {
             }
             case "ACCEPTER_CONTRAT" -> {
                 requireState(current, Set.of("CONTRAT_PROPOSE"));
-                hire(candidateId, candidatureId, app);
+                if (cin == null || cin.isEmpty()) throw bad("Joignez un PDF valide contenant le recto et le verso de votre carte CIN pour accepter le contrat.");
+                hire(candidateId, candidatureId, app, cin);
                 next = "EMBAUCHEE";
             }
             case "PROPOSER_MODIFICATION" -> {
@@ -400,7 +410,7 @@ public class CandidatureWorkflowService {
         }
     }
 
-    private void hire(Integer candidateId, Integer candidatureId, Map<String, Object> application) {
+    private void hire(Integer candidateId, Integer candidatureId, Map<String, Object> application, MultipartFile cin) {
         Map<String, Object> questionnaire = one("""
             SELECT qe.date_naissance, qe.date_debut_finale, qe.salaire_base_final, qe.type_contrat_final_id,
                    dr.poste_id, dr.effectif, dr.effectif_recrute, o.id AS offre_id
@@ -424,14 +434,14 @@ public class CandidatureWorkflowService {
             WHERE e.poste_id = ? AND COALESCE(statut.code, 'ACTIF') NOT IN ('SORTI', 'EN_PREPARATION')
             """, Integer.class, questionnaire.get("poste_id"));
         if (occupiedOrScheduled != null && occupiedOrScheduled >= authorized) {
-            throw conflict("La cible autorisÃ©e de ce poste est dÃ©jÃ  atteinte. Les RH doivent vÃ©rifier l’effectif avant toute embauche supplÃ©mentaire.");
+            throw conflict("La cible autorisee de ce poste est dejà atteinte. Les RH doivent verifier l’effectif avant toute embauche supplementaire.");
         }
         int reservedForDemand = jdbc.update("""
             UPDATE demandes_recrutement SET effectif_recrute = effectif_recrute + 1, updated_at = CURRENT_TIMESTAMP
             WHERE id = (SELECT demande_id FROM offres_emploi WHERE id = ?)
               AND effectif_recrute < effectif
             """, questionnaire.get("offre_id"));
-        if (reservedForDemand != 1) throw conflict("Toutes les places autorisÃ©es par cette demande sont dÃ©jÃ  pourvues.");
+        if (reservedForDemand != 1) throw conflict("Toutes les places autorisees par cette demande sont dejà pourvues.");
         Integer recruited = jdbc.queryForObject("""
             SELECT dr.effectif_recrute FROM demandes_recrutement dr
             JOIN offres_emploi o ON o.demande_id = dr.id WHERE o.id = ?
@@ -444,10 +454,11 @@ public class CandidatureWorkflowService {
                 WHERE id = ? AND statut_id = (SELECT id FROM statuts_offre_emploi WHERE code = 'PUBLIEE')
                 """, questionnaire.get("offre_id"));
         }
-        jdbc.update("""
+        Integer employeeId = jdbc.queryForObject("""
             INSERT INTO employes (user_id, poste_id, date_embauche, date_naissance)
             VALUES (?, ?, ?, ?)
-            """, candidateId, questionnaire.get("poste_id"), questionnaire.get("date_debut_finale"), questionnaire.get("date_naissance"));
+            RETURNING id
+            """, Integer.class, candidateId, questionnaire.get("poste_id"), questionnaire.get("date_debut_finale"), questionnaire.get("date_naissance"));
         jdbc.update("DELETE FROM user_roles WHERE user_id = ? AND role_id = (SELECT id FROM roles WHERE LOWER(role_name) = 'simple_user')", candidateId);
         jdbc.update("INSERT INTO user_roles (user_id, role_id) SELECT ?, id FROM roles WHERE LOWER(role_name) = 'employe' ON CONFLICT DO NOTHING", candidateId);
         String contractNumber = "CTR-" + LocalDate.now().getYear() + "-" + String.format(Locale.ROOT, "%06d", candidatureId);
@@ -474,12 +485,41 @@ public class CandidatureWorkflowService {
             : "Aucune période d’essai n’est prévue dans les conditions acceptées pour ce contrat.");
         String documentPath = contractDocuments.generate(document);
         Integer activeStatusId = lookupId("statuts_contrat", "ACTIF");
-        jdbc.update("""
+        jdbc.queryForObject("""
             INSERT INTO contrats (candidature_id, numero, type_contrat_id, statut_id, salaire_base_mensuel,
                 date_debut, document_path)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, candidatureId, contractNumber, questionnaire.get("type_contrat_final_id"), activeStatusId,
+            VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id
+            """, Integer.class, candidatureId, contractNumber, questionnaire.get("type_contrat_final_id"), activeStatusId,
                 questionnaire.get("salaire_base_final"), questionnaire.get("date_debut_finale"), documentPath);
+        saveContractDocument(candidateId, employeeId, contractNumber, contractDocuments.read(documentPath));
+        saveIdentityDocument(candidateId, employeeId, cin);
+    }
+
+    private void saveContractDocument(Integer actorId, Integer employeeId, String contractNumber, byte[] pdf) {
+        Integer typeId = jdbc.query("SELECT id FROM types_documents_employe WHERE code = 'CONTRAT_TRAVAIL' AND actif = TRUE",
+            rs -> rs.next() ? rs.getInt(1) : null);
+        if (typeId == null) throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Le type CONTRAT_TRAVAIL est absent des donnees de reference.");
+        EmployeeDocumentStorageService.StoredDocument stored = employeeDocumentStorage.storeGeneratedPdf(
+            employeeId, "contrat_" + contractNumber + ".pdf", pdf);
+        Integer documentId = jdbc.queryForObject("INSERT INTO documents_employe (employe_id, type_document_id, ajoute_par_id) VALUES (?, ?, ?) RETURNING id",
+            Integer.class, employeeId, typeId, actorId);
+        jdbc.update("""
+            INSERT INTO versions_documents_employe (document_id, numero_version, cle_stockage, nom_fichier, type_mime, taille_octets, date_emission, ajoute_par_id)
+            VALUES (?, 1, ?, ?, ?, ?, CURRENT_DATE, ?)
+            """, documentId, stored.key(), stored.fileName(), stored.mimeType(), stored.size(), actorId);
+    }
+
+    private void saveIdentityDocument(Integer candidateId, Integer employeeId, MultipartFile cin) {
+        Integer typeId = jdbc.query("SELECT id FROM types_documents_employe WHERE code = 'PIECE_IDENTITE' AND actif = TRUE",
+            rs -> rs.next() ? rs.getInt(1) : null);
+        if (typeId == null) throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Le type PIECE_IDENTITE est absent des donnees de reference.");
+        EmployeeDocumentStorageService.StoredDocument stored = employeeDocumentStorage.storePdf(employeeId, cin);
+        Integer documentId = jdbc.queryForObject("INSERT INTO documents_employe (employe_id, type_document_id, ajoute_par_id) VALUES (?, ?, ?) RETURNING id",
+            Integer.class, employeeId, typeId, candidateId);
+        jdbc.update("""
+            INSERT INTO versions_documents_employe (document_id, numero_version, cle_stockage, nom_fichier, type_mime, taille_octets, ajoute_par_id)
+            VALUES (?, 1, ?, ?, ?, ?, ?)
+            """, documentId, stored.key(), stored.fileName(), stored.mimeType(), stored.size(), candidateId);
     }
 
     private void updateLatestInterview(Integer candidatureId, String statusCode, String note) {

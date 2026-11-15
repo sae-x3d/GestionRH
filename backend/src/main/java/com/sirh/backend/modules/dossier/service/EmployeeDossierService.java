@@ -276,7 +276,7 @@ public class EmployeeDossierService {
             WHERE d.id = ? AND d.employe_id = ? AND d.archive_at IS NULL AND v.id = ?
             """, documentId, employeeId, versionId).stream().findFirst()
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Version de document introuvable."));
-        if (!canSeePersonal(actorId, employeeId) && !Boolean.TRUE.equals(version.get("visible_manager"))) throw forbidden("Ce document est rÃ©servÃ© au salariÃ© et aux RH.");
+        if (!canSeePersonal(actorId, employeeId) && !Boolean.TRUE.equals(version.get("visible_manager"))) throw forbidden("Ce document est reserve au salarie et aux RH.");
         return new Download(storage.read((String) version.get("cle_stockage"), employeeId),
             (String) version.get("nom_fichier"), (String) version.get("type_mime"));
     }
@@ -293,8 +293,8 @@ public class EmployeeDossierService {
     public Map<String, Object> changeAdministrativeStatus(Integer actorId, Integer employeeId, String requestedCode,
             LocalDate effectiveDate, String reason) {
         requireActiveRole(actorId, "rh");
-        if (effectiveDate == null || effectiveDate.isAfter(LocalDate.now())) throw bad("La date d'effet doit Ãªtre aujourd'hui ou dans le passÃ©.");
-        if (reason == null || reason.isBlank() || reason.trim().length() > 2000) throw bad("Un motif de 1 Ã  2000 caractÃ¨res est obligatoire.");
+        if (effectiveDate == null || effectiveDate.isAfter(LocalDate.now())) throw bad("La date d'effet doit être aujourd'hui ou dans le passe.");
+        if (reason == null || reason.isBlank() || reason.trim().length() > 2000) throw bad("Un motif de 1 à 2000 caractères est obligatoire.");
         String next = requestedCode == null ? "" : requestedCode.trim().toUpperCase(java.util.Locale.ROOT);
         Map<String, Object> current = jdbc.queryForList("""
             SELECT e.user_id AS user_id, e.date_embauche, COALESCE(s.code, 'ACTIF') AS current_code
@@ -309,18 +309,18 @@ public class EmployeeDossierService {
             case "EN_PREAVIS" -> Set.of("ACTIF", "SORTI").contains(next);
             default -> false;
         };
-        if (!allowed) throw new ResponseStatusException(HttpStatus.CONFLICT, "Le changement de statut demandÃ© ne suit pas les transitions autorisÃ©es.");
+        if (!allowed) throw new ResponseStatusException(HttpStatus.CONFLICT, "Le changement de statut demande ne suit pas les transitions autorisees.");
         LocalDate hireDate = asLocalDate(current.get("date_embauche"));
-        if ("ACTIF".equals(next) && effectiveDate.isBefore(hireDate)) throw bad("Un salariÃ© ne peut devenir actif avant sa date d'embauche.");
+        if ("ACTIF".equals(next) && effectiveDate.isBefore(hireDate)) throw bad("Un salarie ne peut devenir actif avant sa date d'embauche.");
         if ("SORTI".equals(next) && Boolean.TRUE.equals(jdbc.queryForObject("""
                 SELECT EXISTS (SELECT 1 FROM employes e JOIN candidatures c ON c.candidat_id=e.user_id
                 JOIN contrats ct ON ct.candidature_id=c.id JOIN statuts_contrat sc ON sc.id=ct.statut_id
                 WHERE e.id=? AND sc.code='ACTIF')
                 """, Boolean.class, employeeId))) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Le contrat actif doit d'abord Ãªtre terminÃ© dans le module Contrats.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Le contrat actif doit d'abord être termine dans le module Contrats.");
         }
         Integer nextId = statusId(next);
-        if (nextId == null) throw bad("Le statut administratif sÃ©lectionnÃ© n'existe pas.");
+        if (nextId == null) throw bad("Le statut administratif selectionne n'existe pas.");
         jdbc.update("""
             INSERT INTO situation_administrative_employe (employe_id, statut_id, date_effet, motif, modifie_par_id, updated_at)
             VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -330,10 +330,10 @@ public class EmployeeDossierService {
         jdbc.update("INSERT INTO historique_statut_employe (employe_id, statut_id, date_effet, motif, acteur_id) VALUES (?, ?, ?, ?, ?)",
             employeeId, nextId, effectiveDate, reason.trim(), actorId);
         event(employeeId, "STATUT_CHANGE", actorId, "STATUT_ADMINISTRATIF", nextId, effectiveDate,
-            "Statut administratif modifiÃ© : " + previous + " -> " + next);
+            "Statut administratif modifie : " + previous + " -> " + next);
         Integer employeeUserId = ((Number) current.get("user_id")).intValue();
-        notifications.notifyUser(employeeUserId, "DOSSIER_STATUT", "Statut administratif mis Ã  jour",
-            "Votre statut administratif est passÃ© Ã  " + next + ". Motif : " + reason.trim(), "/espace/dossiers/me");
+        notifications.notifyUser(employeeUserId, "DOSSIER_STATUT", "Statut administratif mis à jour",
+            "Votre statut administratif est passe à " + next + ". Motif : " + reason.trim(), "/espace/dossiers/me");
         if ("SORTI".equals(next)) notifyStaffingShortage(employeeId);
         return dossier(actorId, employeeId);
     }

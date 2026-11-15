@@ -50,10 +50,16 @@ public class CandidatureController {
         return workflow.candidateDetail(principal.getId(), id);
     }
 
-    @PostMapping("/{id}/reponse")
+    @PostMapping(value = "/{id}/reponse", consumes = MediaType.APPLICATION_JSON_VALUE)
     public java.util.Map<String, Object> respond(@AuthenticationPrincipal AuthUserPrincipal principal, @PathVariable Integer id,
             @RequestBody CandidatureCandidateResponseRequest request) {
         return workflow.respondAsCandidate(principal.getId(), id, request);
+    }
+
+    @PostMapping(value = "/{id}/reponse", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public java.util.Map<String, Object> respondWithCin(@AuthenticationPrincipal AuthUserPrincipal principal, @PathVariable Integer id,
+            @RequestPart("response") CandidatureCandidateResponseRequest request, @RequestPart(value = "cin", required = false) MultipartFile cin) {
+        return workflow.respondAsCandidate(principal.getId(), id, request, cin);
     }
 
     @GetMapping("/options")

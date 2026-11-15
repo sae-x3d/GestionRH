@@ -1,0 +1,65 @@
+<main class="payroll-periods-page">
+  <header class="page-heading">
+    <div><p class="eyebrow">RESSOURCES HUMAINES / PAIE</p><h1>Préparer la paie</h1><p class="page-intro">Créez une période mensuelle, calculez les bulletins à partir des contrats, pointages, absences déductibles et variables validées, puis suivez leur validation.</p></div>
+    <div class="period-create"><label for="payroll-month">Mois de paie</label><input id="payroll-month" pInputText type="month" [(ngModel)]="month" [disabled]="busy"><p-button label="Créer la période" icon="pi pi-plus" [disabled]="busy || !month" [loading]="busy" (onClick)="create()" /></div>
+  </header>
+  <section class="payroll-notice"><i class="pi pi-info-circle" aria-hidden="true"></i><p>Les taux et seuils sont lus dans les paramètres datés. Les règles issues du document de cadrage restent signalées « à vérifier » dans l’administration. La validation fige les bulletins et les rend accessibles aux salariés.</p></section>
+  @if (loading) { <div class="state"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des périodes…</div> }
+  @else if (!periods.length) { <div class="state empty"><i class="pi pi-wallet" aria-hidden="true"></i><strong>Aucune période de paie</strong><span>Créez un mois pour commencer la préparation.</span></div> }
+  @else {
+    <section class="period-list" aria-label="Périodes de paie">
+      @for (period of periods; track period.id) {
+        <button type="button" class="period-card" [class.selected]="selected?.id === period.id" (click)="open(period)">
+          <span class="period-title">{{ period.dateDebut | date:'MMMM yyyy' }}</span><span class="period-status">{{ period.statut }}</span>
+          <span class="period-summary">{{ period.nombreBulletins }} bulletins · Brut {{ period.totalBrut | number:'1.0-0' }} Ar · Net {{ period.totalNet | number:'1.0-0' }} Ar</span>
+        </button>
+      }
+    </section>
+  }
+  @if (selected) {
+    <section class="period-detail">
+      <header class="detail-heading"><div><p class="eyebrow">PÉRIODE DU {{ selected.dateDebut | date:'dd/MM/yyyy' }} AU {{ selected.dateFin | date:'dd/MM/yyyy' }}</p><h2>{{ selected.dateDebut | date:'MMMM yyyy' }}</h2><span class="period-status">{{ selected.statut }}</span></div>
+        <div class="actions">
+          @if (selected.statutCode === 'BROUILLON' || selected.statutCode === 'CALCULEE') { <p-button label="Calculer / recalculer" icon="pi pi-calculator" [disabled]="busy" [loading]="busy" (onClick)="calculate()" /> }
+          @if (selected.statutCode === 'CALCULEE') { <p-button label="Valider les bulletins" icon="pi pi-check" [disabled]="busy" (onClick)="validate()" /> }
+          @if (selected.statutCode === 'VALIDEE') { <label class="payment-reference">Référence de paiement<input pInputText maxlength="80" [(ngModel)]="paymentReference" placeholder="Virement / ordre de paiement"></label><p-button label="Confirmer le paiement" icon="pi pi-credit-card" [disabled]="busy || paymentReference.trim().length < 3" (onClick)="markPaid()" /> }
+          @if (selected.statutCode === 'PAYEE') { <p-button label="Clôturer" icon="pi pi-lock" [disabled]="busy" (onClick)="close()" /> }
+        </div>
+      </header>
+      <div class="totals"><article><span>Bulletins</span><strong>{{ selected.nombreBulletins }}</strong></article><article><span>Masse brute</span><strong>{{ selected.totalBrut | number:'1.0-0' }} Ar</strong></article><article><span>Net à payer</span><strong>{{ selected.totalNet | number:'1.0-0' }} Ar</strong></article><article><span>Charges patronales</span><strong>{{ selected.totalCharges | number:'1.0-0' }} Ar</strong></article></div>
+      @if (selected.statutCode === 'BROUILLON' && variableOptions) {
+        <section class="variable-panel"><div><p class="eyebrow">SAISIES EXCEPTIONNELLES</p><h3>Variables à valider</h3><p class="panel-help">Production, qualité et rappels exigent un motif et la validation d’un autre compte RH.</p></div>
+          @if (variableOptions.rubriques.length) {
+            <div class="variable-form"><label>Salarié<select [(ngModel)]="variableEmployeeId"><option [ngValue]="null">Choisir un salarié</option>@for (employee of variableOptions.employees; track employee.id) { <option [ngValue]="employee.id">{{ employee.matricule }} · {{ employee.nom }}</option> }</select></label>
+              <label>Rubrique<select [(ngModel)]="variableRubricId"><option [ngValue]="null">Choisir une rubrique</option>@for (rubric of variableOptions.rubriques; track rubric.id) { <option [ngValue]="rubric.id">{{ rubric.libelle }} · {{ rubric.categorie }}</option> }</select></label>
+              <label>Montant (Ar)<input pInputText type="number" min="1" step="1" [(ngModel)]="variableAmount"></label>
+              <label class="wide">Justification<input pInputText maxlength="1000" [(ngModel)]="variableJustification" placeholder="Référence, période, résultat ou motif de régularisation"></label>
+              <p-button label="Soumettre à validation" icon="pi pi-send" [disabled]="busy" (onClick)="addVariable()" />
+            </div>
+          } @else { <p class="panel-help">Aucune rubrique manuelle active n’est configurée par l’administration.</p> }
+          @if (variableOptions.variables.length) { <div class="variable-list">@for (variable of variableOptions.variables; track variable.id) { <article><div><strong>{{ variable.nom }} · {{ variable.rubrique }}</strong><p>{{ variable.sourceDetail }}</p>@if (variable.motifDecision) { <small>Décision : {{ variable.motifDecision }}</small> }</div><strong>{{ variable.montant | number:'1.0-0' }} Ar</strong><span class="period-status">{{ variable.statut }}</span>
+            @if (variable.statutCode === 'A_VALIDER') { <div class="decision-controls"><input pInputText maxlength="500" [(ngModel)]="decisionReason" placeholder="Motif de décision" [disabled]="busy"><p-button label="Valider" icon="pi pi-check" [disabled]="busy" (onClick)="decideVariable(variable.id,true)" /><p-button label="Refuser" icon="pi pi-times" severity="danger" [disabled]="busy" (onClick)="decideVariable(variable.id,false)" /></div> }
+          </article> }</div> }
+        </section>
+      }
+      @if (selected.statutCode === 'BROUILLON' && variableOptions) {
+        <section class="variable-panel"><div><p class="eyebrow">AVANCES SALARIALES</p><h3>Avances à traiter</h3><p class="panel-help">Une avance est déduite uniquement après confirmation de son versement et dans cette période.</p></div>
+          <div class="variable-form"><label>Salarié<select [(ngModel)]="advanceEmployeeId"><option [ngValue]="null">Choisir un salarié</option>@for (employee of variableOptions.employees; track employee.id) { <option [ngValue]="employee.id">{{ employee.matricule }} · {{ employee.nom }}</option> }</select></label>
+            <label>Date de l’avance<input pInputText type="date" [(ngModel)]="advanceDate"></label>
+            <label>Montant (Ar)<input pInputText type="number" min="1" step="1" [(ngModel)]="advanceAmount"></label>
+            <label class="wide">Motif<input pInputText maxlength="500" [(ngModel)]="advanceReason" placeholder="Motif et référence de la demande"></label>
+            <p-button label="Enregistrer l’avance" icon="pi pi-plus" [disabled]="busy" (onClick)="addAdvance()" />
+          </div>
+          @if (variableOptions.avances.length) { <div class="variable-list">@for (advance of variableOptions.avances; track advance.id) { <article><div><strong>{{ advance.nom }} · {{ advance.matricule }}</strong><p>{{ advance.dateAvance | date:'dd/MM/yyyy' }} · {{ advance.motif }}</p></div><strong>{{ advance.montant | number:'1.0-0' }} Ar</strong><span class="period-status">{{ advance.statut }}</span>
+            @if (advance.statutCode === 'A_VALIDER') { <div class="decision-controls"><input pInputText maxlength="500" [(ngModel)]="decisionReason" placeholder="Motif de décision" [disabled]="busy"><p-button label="Marquer versée" icon="pi pi-check" [disabled]="busy" (onClick)="decideAdvance(advance.id,true)" /><p-button label="Annuler" icon="pi pi-times" severity="danger" [disabled]="busy" (onClick)="decideAdvance(advance.id,false)" /></div> }
+          </article> }</div> }
+        </section>
+      }
+      @if (loadingBulletins) { <div class="state"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des bulletins…</div> }
+      @else if (!bulletins.length) { <div class="state empty">Aucun bulletin calculé pour cette période.</div> }
+      @else { <div class="table-wrap"><table><thead><tr><th>Salarié</th><th>Base</th><th>Brut</th><th>Imposable</th><th>Retenues</th><th>Net à payer</th><th>PDF</th></tr></thead><tbody>
+        @for (row of bulletins; track row.id) { <tr><td><strong>{{ row.nom }}</strong><small>{{ row.matricule }} · {{ row.fonction }}</small></td><td>{{ row.salaireBase | number:'1.0-0' }} Ar</td><td>{{ row.brut | number:'1.0-0' }} Ar</td><td>{{ row.revenuImposable | number:'1.0-0' }} Ar</td><td>{{ row.retenues | number:'1.0-0' }} Ar</td><td><strong>{{ row.net | number:'1.0-0' }} Ar</strong></td><td><button type="button" class="pdf-button" [disabled]="downloadingId !== null" (click)="download(row)" [attr.aria-label]="'Télécharger le bulletin de ' + row.nom"><i [class]="downloadingId === row.id ? 'pi pi-spin pi-spinner' : 'pi pi-file-pdf'"></i></button></td></tr> }
+      </tbody></table></div> }
+    </section>
+  }
+</main>

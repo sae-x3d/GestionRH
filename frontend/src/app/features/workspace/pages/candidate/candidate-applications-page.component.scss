@@ -1,54 +1,54 @@
 :host { display: block; min-width: 0; color: #24342b; }
 .candidate-page { width: 100%; max-width: none; margin: 0; padding: 0; }
 .page-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 25px; }
-.eyebrow { margin: 0 0 8px; color: #58766a; font-size: 10px; font-weight: 750; letter-spacing: .15em; }
+.eyebrow { margin: 0 0 8px; color: #58766a; font-size: 13px; font-weight: 750; letter-spacing: .15em; }
 .eyebrow span { padding: 0 5px; color: #a4b2ac; }
 h1 { margin: 0; color: #1c2923; font-size: clamp(26px, 3vw, 36px); line-height: 1.12; letter-spacing: -.045em; }
-.page-heading > div > p:last-child { margin: 9px 0 0; color: #6c7972; font-size: 13px; line-height: 1.6; }
-.count-badge, .status-pill { display: inline-flex; align-items: center; padding: 8px 11px; border: 1px solid #dce8e2; border-radius: 999px; background: #f1f7f3; color: #315b4d; font-size: 10px; font-weight: 750; }
+.page-heading > div > p:last-child { margin: 9px 0 0; color: #6c7972; font-size: 16.9px; line-height: 1.6; }
+.count-badge, .status-pill { display: inline-flex; align-items: center; padding: 8px 11px; border: 1px solid #dce8e2; border-radius: 999px; background: #f1f7f3; color: #315b4d; font-size: 13px; font-weight: 750; }
 .application-list { display: grid; gap: 11px; }
 .application-card { display: flex; width: 100%; min-width: 0; align-items: center; gap: 14px; padding: 16px; border: 1px solid #e3ebe6; border-radius: 13px; background: #fff; color: inherit; text-align: left; cursor: pointer; transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease; }
 .application-card:hover { transform: translateY(-2px); border-color: #a8c4b3; box-shadow: 0 10px 25px rgb(26 57 44 / 7%); }
 .card-icon { display: grid; width: 42px; height: 42px; flex: 0 0 auto; place-items: center; border-radius: 12px; background: #edf5f0; color: #47735b; }
 .card-copy { display: grid; min-width: 0; flex: 1; gap: 4px; }
-.card-copy small, .card-copy > span { overflow: hidden; color: #7a8980; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
-.card-copy strong { overflow: hidden; color: #26372e; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
-.application-card > i { color: #819188; font-size: 12px; }
-.state { display: flex; min-height: 210px; align-items: center; justify-content: center; gap: 9px; color: #75827a; font-size: 12px; }
+.card-copy small, .card-copy > span { overflow: hidden; color: #7a8980; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.card-copy strong { overflow: hidden; color: #26372e; font-size: 16.9px; text-overflow: ellipsis; white-space: nowrap; }
+.application-card > i { color: #819188; font-size: 15.6px; }
+.state { display: flex; min-height: 210px; align-items: center; justify-content: center; gap: 9px; color: #75827a; font-size: 15.6px; }
 .state.empty { flex-direction: column; gap: 8px; text-align: center; }
-.state.empty > i { color: #6e9280; font-size: 24px; }
-.state strong { color: #35443c; font-size: 13px; }
+.state.empty > i { color: #6e9280; font-size: 31.2px; }
+.state strong { color: #35443c; font-size: 16.9px; }
 .dialog-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; padding: 20px; background: rgb(18 31 25 / 55%); }
 .candidate-dialog { display: flex; width: min(820px, 100%); max-height: min(92vh, 920px); flex-direction: column; overflow: hidden; border: 1px solid #e2ebe5; border-radius: 17px; background: #fff; box-shadow: 0 25px 80px rgb(0 0 0 / 25%); }
 .dialog-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 21px 24px; border-bottom: 1px solid #e9efeb; }
 .dialog-heading h2 { margin: 0; color: #24352c; font-size: 22px; }
-.dialog-heading > div > p:last-child { margin: 6px 0 0; color: #748179; font-size: 11px; }
+.dialog-heading > div > p:last-child { margin: 6px 0 0; color: #748179; font-size: 14.3px; }
 .icon-button { width: 34px; height: 34px; border: 1px solid #e0e8e3; border-radius: 50%; background: #fff; color: #52665a; cursor: pointer; }
 .dialog-scroll { overflow: auto; padding: 18px 24px 25px; }
-.status-line { display: flex; align-items: center; gap: 12px; color: #77847d; font-size: 10px; }
+.status-line { display: flex; align-items: center; gap: 12px; color: #77847d; font-size: 13px; }
 .notice-box, .form-section, .contract-offer { margin-top: 18px; padding: 18px; border: 1px solid #e2ebe5; border-radius: 12px; background: #fbfdfb; }
 .notice-box h3, .form-section h3, .contract-offer h3 { margin: 0 0 9px; color: #30473a; font-size: 16px; }
-.notice-box p, .form-section > p:not(.eyebrow), .pending-note { color: #6b7971; font-size: 11px; line-height: 1.65; }
+.notice-box p, .form-section > p:not(.eyebrow), .pending-note { color: #6b7971; font-size: 14.3px; line-height: 1.65; }
 .action-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 15px; }
-.primary-button, .secondary-button, .danger-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 37px; padding: 8px 12px; border: 1px solid transparent; border-radius: 8px; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.primary-button, .secondary-button, .danger-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 37px; padding: 8px 12px; border: 1px solid transparent; border-radius: 8px; font: inherit; font-size: 14.3px; font-weight: 700; cursor: pointer; }
 .primary-button { background: #315e49; color: #fff; }
 .secondary-button { border-color: #dce7e0; background: #fff; color: #496a57; }
 .danger-button { border-color: #f0d8d5; background: #fff6f5; color: #a64239; }
 .primary-button:disabled, .secondary-button:disabled, .danger-button:disabled { cursor: wait; opacity: .55; }
-.checkbox-line { display: flex; align-items: flex-start; gap: 9px; margin: 16px 0; color: #4f6257; font-size: 11px; line-height: 1.5; }
+.checkbox-line { display: flex; align-items: flex-start; gap: 9px; margin: 16px 0; color: #4f6257; font-size: 14.3px; line-height: 1.5; }
 .checkbox-line input { margin-top: 2px; accent-color: #315e49; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 12px 0 16px; }
-.form-grid label { display: grid; min-width: 0; gap: 6px; color: #617167; font-size: 10px; font-weight: 700; }
-.form-grid input, .form-grid select, .form-grid textarea { min-width: 0; padding: 10px 11px; border: 1px solid #dce6df; border-radius: 8px; background: #fff; color: #26372e; font: inherit; font-size: 12px; }
+.form-grid label { display: grid; min-width: 0; gap: 6px; color: #617167; font-size: 13px; font-weight: 700; }
+.form-grid input, .form-grid select, .form-grid textarea { min-width: 0; padding: 10px 11px; border: 1px solid #dce6df; border-radius: 8px; background: #fff; color: #26372e; font: inherit; font-size: 15.6px; }
 .full { grid-column: 1 / -1; }
 .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 15px 0; }
-.facts span { display: grid; gap: 5px; color: #78857d; font-size: 10px; }
-.facts strong { color: #30473a; font-size: 12px; }
-.closed-note { margin-top: 18px; padding: 13px; border-radius: 9px; background: #f5f7f6; color: #6f7b74; font-size: 11px; }
-.contract-print { margin-top: 20px; padding: clamp(18px, 4vw, 42px); border: 1px solid #dfe7e2; background: #fff; color: #303b34; font-family: Georgia, 'Times New Roman', serif; font-size: 12px; line-height: 1.75; }
+.facts span { display: grid; gap: 5px; color: #78857d; font-size: 13px; }
+.facts strong { color: #30473a; font-size: 15.6px; }
+.closed-note { margin-top: 18px; padding: 13px; border-radius: 9px; background: #f5f7f6; color: #6f7b74; font-size: 14.3px; }
+.contract-print { margin-top: 20px; padding: clamp(18px, 4vw, 42px); border: 1px solid #dfe7e2; background: #fff; color: #303b34; font-family: Georgia, 'Times New Roman', serif; font-size: 15.6px; line-height: 1.75; }
 .contract-top { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #315e49; text-align: center; }
 .contract-top h2 { margin: 0; color: #20352a; font-size: 23px; }
-.contract-number { color: #708077; font-family: Arial, sans-serif; font-size: 10px; }
+.contract-number { color: #708077; font-family: Arial, sans-serif; font-size: 13px; }
 .contract-print h3 { margin: 19px 0 5px; color: #315e49; font-family: Arial, sans-serif; font-size: 12px; }
 .contract-print p { margin: 8px 0; }
 .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 45px; margin: 35px 0 15px; }
@@ -58,7 +58,7 @@ h1 { margin: 0; color: #1c2923; font-size: clamp(26px, 3vw, 36px); line-height: 
   .candidate-page { padding: 21px 14px; }
   .page-heading { flex-direction: column; }
   .application-card { gap: 9px; padding: 12px; }
-  .status-pill { max-width: 135px; font-size: 9px; }
+  .status-pill { max-width: 135px; font-size: 11.7px; }
   .dialog-backdrop { padding: 0; align-items: end; }
   .candidate-dialog { width: 100%; max-height: 94vh; border-radius: 17px 17px 0 0; }
   .dialog-heading, .dialog-scroll { padding-right: 17px; padding-left: 17px; }

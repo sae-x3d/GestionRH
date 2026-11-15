@@ -81,9 +81,9 @@ export class TeamPlanningPageComponent implements OnInit {
     return this.week?.jours?.find((item) => item.employeId === employeeId && item.date === date);
   }
   formatSlot(item?: PlanningDay): string {
-    if (!item) return 'Ã€ planifier';
+    if (!item) return 'À planifier';
     if (item.type_code !== 'TRAVAIL') return item.type_jour;
-    return `${item.debut?.slice(0, 5) ?? '--:--'} â€“ ${item.fin?.slice(0, 5) ?? '--:--'}`;
+    return `${item.debut?.slice(0, 5) ?? '--:--'} – ${item.fin?.slice(0, 5) ?? '--:--'}`;
   }
   summary(date: string, key: 'planifies' | 'repos' | 'arrives' | 'absents' | 'nonPlanifies'): number {
     const value = this.week?.compteurs?.find((item) => item.date === date)?.[key];
@@ -92,7 +92,7 @@ export class TeamPlanningPageComponent implements OnInit {
 
   assign(): void {
     if (!this.selectedEmployeeIds.length || !this.selectedDates.length || this.typeJourId === null) {
-      this.toast.error('SÃ©lection incomplÃ¨te', 'Choisissez au moins un agent, une date et un type de journÃ©e.'); return;
+      this.toast.error('Selection incomplète', 'Choisissez au moins un agent, une date et un type de journee.'); return;
     }
     const workday = this.selectedType === 'TRAVAIL';
     this.saving = true;
@@ -103,27 +103,27 @@ export class TeamPlanningPageComponent implements OnInit {
       pauseFin: workday && this.pauseFin ? this.pauseFin : null,
       observation: this.observation.trim() || null
     }).subscribe({
-      next: (week) => { this.week = week; this.saving = false; this.selectedDates = []; this.observation = ''; this.toast.success('Affectations enregistrÃ©es', 'Les jours sÃ©lectionnÃ©s ont Ã©tÃ© mis Ã  jour dans le brouillon.'); },
+      next: (week) => { this.week = week; this.saving = false; this.selectedDates = []; this.observation = ''; this.toast.success('Affectations enregistrees', 'Les jours selectionnes ont ete mis à jour dans le brouillon.'); },
       error: (error) => { this.saving = false; this.toast.error('Affectation impossible', this.errorMessage(error)); }
     });
   }
 
   publish(): void {
     const id = this.week?.planning?.id;
-    if (!id || !window.confirm('Publier cette semaine ? Chaque agent devra avoir un jour travaillÃ© ou un repos pour les sept jours.')) return;
+    if (!id || !window.confirm('Publier cette semaine ? Chaque agent devra avoir un jour travaille ou un repos pour les sept jours.')) return;
     this.saving = true;
     this.time.publish(id).subscribe({
-      next: (week) => { this.week = week; this.saving = false; this.toast.success('Planning publiÃ©', 'Les agents de votre dÃ©partement ont Ã©tÃ© notifiÃ©s.'); },
+      next: (week) => { this.week = week; this.saving = false; this.toast.success('Planning publie', 'Les agents de votre departement ont ete notifies.'); },
       error: (error) => { this.saving = false; this.toast.error('Publication impossible', this.errorMessage(error)); }
     });
   }
   reopen(): void {
     const id = this.week?.planning?.id;
-    if (!id || !window.confirm('Rouvrir ce planning publiÃ© pour le corriger ?')) return;
+    if (!id || !window.confirm('Rouvrir ce planning publie pour le corriger ?')) return;
     this.saving = true;
     this.time.reopen(id).subscribe({
       next: (week) => { this.week = week; this.saving = false; this.toast.success('Planning rouvert', 'Les modifications sont de nouveau possibles.'); },
-      error: (error) => { this.saving = false; this.toast.error('RÃ©ouverture impossible', this.errorMessage(error)); }
+      error: (error) => { this.saving = false; this.toast.error('Reouverture impossible', this.errorMessage(error)); }
     });
   }
 
@@ -134,6 +134,6 @@ export class TeamPlanningPageComponent implements OnInit {
   private addDays(date: string, count: number): string { const parsed = this.parseDate(date); parsed.setDate(parsed.getDate() + count); return this.toIso(parsed); }
   private parseDate(value: string): Date { const [year, month, day] = value.split('-').map(Number); return new Date(year, month - 1, day); }
   private toIso(value: Date): string { return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`; }
-  private errorMessage(error: any): string { return error?.error?.detail ?? error?.error?.message ?? 'RÃ©essayez dans quelques instants.'; }
+  private errorMessage(error: any): string { return error?.error?.detail ?? error?.error?.message ?? 'Reessayez dans quelques instants.'; }
 }
 

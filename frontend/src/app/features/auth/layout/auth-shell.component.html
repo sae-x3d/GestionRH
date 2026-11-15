@@ -7,7 +7,6 @@
   </div>
 
   <section class="auth-card" aria-label="Authentification SIRH">
-    <p-toast position="bottom-right" styleClass="sirh-toast" />
     <aside class="visual-panel">
       <div class="visual-topline">
         <div class="visual-brand">
@@ -28,7 +27,7 @@
         <span class="art-ring art-ring-small"></span>
         <span class="art-bar art-bar-one"></span>
         <span class="art-bar art-bar-two"></span>
-        <span class="art-accent-block"></span>
+        <span class="art-orange-block"></span>
         <span class="art-number">RH<br />2026</span>
         <span class="art-footnote">SIRH / ESPACE PERSONNEL</span>
       </div>
@@ -37,7 +36,6 @@
     <section class="form-panel">
       <div class="form-panel-inner">
         <nav class="auth-tabs" aria-label="Choisir une page">
-          <a routerLink="/offres">Offres</a>
           <a routerLink="/connexion" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Connexion</a>
           <a routerLink="/inscription" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Inscription</a>
         </nav>

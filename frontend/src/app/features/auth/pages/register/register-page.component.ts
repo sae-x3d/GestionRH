@@ -20,6 +20,7 @@ export class RegisterPageComponent {
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationService);
   loading = false;
+  feedback = '';
 
   readonly form = this.formBuilder.nonNullable.group({
     fullName: ['', [Validators.required, Validators.maxLength(150)]],

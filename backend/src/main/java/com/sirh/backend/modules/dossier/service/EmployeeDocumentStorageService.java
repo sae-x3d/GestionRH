@@ -60,6 +60,32 @@ public class EmployeeDocumentStorageService {
         return new StoredDocument(key, supplied, mime, bytes.length);
     }
 
+    public StoredDocument storePdf(Integer employeeId, MultipartFile upload) {
+        if (upload == null || upload.isEmpty() || upload.getSize() > MAX_BYTES) {
+            throw bad("Le PDF est obligatoire et limité à 15 Mo.");
+        }
+        try {
+            if (!isPdf(upload.getBytes())) throw bad("La carte d’identité doit être fournie dans un PDF valide contenant le recto et le verso.");
+        } catch (IOException exception) {
+            throw bad("Le PDF de la carte d’identité n’a pas pu être lu.");
+        }
+        return store(employeeId, upload);
+    }
+
+    public StoredDocument storeGeneratedPdf(Integer employeeId, String fileName, byte[] bytes) {
+        if (bytes == null || bytes.length == 0 || bytes.length > MAX_BYTES || !isPdf(bytes)) {
+            throw bad("Le PDF généré est invalide ou dépasse 15 Mo.");
+        }
+        String key = "dossier-employe/" + employeeId + "/" + UUID.randomUUID() + ".pdf";
+        write(key, bytes);
+        String safeName = fileName == null ? "contrat.pdf" : fileName;
+        safeName = safeName.substring(Math.max(safeName.lastIndexOf('/'), safeName.lastIndexOf('\\')) + 1)
+            .replaceAll("[\\p{Cntrl}]", "").trim();
+        if (safeName.isBlank()) safeName = "contrat.pdf";
+        if (safeName.length() > 180) safeName = safeName.substring(safeName.length() - 180);
+        return new StoredDocument(key, safeName, "application/pdf", bytes.length);
+    }
+
     public byte[] read(String key, Integer employeeId) {
         if (key == null || !key.matches("dossier-employe/" + employeeId + "/[a-f0-9-]{36}[.]((pdf)|(png)|(jpg))")) throw missing();
         Path file = root.resolve(key).normalize();

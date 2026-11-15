@@ -44,13 +44,13 @@ public class LeaveManagementService {
                 return Map.of("id", rs.getInt("id"), "status", rs.getString("code"));
             }, requestId, employeeId);
         if (!List.of("A_VALIDER_MANAGER", "A_VALIDER_RH").contains(request.get("status")))
-            throw conflict("Un justificatif ne peut Ãªtre ajoutÃ© quâ€™Ã  une demande en cours de validation.");
+            throw conflict("Un justificatif ne peut être ajouté qu’à une demande en cours de validation.");
         EmployeeDocumentStorageService.StoredDocument stored = documentStorage.store(employeeId, file);
         jdbc.update("""
             INSERT INTO justificatifs_demande_conge(demande_id,cle_stockage,nom_fichier,type_mime,taille_octets,ajoute_par_id)
             VALUES (?,?,?,?,?,?)
             """, requestId, stored.key(), stored.fileName(), stored.mimeType(), stored.size(), userId);
-        return Map.of("demandeId", requestId, "nomFichier", stored.fileName(), "message", "Justificatif ajoutÃ©.");
+        return Map.of("demandeId", requestId, "nomFichier", stored.fileName(), "message", "Justificatif ajouté.");
     }
 
     @Transactional
@@ -76,20 +76,20 @@ public class LeaveManagementService {
     public Map<String, Object> submit(Integer userId, Integer typeId, LocalDate start, LocalDate end, String reason) {
         Integer employeeId = employeeId(userId);
         if (start == null || end == null || start.isBefore(LocalDate.now(HR_ZONE)) || end.isBefore(start)) {
-            throw bad("Choisissez une pÃ©riode de congÃ© valide Ã  partir dâ€™aujourdâ€™hui.");
+            throw bad("Choisissez une période de congé valide à partir d’aujourd’hui.");
         }
         BigDecimal days = workingDays(employeeId, start, end);
-        if (days.signum() <= 0) throw bad("La pÃ©riode ne contient aucun jour ouvrÃ© Ã  demander.");
+        if (days.signum() <= 0) throw bad("La période ne contient aucun jour ouvré à demander.");
         Map<String, Object> type = one("SELECT id,code,libelle,acquisition_active FROM types_conge WHERE id=? AND actif=TRUE", typeId,
-            "Type de congÃ© introuvable.");
+            "Type de congé introuvable.");
         if (Boolean.TRUE.equals(type.get("acquisition_active")) && (reason == null || reason.isBlank())) {
             throw bad("Indiquez le motif de la demande.");
         }
         jdbc.queryForObject("SELECT id FROM employes WHERE id=? FOR UPDATE", Integer.class, employeeId);
-        if (overlaps(employeeId, start, end, null)) throw conflict("Cette pÃ©riode chevauche une autre demande ou une absence dÃ©jÃ  enregistrÃ©e.");
+        if (overlaps(employeeId, start, end, null)) throw conflict("Cette période chevauche une autre demande ou une absence déjà enregistrée.");
         if (Boolean.TRUE.equals(type.get("acquisition_active"))) {
             BigDecimal available = balance(employeeId, typeId, null);
-            if (available.compareTo(days) < 0) throw conflict("Solde insuffisant. Solde disponible aprÃ¨s rÃ©servation des demandes en cours : " + available + " jour(s).");
+            if (available.compareTo(days) < 0) throw conflict("Solde insuffisant. Solde disponible après réservation des demandes en cours : " + available + " jour(s).");
         }
         Integer statusId = lookup("statuts_demande_conge", "A_VALIDER_MANAGER");
         Integer id = jdbc.queryForObject("""
@@ -103,9 +103,9 @@ public class LeaveManagementService {
             JOIN users u ON u.id=e.user_id AND u.is_suspended=FALSE
             WHERE p.departement_id=? AND LOWER(r.role_name)='manager'
             """, Integer.class, departmentId);
-        for (Integer managerId : managers) notifications.notifyUser(managerId, "CONGE_A_VALIDER", "Demande de congÃ© Ã  traiter",
-            "Une demande de congÃ© de " + username(userId) + " attend votre dÃ©cision.", "/espace/manager/equipe/conges");
-        return Map.of("id", id, "type", type.get("libelle"), "jours", days, "statut", "Ã€ valider par le manager");
+        for (Integer managerId : managers) notifications.notifyUser(managerId, "CONGE_A_VALIDER", "Demande de congé à traiter",
+            "Une demande de congé de " + username(userId) + " attend votre décision.", "/espace/manager/equipe/conges");
+        return Map.of("id", id, "type", type.get("libelle"), "jours", days, "statut", "À valider par le manager");
     }
 
     @Transactional(readOnly = true)
@@ -125,7 +125,7 @@ public class LeaveManagementService {
         Integer departmentId = managerDepartment(managerId);
         Map<String, Object> request = lockRequest(requestId);
         if (!departmentId.equals(request.get("departement_id")) || !"A_VALIDER_MANAGER".equals(request.get("statut_code"))) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Demande de congÃ© introuvable dans votre Ã©quipe ou dÃ©jÃ  traitÃ©e.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Demande de congé introuvable dans votre équipe ou déjà traitée.");
         }
         String code = normalizeDecision(decision, comment);
         Integer decisionId = lookup("decisions_conge", code);
@@ -136,20 +136,20 @@ public class LeaveManagementService {
         updateRequestStatus(requestId, next);
         Integer employeeUserId = ((Number) request.get("user_id")).intValue();
         if ("A_VALIDER_RH".equals(next)) {
-            notifications.notifyRole("rh", "CONGE_A_VALIDER", "CongÃ© Ã  valider par les RH",
-                "Le manager a validÃ© une demande de congÃ©. Elle attend votre contrÃ´le.", "/espace/rh/conges/demandes");
+            notifications.notifyRole("rh", "CONGE_A_VALIDER", "Congé à valider par les RH",
+                "Le manager a validé une demande de congé. Elle attend votre contrôle.", "/espace/rh/conges/demandes");
         } else {
-            notifications.notifyUser(employeeUserId, "CONGE_STATUT", "Demande de congÃ© refusÃ©e",
-                "Votre demande de congÃ© a Ã©tÃ© refusÃ©e. " + safeComment(comment), "/espace/employe/conges");
+            notifications.notifyUser(employeeUserId, "CONGE_STATUT", "Demande de congé refusée",
+                "Votre demande de congé a été refusée. " + safeComment(comment), "/espace/employe/conges");
         }
-        return Map.of("statut", next, "message", "DÃ©cision du manager enregistrÃ©e.");
+        return Map.of("statut", next, "message", "Décision du manager enregistrée.");
     }
 
     @Transactional
     public Map<String, Object> rhDecision(Integer rhId, Integer requestId, String decision, String comment) {
         requireRole(rhId, "rh");
         Map<String, Object> request = lockRequest(requestId);
-        if (!"A_VALIDER_RH".equals(request.get("statut_code"))) throw conflict("Cette demande nâ€™attend plus une dÃ©cision RH.");
+        if (!"A_VALIDER_RH".equals(request.get("statut_code"))) throw conflict("Cette demande n’attend plus une décision RH.");
         String code = normalizeDecision(decision, comment);
         Integer decisionId = lookup("decisions_conge", code);
         Integer stepId = lookup("etapes_validation_conge", "RH");
@@ -166,15 +166,15 @@ public class LeaveManagementService {
                 "SELECT justificatif_requis FROM types_conge WHERE id=?", Boolean.class, typeId));
             if (requiredDocument && !Boolean.TRUE.equals(jdbc.queryForObject(
                     "SELECT EXISTS(SELECT 1 FROM justificatifs_demande_conge WHERE demande_id=?)", Boolean.class, requestId)))
-                throw conflict("Un justificatif est obligatoire avant lâ€™approbation finale.");
-            if (overlaps(employeeId, start, end, requestId)) throw conflict("La pÃ©riode chevauche dÃ©sormais une autre absence approuvÃ©e.");
+                throw conflict("Un justificatif est obligatoire avant l’approbation finale.");
+            if (overlaps(employeeId, start, end, requestId)) throw conflict("La période chevauche désormais une autre absence approuvée.");
             if (Boolean.TRUE.equals(request.get("acquisition_active"))) {
                 BigDecimal available = balance(employeeId, typeId, requestId);
                 if (available.compareTo(days) < 0) throw conflict("Le solde est devenu insuffisant avant la validation finale.");
                 jdbc.update("""
                     INSERT INTO mouvements_solde_conge(employe_id,type_conge_id,type_mouvement_id,demande_id,jours,periode_debut,periode_fin,acteur_id,commentaire)
                     VALUES (?,?,(SELECT id FROM types_mouvement_solde_conge WHERE code='PRISE'),?,?,?,?,?,?)
-                    """, employeeId, typeId, requestId, days.negate(), start, end, rhId, "CongÃ© approuvÃ©");
+                    """, employeeId, typeId, requestId, days.negate(), start, end, rhId, "Congé approuvé");
             }
             createApprovedAbsence(employeeId, requestId, start, end, rhId);
             warning = minimumCoverageWarning(employeeId, start, end);
@@ -182,13 +182,13 @@ public class LeaveManagementService {
         String next = "APPROUVEE".equals(code) ? "APPROUVEE" : "REFUSEE";
         updateRequestStatus(requestId, next);
         Integer employeeUserId = ((Number) request.get("user_id")).intValue();
-        notifications.notifyUser(employeeUserId, "CONGE_STATUT", "Demande de congÃ© traitÃ©e",
-            "Votre demande de congÃ© a Ã©tÃ© " + ("APPROUVEE".equals(next) ? "approuvÃ©e." : "refusÃ©e. " + safeComment(comment)),
+        notifications.notifyUser(employeeUserId, "CONGE_STATUT", "Demande de congé traitée",
+            "Votre demande de congé a été " + ("APPROUVEE".equals(next) ? "approuvée." : "refusée. " + safeComment(comment)),
             "/espace/employe/conges");
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("statut", next);
         result.put("alerteEffectif", warning);
-        result.put("message", "DÃ©cision RH enregistrÃ©e.");
+        result.put("message", "Décision RH enregistrée.");
         return result;
     }
 
@@ -197,7 +197,7 @@ public class LeaveManagementService {
         requireRole(rhId, "rh");
         LocalDate from = start == null ? LocalDate.now(HR_ZONE).withDayOfMonth(1) : start;
         LocalDate to = end == null ? from.plusMonths(1).minusDays(1) : end;
-        if (to.isBefore(from) || to.isAfter(from.plusMonths(3))) throw bad("La pÃ©riode doit Ãªtre cohÃ©rente et ne pas dÃ©passer trois mois.");
+        if (to.isBefore(from) || to.isAfter(from.plusMonths(3))) throw bad("La période doit être cohérente et ne pas dépasser trois mois.");
         return jdbc.queryForList("""
             SELECT a.id,e.matricule,COALESCE(u.full_name,u.username) AS employe,d.nom AS departement,
                    ta.libelle AS type,a.date_debut AS "dateDebut",a.date_fin AS "dateFin",a.motif,a.justifiee,
@@ -221,15 +221,15 @@ public class LeaveManagementService {
             LocalDate start, LocalDate end, String reason, boolean justified, org.springframework.web.multipart.MultipartFile attachment) {
         requireRole(rhId, "rh");
         if (start == null || end == null || end.isBefore(start) || reason == null || reason.isBlank() || reason.length() > 2000)
-            throw bad("EmployÃ©, dates cohÃ©rentes et motif sont obligatoires pour enregistrer une absence.");
+            throw bad("Employé, dates cohérentes et motif sont obligatoires pour enregistrer une absence.");
         Map<String, Object> type = jdbc.query("SELECT id,justificatif_requis,impacte_planning FROM types_absence WHERE code=? AND actif=TRUE", rs -> {
-            if (!rs.next()) throw bad("Type dâ€™absence actif introuvable.");
+            if (!rs.next()) throw bad("Type d’absence actif introuvable.");
             return Map.of("id", rs.getInt("id"), "justificatifRequis", rs.getBoolean("justificatif_requis"), "impactePlanning", rs.getBoolean("impacte_planning"));
         }, typeCode);
         if (Boolean.TRUE.equals(type.get("justificatifRequis")) && (attachment == null || attachment.isEmpty()))
-            throw bad("Un justificatif est obligatoire pour ce type dâ€™absence.");
+            throw bad("Un justificatif est obligatoire pour ce type d’absence.");
         jdbc.queryForObject("SELECT id FROM employes WHERE id=? FOR UPDATE", Integer.class, employeeId);
-        if (overlaps(employeeId, start, end, null)) throw conflict("Cette pÃ©riode chevauche dÃ©jÃ  une demande ou une absence.");
+        if (overlaps(employeeId, start, end, null)) throw conflict("Cette période chevauche déjà une demande ou une absence.");
         Integer absenceId = jdbc.queryForObject("""
             INSERT INTO absences(employe_id,type_absence_id,date_debut,date_fin,enregistree_par_id,motif,justifiee)
             VALUES (?,?,?, ?,?,?,?) RETURNING id
@@ -244,14 +244,14 @@ public class LeaveManagementService {
         }
         if (Boolean.TRUE.equals(type.get("impactePlanning"))) {
           applyAbsenceToPlanning(employeeId, absenceId, start, end, rhId,
-              lookup("types_jour_planning", "ABSENCE"), "Absence enregistrÃ©e : " + absenceId);
+              lookup("types_jour_planning", "ABSENCE"), "Absence enregistrée : " + absenceId);
         }
         String warning = Boolean.TRUE.equals(type.get("impactePlanning")) ? minimumCoverageWarning(employeeId, start, end) : null;
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("id", absenceId);
         result.put("message", Boolean.TRUE.equals(type.get("impactePlanning"))
-            ? "Absence enregistrÃ©e. Aucun solde de congÃ© nâ€™a Ã©tÃ© dÃ©bitÃ© automatiquement."
-            : "Ã‰vÃ©nement enregistrÃ©. Le planning journalier et le solde de congÃ© restent inchangÃ©s.");
+            ? "Absence enregistrée. Aucun solde de congé n’a été débité automatiquement."
+            : "Événement enregistré. Le planning journalier et le solde de congé restent inchangés.");
         result.put("alerteEffectif", warning);
         return result;
     }
@@ -311,16 +311,16 @@ public class LeaveManagementService {
         }
         if (warnings.isEmpty()) return null;
         String department = jdbc.queryForObject("SELECT nom FROM postes p JOIN departements d ON d.id=p.departement_id WHERE p.id=?", String.class, posteId);
-        String summary = "Sous-effectif prÃ©visionnel pour le poste du dÃ©partement " + department + " : " + String.join(", ", warnings);
+        String summary = "Sous-effectif prévisionnel pour le poste du département " + department + " : " + String.join(", ", warnings);
         Integer departmentId = departmentForEmployee(employeeId);
         List<Integer> managers = jdbc.queryForList("""
             SELECT DISTINCT e.user_id FROM employes e JOIN postes p ON p.id=e.poste_id
             JOIN user_roles ur ON ur.user_id=e.user_id JOIN roles r ON r.id=ur.role_id
             WHERE p.departement_id=? AND LOWER(r.role_name)='manager'
             """, Integer.class, departmentId);
-        for (Integer managerId : managers) notifications.notifyUser(managerId, "EFFECTIF_SOUS_MINIMUM", "Alerte de couverture dâ€™Ã©quipe", summary,
+        for (Integer managerId : managers) notifications.notifyUser(managerId, "EFFECTIF_SOUS_MINIMUM", "Alerte de couverture d’équipe", summary,
             "/espace/manager/equipe/conges");
-        notifications.notifyRole("rh", "EFFECTIF_SOUS_MINIMUM", "Alerte de couverture dâ€™Ã©quipe", summary,
+        notifications.notifyRole("rh", "EFFECTIF_SOUS_MINIMUM", "Alerte de couverture d’équipe", summary,
             "/espace/rh/conges/planning");
         return summary;
     }
@@ -332,10 +332,10 @@ public class LeaveManagementService {
         Integer absenceId = jdbc.queryForObject("""
             INSERT INTO absences(employe_id,type_absence_id,demande_conge_id,date_debut,date_fin,enregistree_par_id,motif,justifiee)
             VALUES (?,?,?,?,?,?,?,TRUE) RETURNING id
-            """, Integer.class, employeeId, absenceType, requestId, startAt, endAt, actorId, "CongÃ© approuvÃ©");
+            """, Integer.class, employeeId, absenceType, requestId, startAt, endAt, actorId, "Congé approuvé");
         Integer congeDayType = lookup("types_jour_planning", "CONGE");
         applyAbsenceToPlanning(employeeId, absenceId, start, end, actorId, congeDayType,
-            "CongÃ© approuvÃ©, absence " + absenceId);
+            "Congé approuvé, absence " + absenceId);
     }
 
     private void applyAbsenceToPlanning(Integer employeeId, Integer absenceId, LocalDate start, LocalDate end,
@@ -398,14 +398,14 @@ public class LeaveManagementService {
             SELECT EXISTS (
               SELECT 1 FROM demandes_conge d JOIN statuts_demande_conge s ON s.id=d.statut_id
               WHERE d.employe_id=? AND s.code NOT IN ('REFUSEE','ANNULEE') AND d.date_debut<=? AND d.date_fin>=?
-                AND (? IS NULL OR d.id<>?)
+                AND d.id IS DISTINCT FROM ?
               UNION ALL
               SELECT 1 FROM absences a JOIN types_absence ta ON ta.id=a.type_absence_id
                 WHERE a.employe_id=? AND ta.impacte_planning=TRUE
                   AND (a.date_debut AT TIME ZONE 'Indian/Antananarivo')::date<=?
                   AND (a.date_fin AT TIME ZONE 'Indian/Antananarivo')::date>?
             )
-            """, Boolean.class, employeeId, end, start, exceptId, exceptId, employeeId, end, start));
+            """, Boolean.class, employeeId, end, start, exceptId, employeeId, end, start));
     }
 
     private BigDecimal balance(Integer employeeId, Integer typeId, Integer exceptRequest) {
@@ -416,8 +416,8 @@ public class LeaveManagementService {
             SELECT COALESCE(SUM(jours_demandes),0) FROM demandes_conge d
             JOIN statuts_demande_conge s ON s.id=d.statut_id
             WHERE d.employe_id=? AND d.type_conge_id=? AND s.code IN ('A_VALIDER_MANAGER','A_VALIDER_RH')
-              AND (? IS NULL OR d.id<>?)
-            """, BigDecimal.class, employeeId, typeId, exceptRequest, exceptRequest);
+              AND d.id IS DISTINCT FROM ?
+            """, BigDecimal.class, employeeId, typeId, exceptRequest);
         return earnedAndAdjusted.subtract(reserved);
     }
 
@@ -440,7 +440,7 @@ public class LeaveManagementService {
                     INSERT INTO mouvements_solde_conge(employe_id,type_conge_id,type_mouvement_id,jours,periode_debut,periode_fin,commentaire)
                     VALUES (?,?,?,?,?,?,?) ON CONFLICT DO NOTHING
                     """, employeeId, typeId, movementType, rate, periodEnd.minusMonths(1), periodEnd,
-                    "Acquisition mensuelle calculÃ©e selon la rÃ¨gle RH en vigueur.");
+                    "Acquisition mensuelle calculée selon la règle RH en vigueur.");
             }
         }
     }
@@ -466,7 +466,7 @@ public class LeaveManagementService {
             JOIN postes p ON p.id=e.poste_id JOIN users u ON u.id=e.user_id
             WHERE d.id=? FOR UPDATE OF d
             """, rs -> {
-                if (!rs.next()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Demande de congÃ© introuvable.");
+                if (!rs.next()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Demande de congé introuvable.");
                 Map<String, Object> item = new LinkedHashMap<>();
                 item.put("id", rs.getInt("id")); item.put("employe_id", rs.getInt("employe_id"));
                 item.put("type_conge_id", rs.getInt("type_conge_id")); item.put("statut_id", rs.getInt("statut_id"));
@@ -484,7 +484,44 @@ public class LeaveManagementService {
                    d.nom AS departement,p.intitule AS poste,tc.libelle AS type,dc.date_debut AS "dateDebut",
                    dc.date_fin AS "dateFin",dc.jours_demandes AS jours,dc.motif,s.code AS "statutCode",
                    s.libelle AS statut,dc.soumise_at AS "soumiseAt",tc.justificatif_requis AS "justificatifRequis",
-                   EXISTS(SELECT 1 FROM justificatifs_demande_conge jd WHERE jd.demande_id=dc.id) AS "justificatifPresent"
+                   EXISTS(SELECT 1 FROM justificatifs_demande_conge jd WHERE jd.demande_id=dc.id) AS "justificatifPresent",
+                   (SELECT COUNT(DISTINCT a.employe_id)
+                    FROM absences a JOIN employes ae ON ae.id=a.employe_id JOIN postes ap ON ap.id=ae.poste_id
+                    WHERE a.demande_conge_id IS NOT NULL AND ap.departement_id=p.departement_id
+                      AND a.employe_id<>dc.employe_id
+                      AND a.date_debut < ((dc.date_fin + 1)::timestamp AT TIME ZONE 'Indian/Antananarivo')
+                      AND a.date_fin > (dc.date_debut::timestamp AT TIME ZONE 'Indian/Antananarivo')) AS "colleguesEnCongeChevauchant",
+                   (SELECT COUNT(DISTINCT autre.employe_id)
+                    FROM demandes_conge autre JOIN statuts_demande_conge autre_statut ON autre_statut.id=autre.statut_id
+                    JOIN employes autre_employe ON autre_employe.id=autre.employe_id JOIN postes autre_poste ON autre_poste.id=autre_employe.poste_id
+                    WHERE autre.id<>dc.id AND autre.employe_id<>dc.employe_id AND autre_poste.departement_id=p.departement_id
+                      AND autre_statut.code IN ('A_VALIDER_MANAGER','A_VALIDER_RH')
+                      AND autre.date_debut<=dc.date_fin AND autre.date_fin>=dc.date_debut) AS "colleguesAvecDemandeChevauchante",
+                   (SELECT COALESCE(MAX(journee.effectif_absent),0)
+                    FROM generate_series(dc.date_debut,dc.date_fin,INTERVAL '1 day') jour(date)
+                    CROSS JOIN LATERAL (
+                        SELECT COUNT(DISTINCT indisponible.employe_id) AS effectif_absent
+                        FROM (
+                            SELECT a.employe_id FROM absences a JOIN employes ae ON ae.id=a.employe_id JOIN postes ap ON ap.id=ae.poste_id
+                            WHERE a.demande_conge_id IS NOT NULL AND ap.departement_id=p.departement_id AND a.employe_id<>dc.employe_id
+                              AND (a.date_debut AT TIME ZONE 'Indian/Antananarivo')::date<=jour.date
+                              AND (a.date_fin AT TIME ZONE 'Indian/Antananarivo')::date>jour.date
+                            UNION
+                            SELECT autre.employe_id FROM demandes_conge autre
+                            JOIN statuts_demande_conge autre_statut ON autre_statut.id=autre.statut_id
+                            JOIN employes autre_employe ON autre_employe.id=autre.employe_id JOIN postes autre_poste ON autre_poste.id=autre_employe.poste_id
+                            WHERE autre.id<>dc.id AND autre.employe_id<>dc.employe_id AND autre_poste.departement_id=p.departement_id
+                              AND autre_statut.code IN ('A_VALIDER_MANAGER','A_VALIDER_RH')
+                              AND autre.date_debut<=jour.date AND autre.date_fin>=jour.date
+                            UNION SELECT dc.employe_id
+                        ) indisponible
+                    ) journee) AS "picAbsenceProjete",
+                   (SELECT COUNT(DISTINCT ae.id)
+                    FROM employes ae JOIN postes ap ON ap.id=ae.poste_id
+                    LEFT JOIN situation_administrative_employe situation ON situation.employe_id=ae.id
+                    LEFT JOIN statuts_administratifs_employe statut_employe ON statut_employe.id=situation.statut_id
+                    WHERE ap.departement_id=p.departement_id AND ae.date_embauche<=CURRENT_DATE
+                      AND COALESCE(statut_employe.code,'ACTIF') NOT IN ('SORTI','EN_PREPARATION')) AS "effectifActifDepartement"
             FROM demandes_conge dc JOIN employes e ON e.id=dc.employe_id JOIN users u ON u.id=e.user_id
             JOIN postes p ON p.id=e.poste_id JOIN departements d ON d.id=p.departement_id
             JOIN types_conge tc ON tc.id=dc.type_conge_id JOIN statuts_demande_conge s ON s.id=dc.statut_id
@@ -493,7 +530,7 @@ public class LeaveManagementService {
 
     private Integer employeeId(Integer userId) {
         Integer id = jdbc.query("SELECT id FROM employes WHERE user_id=?", rs -> rs.next() ? rs.getInt(1) : null, userId);
-        if (id == null) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Aucun dossier salariÃ© actif nâ€™est liÃ© Ã  ce compte.");
+        if (id == null) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Aucun dossier salarié actif n’est lié à ce compte.");
         return id;
     }
 
@@ -508,7 +545,7 @@ public class LeaveManagementService {
             SELECT DISTINCT p.departement_id FROM employes e JOIN postes p ON p.id=e.poste_id
             WHERE e.user_id=? AND p.actif=TRUE
             """, Integer.class, managerId);
-        if (ids.size() != 1) throw conflict("Le compte manager doit Ãªtre rattachÃ© Ã  un seul dÃ©partement actif.");
+        if (ids.size() != 1) throw conflict("Le compte manager doit être rattaché à un seul département actif.");
         return ids.getFirst();
     }
 
@@ -518,14 +555,14 @@ public class LeaveManagementService {
               JOIN user_roles ur ON ur.user_id=u.id JOIN roles r ON r.id=ur.role_id
               WHERE u.id=? AND u.is_suspended=FALSE AND s.code='APPROVED' AND LOWER(r.role_name)=LOWER(?))
             """, Boolean.class, userId, role));
-        if (!allowed) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Un compte " + role + " validÃ© est requis.");
+        if (!allowed) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Un compte " + role + " validé est requis.");
     }
 
     private Integer lookup(String table, String code) {
         if (!List.of("statuts_demande_conge", "decisions_conge", "etapes_validation_conge", "types_mouvement_solde_conge", "types_absence", "types_jour_planning").contains(table))
-            throw new IllegalArgumentException("RÃ©fÃ©rentiel non autorisÃ©.");
+            throw new IllegalArgumentException("Référentiel non autorisé.");
         Integer id = jdbc.query("SELECT id FROM " + table + " WHERE code=?", rs -> rs.next() ? rs.getInt(1) : null, code);
-        if (id == null) throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "RÃ©fÃ©rentiel manquant : " + code + ". RÃ©importez les scripts SQL finaux.");
+        if (id == null) throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Référentiel manquant : " + code + ". Réimportez les scripts SQL finaux.");
         return id;
     }
 
@@ -536,7 +573,7 @@ public class LeaveManagementService {
 
     private String normalizeDecision(String decision, String comment) {
         String code = decision == null ? "" : decision.trim().toUpperCase(java.util.Locale.ROOT);
-        if (!List.of("APPROUVEE", "REFUSEE").contains(code)) throw bad("DÃ©cision invalide.");
+        if (!List.of("APPROUVEE", "REFUSEE").contains(code)) throw bad("Décision invalide.");
         if ("REFUSEE".equals(code) && (comment == null || comment.isBlank())) throw bad("Un commentaire est obligatoire pour refuser la demande.");
         return code;
     }
@@ -591,7 +628,7 @@ public class LeaveManagementService {
     }
 
     private String username(Integer userId) {
-        return jdbc.query("SELECT COALESCE(full_name,username) FROM users WHERE id=?", rs -> rs.next() ? rs.getString(1) : "Un salariÃ©", userId);
+        return jdbc.query("SELECT COALESCE(full_name,username) FROM users WHERE id=?", rs -> rs.next() ? rs.getString(1) : "Un salarié", userId);
     }
 
     private Map<String, Object> one(String sql, Integer parameter, String message) {

@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.Comparator;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -34,6 +36,64 @@ public class PayrollAdministrationService {
             ORDER BY p.code, r.code NULLS FIRST, p.date_debut DESC
             """);
     }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> irsaBrackets(Integer userId) {
+        requireAdministration(userId);
+        return jdbc.queryForList("""
+            SELECT id, date_debut AS "dateDebut", date_fin AS "dateFin", borne_inferieure AS "borneInferieure",
+                   borne_superieure AS "borneSuperieure", taux, source_regle AS "sourceRegle",
+                   motif_modification AS "motifModification", (date_fin IS NULL) AS modifiable
+            FROM tranches_irsa ORDER BY date_debut DESC, borne_inferieure
+            """);
+    }
+
+    @Transactional
+    public List<Map<String, Object>> updateIrsaBrackets(Integer userId, LocalDate effectiveDate,
+            List<IrsaBracket> brackets, String reason) {
+        requireAdministration(userId);
+        if (effectiveDate == null || effectiveDate.isBefore(LocalDate.now(HR_ZONE)))
+            throw bad("La date d’effet doit être aujourd’hui ou dans le futur.");
+        if (reason == null || reason.isBlank() || reason.trim().length() > 500)
+            throw bad("Indiquez le motif de modification (500 caractères maximum).");
+        if (brackets == null || brackets.isEmpty()) throw bad("Ajoutez au moins une tranche IRSA.");
+        if (brackets.stream().anyMatch(row -> row == null || row.borneInferieure() == null || row.taux() == null))
+            throw bad("Chaque tranche doit préciser sa borne inférieure et son taux.");
+        List<IrsaBracket> ordered = new ArrayList<>(brackets);
+        ordered.sort(Comparator.comparing(IrsaBracket::borneInferieure));
+        if (ordered.get(0).borneInferieure().compareTo(BigDecimal.ZERO) != 0)
+            throw bad("Le barème doit commencer à 0 Ar.");
+        for (int i = 0; i < ordered.size(); i++) {
+            IrsaBracket row = ordered.get(i);
+            if (row.borneInferieure() == null || row.taux() == null || row.borneInferieure().signum() < 0
+                    || row.taux().signum() < 0 || row.taux().compareTo(BigDecimal.ONE) > 0)
+                throw bad("Les bornes doivent être positives et chaque taux compris entre 0 et 1.");
+            boolean last = i == ordered.size() - 1;
+            if (last != (row.borneSuperieure() == null))
+                throw bad("Seule la dernière tranche peut ne pas avoir de borne supérieure.");
+            if (!last && (row.borneSuperieure().compareTo(row.borneInferieure()) <= 0
+                    || row.borneSuperieure().compareTo(ordered.get(i + 1).borneInferieure()) != 0))
+                throw bad("Les tranches doivent être croissantes, contiguës et sans chevauchement.");
+        }
+        List<LocalDate> starts = jdbc.query("SELECT date_debut FROM tranches_irsa WHERE date_fin IS NULL ORDER BY date_debut LIMIT 1 FOR UPDATE",
+                (rs, row) -> rs.getDate(1).toLocalDate());
+        if (starts.isEmpty()) throw conflict("Aucun barème IRSA actif à versionner.");
+        LocalDate currentStart = starts.get(0);
+        if (!effectiveDate.isAfter(currentStart)) throw bad("La nouvelle date d’effet doit suivre le début du barème en cours.");
+        jdbc.update("UPDATE tranches_irsa SET date_fin=?,motif_modification=?,modifie_par_id=? WHERE date_fin IS NULL",
+                effectiveDate.minusDays(1), reason.trim(), userId);
+        for (IrsaBracket row : ordered) {
+            jdbc.update("""
+                INSERT INTO tranches_irsa(date_debut,borne_inferieure,borne_superieure,taux,source_regle,motif_modification,modifie_par_id)
+                VALUES(?,?,?,?,?,?,?)
+                """, effectiveDate, row.borneInferieure(), row.borneSuperieure(), row.taux(),
+                row.sourceRegle() == null || row.sourceRegle().isBlank() ? "Barème IRSA configuré par Administration" : row.sourceRegle().trim(),
+                reason.trim(), userId);
+        }
+        return irsaBrackets(userId);
+    }
+
+    public record IrsaBracket(BigDecimal borneInferieure, BigDecimal borneSuperieure, BigDecimal taux, String sourceRegle) { }
 
     @Transactional
     public List<Map<String, Object>> updateParameter(Integer userId, Integer id,

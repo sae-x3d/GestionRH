@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS types_absence (
     justificatif_requis BOOLEAN NOT NULL DEFAULT FALSE,
     compte_effectif BOOLEAN NOT NULL DEFAULT FALSE,
     impacte_planning BOOLEAN NOT NULL DEFAULT TRUE,
+    retenue_paie BOOLEAN NOT NULL DEFAULT FALSE,
     actif BOOLEAN NOT NULL DEFAULT TRUE
 );
 
@@ -1084,6 +1085,7 @@ CREATE TABLE IF NOT EXISTS tranches_irsa (
     borne_superieure NUMERIC(14, 2),
     taux NUMERIC(9, 6) NOT NULL,
     source_regle VARCHAR(300) NOT NULL,
+    motif_modification VARCHAR(500),
     modifie_par_id INTEGER REFERENCES users(id) ON DELETE RESTRICT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT ck_tranche_irsa_dates CHECK (date_fin IS NULL OR date_fin >= date_debut),
@@ -1160,6 +1162,7 @@ CREATE TABLE IF NOT EXISTS variables_paie (
     saisi_par_id INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     valide_par_id INTEGER REFERENCES users(id) ON DELETE RESTRICT,
     valide_at TIMESTAMPTZ,
+    motif_decision VARCHAR(500),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

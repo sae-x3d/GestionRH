@@ -1,0 +1,29 @@
+:host { display:block; }
+.payroll-periods-page { display:grid; gap:22px; width:100%; color:#1d3028; }
+.page-heading,.detail-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:22px; }
+.eyebrow { margin:0 0 8px; color:#247a6d; font-size:.94rem; font-weight:800; letter-spacing:.14em; }
+h1 { margin:0; font-size:clamp(2rem,4vw,3rem); letter-spacing:-.04em; }
+h2 { margin:4px 0 8px; font-size:1.6rem; }
+.page-intro { max-width:850px; margin:10px 0 0; color:#65766e; line-height:1.6; }
+.period-create { display:grid; grid-template-columns:minmax(150px,1fr) auto; gap:8px 12px; align-items:end; min-width:330px; padding:16px; border:1px solid #dce8e2; border-radius:16px; background:#f7faf8; }
+.period-create label { grid-column:1/-1; color:#52655c; font-weight:700; }
+.period-create input { min-width:0; }
+.payroll-notice { display:flex; gap:12px; padding:15px 18px; border:1px solid #e8d8a8; border-radius:15px; background:#fff9e8; color:#66552b; }
+.payroll-notice i { margin-top:3px; }.payroll-notice p { margin:0; line-height:1.55; }
+.period-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+.period-card { display:grid; gap:8px; padding:16px; border:1px solid #d7e5de; border-radius:15px; background:#f4f8f5; text-align:left; cursor:pointer; color:inherit; }
+.period-card.selected { border-color:#408f7a; box-shadow:0 0 0 2px #d9eee5; background:#eaf4ef; }
+.period-title { font-weight:800; text-transform:capitalize; }.period-status { width:max-content; padding:4px 9px; border-radius:999px; background:#e3f0e9; color:#286c58; font-size:.88rem; font-weight:800; }
+.payment-reference { display:grid; gap:6px; min-width:220px; color:#52655c; font-weight:700; }
+.period-summary { color:#687b71; font-size:.96rem; }
+.period-detail { display:grid; gap:16px; padding:22px; border:1px solid #dce8e2; border-radius:18px; background:#fff; box-shadow:0 10px 32px rgb(23 54 43 / 5%); }
+.actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
+.totals { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+.totals article { display:grid; gap:6px; padding:14px; border-radius:13px; background:#f0f6f2; color:#60736a; }.totals strong { color:#1e4e3e; font-size:1.2rem; }
+.state { display:flex; align-items:center; justify-content:center; gap:10px; min-height:110px; color:#687b71; }.empty { display:grid; text-align:center; }
+.table-wrap { overflow:auto; border:1px solid #dce8e2; border-radius:13px; } table { width:100%; border-collapse:collapse; min-width:850px; } th,td { padding:12px 14px; border-bottom:1px solid #e7efea; text-align:left; white-space:nowrap; } th { background:#eef5f1; color:#49685b; font-size:.91rem; } td:first-child { white-space:normal; } td small { display:block; margin-top:4px; color:#72847b; }
+.pdf-button { display:grid; place-items:center; width:38px; height:38px; border:1px solid #d1e2d8; border-radius:10px; background:#f1f7f3; color:#28715f; cursor:pointer; }.pdf-button:disabled { opacity:.55; cursor:wait; }
+.variable-panel { display:grid; gap:14px; padding:17px; border:1px solid #dce8e2; border-radius:15px; background:#f7faf8; }.variable-panel h3 { margin:0; font-size:1.25rem; }.panel-help { margin:6px 0 0; color:#687b71; }.variable-form { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; align-items:end; }.variable-form label { display:grid; gap:6px; color:#52655c; font-weight:700; }.variable-form select,.decision-controls input { min-width:0; width:100%; min-height:42px; padding:8px 10px; border:1px solid #cfddd5; border-radius:9px; background:#fff; color:#243a30; }.variable-form .wide { grid-column:span 2; }.variable-list { display:grid; gap:9px; }.variable-list article { display:grid; grid-template-columns:minmax(180px,1fr) auto auto; gap:10px; align-items:center; padding:12px; border:1px solid #dce8e2; border-radius:12px; background:#fff; }.variable-list p { margin:5px 0; color:#61756b; }.variable-list small { color:#7a8982; }.decision-controls { grid-column:1/-1; display:grid; grid-template-columns:minmax(180px,1fr) auto auto; gap:8px; }
+@media(max-width:900px) { .page-heading,.detail-heading { align-items:stretch; flex-direction:column; }.period-create { min-width:0; }.actions { justify-content:flex-start; }.totals { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:680px) { .variable-form { grid-template-columns:1fr; }.variable-form .wide { grid-column:auto; }.variable-list article { grid-template-columns:1fr auto; }.decision-controls { grid-template-columns:1fr; } }
+@media(max-width:540px) { .period-detail { padding:15px; }.period-create { grid-template-columns:1fr; }.period-create label { grid-column:auto; }.totals { grid-template-columns:1fr 1fr; }.period-list { grid-template-columns:1fr; } }
