@@ -19,6 +19,11 @@ export const WORKSPACE_ROUTES: Routes = [
         loadComponent: () => import('./pages/dossier/employee-dossier-page.component').then((page) => page.EmployeeDossierPageComponent)
       },
       {
+        path: 'manager/equipe/carriere', canActivate: [managerGuard],
+        data: { title: 'Carrière de mon équipe', careerMode: 'manager' },
+        loadComponent: () => import('./pages/career/career-page.component').then((page) => page.CareerPageComponent)
+      },
+      {
         path: 'dossiers/me', canActivate: [roleGuard], data: { roles: ['employe', 'manager'], self: true, title: 'Mon dossier administratif' },
         loadComponent: () => import('./pages/dossier/employee-dossier-page.component').then((page) => page.EmployeeDossierPageComponent)
       },
@@ -102,6 +107,11 @@ export const WORKSPACE_ROUTES: Routes = [
       {
         path: 'rh/equipe/effectifs', canActivate: [roleGuard], data: { roles: ['rh'] },
         loadComponent: () => import('./pages/dossier/employee-directory-page.component').then((page) => page.EmployeeDirectoryPageComponent)
+      },
+      {
+        path: 'rh/carriere', canActivate: [roleGuard],
+        data: { roles: ['rh'], title: 'Gestion de carrière', careerMode: 'rh' },
+        loadComponent: () => import('./pages/career/career-page.component').then((page) => page.CareerPageComponent)
       },
       {
         path: 'rh/personnel/employes/:employeeId', canActivate: [roleGuard], data: { roles: ['rh'] },
@@ -220,6 +230,11 @@ export const WORKSPACE_ROUTES: Routes = [
         path: 'employe/contrat', canActivate: [roleGuard],
         data: { title: 'Mon contrat', roles: ['employe', 'manager'] },
         loadComponent: () => import('./pages/candidate/employee-contract-page.component').then((page) => page.EmployeeContractPageComponent)
+      },
+      {
+        path: 'employe/carriere', canActivate: [roleGuard],
+        data: { title: 'Ma carrière', roles: ['employe', 'manager'], careerMode: 'self' },
+        loadComponent: () => import('./pages/career/career-page.component').then((page) => page.CareerPageComponent)
       },
       {
         path: 'employe/historiques', canActivate: [roleGuard],
