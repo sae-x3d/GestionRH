@@ -1,0 +1,27 @@
+<main class="formation-list-page">
+  <header class="page-heading">
+    <div><p class="eyebrow">RESSOURCES HUMAINES / FORMATION</p><h1>Formations</h1><p class="page-intro">Planifiez les actions de formation, inscrivez les salaries concernes par un besoin, puis mesurez le pourcentage du manque initial reellement acquis.</p></div>
+    <p-button label="Nouvelle formation" icon="pi pi-plus" routerLink="/espace/rh/formations/nouvelle" />
+  </header>
+
+  @if (loading) {
+    <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des formations...</div>
+  } @else if (!formations.length) {
+    <div class="panel empty-state"><i class="pi pi-calendar-plus" aria-hidden="true"></i><strong>Aucune formation planifiee</strong><span>Creez une formation a partir d'une competence ciblee.</span></div>
+  } @else {
+    <section class="formation-grid">
+      @for (formation of formations; track formation.id) {
+        <article class="panel formation-card">
+          <header><div><p class="eyebrow">{{ formation.competenceCode }}</p><h2>{{ formation.titre }}</h2><span>{{ formation.competence }}</span></div><span class="status-pill">{{ formation.statut }}</span></header>
+          <div class="formation-facts">
+            <div><small>Periode</small><strong>{{ formation.dateDebut ? (formation.dateDebut | date:'dd/MM/yyyy') : 'A definir' }}{{ formation.dateFin ? ' - ' + (formation.dateFin | date:'dd/MM/yyyy') : '' }}</strong></div>
+            <div><small>Organisme</small><strong>{{ formation.organisme || 'Interne' }}</strong></div>
+            <div><small>Inscrits</small><strong>{{ formation.nbParticipants }}</strong></div>
+            <div><small>Termines</small><strong>{{ formation.nbTermines }}</strong></div>
+          </div>
+          <footer><span>Niveau cible : {{ formation.niveauCible ?? 'non precise' }}</span><a pButton label="Ouvrir" icon="pi pi-arrow-right" [routerLink]="['/espace/rh/formations', formation.id]"></a></footer>
+        </article>
+      }
+    </section>
+  }
+</main>

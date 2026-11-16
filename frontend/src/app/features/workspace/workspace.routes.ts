@@ -75,6 +75,90 @@ export const WORKSPACE_ROUTES: Routes = [
         canActivate: [managerGuard],
         loadComponent: () => import('./pages/manager/manager-recruitment-page.component').then((page) => page.ManagerRecruitmentPageComponent)
       },
+      {
+        path: 'manager/equipe/evaluations',
+        canActivate: [managerGuard],
+        data: { title: 'Evaluations de mon equipe', evaluationRole: 'manager' },
+        loadComponent: () => import('./pages/evaluation/evaluation-list-page.component').then((page) => page.EvaluationListPageComponent)
+      },
+      {
+        path: 'manager/equipe/evaluations/nouvelle/:employeId',
+        canActivate: [managerGuard],
+        data: { title: 'Nouvelle evaluation', evaluationRole: 'manager' },
+        loadComponent: () => import('./pages/evaluation/evaluation-form-page.component').then((page) => page.EvaluationFormPageComponent)
+      },
+      {
+        path: 'manager/equipe/evaluations/:evaluationId',
+        canActivate: [managerGuard],
+        data: { title: 'Evaluation', evaluationRole: 'manager' },
+        loadComponent: () => import('./pages/evaluation/evaluation-detail-page.component').then((page) => page.EvaluationDetailPageComponent)
+      },
+      {
+        path: 'manager/equipe/besoins-formation',
+        canActivate: [managerGuard],
+        data: { title: 'Besoins de formation', needRole: 'manager' },
+        loadComponent: () => import('./pages/formation/training-needs-page.component').then((page) => page.TrainingNeedsPageComponent)
+      },
+      {
+        path: 'rh/competences',
+        canActivate: [roleGuard],
+        data: { roles: ['rh'], title: 'Competences et criteres' },
+        loadComponent: () => import('./pages/competence/competence-configuration-page.component').then((page) => page.CompetenceConfigurationPageComponent)
+      },
+      {
+        path: 'rh/evaluations',
+        canActivate: [roleGuard],
+        data: { roles: ['rh'], title: 'Evaluations', evaluationRole: 'rh' },
+        loadComponent: () => import('./pages/evaluation/evaluation-list-page.component').then((page) => page.EvaluationListPageComponent)
+      },
+      {
+        path: 'rh/evaluations/:evaluationId',
+        canActivate: [roleGuard],
+        data: { roles: ['rh'], title: 'Evaluation', evaluationRole: 'rh' },
+        loadComponent: () => import('./pages/evaluation/evaluation-detail-page.component').then((page) => page.EvaluationDetailPageComponent)
+      },
+      {
+        path: 'rh/besoins',
+        canActivate: [roleGuard],
+        data: { roles: ['rh'], title: 'Besoins de formation', needRole: 'rh' },
+        loadComponent: () => import('./pages/formation/training-needs-page.component').then((page) => page.TrainingNeedsPageComponent)
+      },
+      {
+        path: 'rh/formations/nouvelle',
+        canActivate: [roleGuard],
+        data: { roles: ['rh'], title: 'Nouvelle formation' },
+        loadComponent: () => import('./pages/formation/formation-create-page.component').then((page) => page.FormationCreatePageComponent)
+      },
+      {
+        path: 'rh/formations/:formationId',
+        canActivate: [roleGuard],
+        data: { roles: ['rh'], title: 'Formation' },
+        loadComponent: () => import('./pages/formation/formation-detail-page.component').then((page) => page.FormationDetailPageComponent)
+      },
+      {
+        path: 'rh/formations',
+        canActivate: [roleGuard],
+        data: { roles: ['rh'], title: 'Formations' },
+        loadComponent: () => import('./pages/formation/formation-list-page.component').then((page) => page.FormationListPageComponent)
+      },
+      {
+        path: 'employe/evaluations',
+        canActivate: [roleGuard],
+        data: { roles: ['employe', 'manager'], title: 'Mes evaluations', evaluationRole: 'employee' },
+        loadComponent: () => import('./pages/evaluation/evaluation-list-page.component').then((page) => page.EvaluationListPageComponent)
+      },
+      {
+        path: 'employe/evaluations/:evaluationId',
+        canActivate: [roleGuard],
+        data: { roles: ['employe', 'manager'], title: 'Mon evaluation', evaluationRole: 'employee' },
+        loadComponent: () => import('./pages/evaluation/evaluation-detail-page.component').then((page) => page.EvaluationDetailPageComponent)
+      },
+      {
+        path: 'employe/formations',
+        canActivate: [roleGuard],
+        data: { roles: ['employe', 'manager'], title: 'Mes formations', formationRole: 'employee' },
+        loadComponent: () => import('./pages/formation/my-formations-page.component').then((page) => page.MyFormationsPageComponent)
+      },
       ...rolePlaceholderRoutes('rh', [
         ['rh/contrats', 'Contrats'],
         ['rh/contrats/historique', 'Historique des contrats']

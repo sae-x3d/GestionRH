@@ -1,0 +1,30 @@
+<main class="formation-create-page">
+  <header class="page-heading">
+    <div><p class="eyebrow">RESSOURCES HUMAINES / FORMATION</p><h1>Nouvelle formation</h1><p class="page-intro">Une formation cible une competence. Les besoins ouverts de cette competence pourront ensuite y etre rattaches.</p></div>
+    <p-button label="Annuler" icon="pi pi-arrow-left" severity="secondary" [outlined]="true" (onClick)="cancel()" />
+  </header>
+
+  @if (loading) {
+    <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des competences...</div>
+  } @else {
+    <section class="panel">
+      <div class="form-grid">
+        <label>Competence ciblee
+          <select [(ngModel)]="form.competenceId">
+            <option [ngValue]="null">Choisir une competence active</option>
+            @for (competence of competences; track competence.id) {
+              <option [ngValue]="competence.id">{{ competence.code }} · {{ competence.libelle }}</option>
+            }
+          </select>
+        </label>
+        <label>Titre<input pInputText maxlength="200" [(ngModel)]="form.titre" placeholder="Ex : Atelier tests et qualite logicielle"></label>
+        <label>Organisme<input pInputText maxlength="150" [(ngModel)]="form.organisme" placeholder="Interne, organisme externe..."></label>
+        <label>Niveau cible<input pInputText type="number" min="0" max="100" step="1" [(ngModel)]="form.niveauCible" placeholder="Optionnel"></label>
+        <label>Date de debut<input pInputText type="date" [(ngModel)]="form.dateDebut"></label>
+        <label>Date de fin<input pInputText type="date" [(ngModel)]="form.dateFin"></label>
+        <label class="wide">Description<textarea pInputText rows="4" maxlength="1500" [(ngModel)]="form.description" placeholder="Objectifs, contenu et modalites pratiques"></textarea></label>
+      </div>
+      <footer class="form-actions"><p-button label="Creer la formation" icon="pi pi-save" [disabled]="saving" [loading]="saving" (onClick)="submit()" /></footer>
+    </section>
+  }
+</main>

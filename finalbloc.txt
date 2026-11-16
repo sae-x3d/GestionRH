@@ -1,0 +1,169 @@
+Conge ne peut pas se detacher du salaire appart si il est negatif
+Conge doit etre pris obligatoirement en nature
+Si salaire se detache du conge alors 
+ - il est negatif(miala ao amin'ny karama) ou  
+ - Solde de tout compte : il y a rupture de contrat qui enclenche le payement du conge
+
+Dans Pointage , il y a heure supplementaire 
+
+
+Bloc 8 Paie : 
+Ce qu'on attend du Paie : "Etat de Paie General" et "Fiche de Paie individuel"
+- Etat de Paie General : il dit , 
+    A Cette Periode (exemple : a cette mois ci) , combien est le salaire qu'on depense pour tous les employes.
+    Un employe = 1 ligne , et tous les elements de tous les employes sont dans plusieurs colonnes
+
+- Fiche de paie individuel : 1 element = 1 ligne(model en image montrer)
+
+Tracabilite toujours important 
+exemple : on est au mois de Novembre , on peut voir l'etat de paie ou fiche de paie d'une personne au mois du fevrier(avant Novembre)
+
+Integriter de tous les donnees sont obligatoirement d'origine venant du pointage pour l'heure sup, pour absence si on enleve dans le paie
+
+
+Bloc 9 - Evaluation, competences et formation : 
+Evaluation et competence d'un employe
+Objectif : Definir critere d'evaluation (chaque poste a son propre critere et comment est le bareme pour ce poste) 
+Prq faire ça : Pour savoir l'ecart entre la plannification du competence et la realite
+Si il y a trop d'ecart entre la competence attendu et l'acquise , sa declenche un besoin de formation
+Apres la formation , on mesure si il y a eu une consequence , 
+combien de pourcent de ce qu'il connait pas, il connait apres formation
+
+
+Bloc 10 - Carriere et mobilite : 
+Tout Promotion, mutation, changement de poste, changement de salaire, ne doivent pas etre automatique, 
+on fait un proposition dans l'app selon selon donnees de l'app
+il y a donc proposition de : promotion, mutation, changement de poste, changement de salaire
+Comment faire la proposition dans l'app de façon intelligente??
+N'oublie pas l'historique pour voir tu etait ou? quoi? avant, donc il y a tout dans l'historique(traçabilite)
+Objectif du proposition : Gestion de Carriere
+
+
+Bloc 11 - Discipline
+Gestion de discipline
+Incident -> demande d'explication -> reponse de -> decision du RH (sanction ou avertissement) 
+Sanction le plus dure pour un employe est le coupage du salaire, mise a Periode
+
+
+Bloc 12 - Rupture et offboarding
+Comment ça se passe l'arret d'un contrat? arret total de qu'il a donne  (pour employee et pour diregeant aussi)
+Possibilite d'arret d'un contrat ou rupture d'un contrat : 
+    - demission(decision de la personne lui meme), 
+    - licenciment(le diregeant renvoie l'employee),
+    - etat problematique de l'entreprise , on arrete? (a verifier dans ée vocal vers les 10 minutes du vocal)
+    - incapacite de travail(maladie grave)
+    - retraite (62 ans a verifier a Madagascar)
+    - la mort
+il y a STC (Solde de Tout Compte) dans les ruptures : un fiche de paie ou un etat de paie qui arretent un compte d'une seule personne ou quelques personnes
+pas forcement 1 mois , peut etre aussi 2,10,20 ou 15 jours,....
+exemple : les 15 jours etait son dernier jour de travail, alors on donne son 15 jours + les conges non consideres + .......
+
+Document de Sortie quand doit sortir : 
+    - STC(conge,...), 
+    - Certificat de travail(obligation par la loi): Nous certifions que ... a ete emploie au sein de notre societe pendant ... a .... en tant que ...., 
+
+
+
+
+Retour sur la prrecision du bloc 8 :
+Etat de paie :  
+    - Date, 
+    - Numero matricule employe, 
+    - Nom Prenom, 
+    - Categorie(5B, 5A, M1, OS1, ... a verifier, il y a 8 categories a Madagascar a recherche)/ Personnel a Madagascar : on fait liste deroulante dans le saisie dans l'application 
+    - Fonction
+    - Salaire de base
+    - Retenue sur absence si il y a plus de conge 
+    - Salaire de base du mois (inferieur salaire de base si il y a retenue)
+    - Indamnite (en plus)
+    - Rappel (en plus)
+    - Ordre
+    - Heure supplementaire
+    - Salaire brute(obligatoire strictement superieur au salaire de base)
+    - Retenue Cnaps et Ostie : un employe qui travail dans une societe , 1% de son salaire est depense au cotisation Cnaps, 13% est depense par la societe pour la cotisation
+exemple : 100.000 Ar son salaire, 1% = 1000 Ar il depense et il prend 99000 Ar, mais 13 000 Ar est la depense par la societe (rien avoir avec le 100.000 Ar mais l'argent du societe) pour un personnel
+alors on donne 14% 14.000 Ar pour Cnaps pour un employe de salaire 100.000 Ar
+
+Pour secteur non agricole 13% pour le dirigeant mais
+Pour secteur agricole 8% pour le diregeant (tres important)
+
+Appart l'organisme social CNAPS , 
+il y a aussi organisme sanitaire : OSTIE , AMIDE, ...
+pour eux c'est 1% l'employe , 6 ou 5 % pour la societe
+exemple : 100.000 Ar brute pour l'employe, 2000 Ar depense par l'employe pour CNAPS et OSTIE, l'employe prend alors 98.000 Ar
+        Par la societe 14.000 Ar CNAPS et 7.000 Ar pour l'Ostie dont 6000 Ar pour le dirigeant et 1000 Ar pour l'employe deja en haut
+
+On met dans l'Etat de paie la charge patronale mais rien avoir avec les calculs du salaire des employes,
+Charge patronale : taxe 13% et 8% ou 6% , pour information juste qu'on met dans l'etat de paie mais rien avoir avec les calculs des employes parce que c'est l'argent du socete 
+
+Il y a ce condition pour CNAPS : Plafonement , c'est grave pour la societe et l'employe de depenser 14% de salaire si par exemple 20.000.000 Ar
+pour un employe parce que 2.800.000 Ar c'est pour ça qu'il y a Plafonement
+Plafonement : le plus grand salaire a recevoir est 8 fois au salaire minimum d'embauche.
+Salaire minimum d'embouche : 350.000 Ar 
+350.000 Ar x 8 = 2.800.000 Ar est le Plafonement du CNAPS.
+Alors si tu as un salaire de 3.000.000 Ar , seulement le 2.800.000 Ar de ce 3.000.000 Ar est fois 1% et 13% et ainsi de suite.
+
+Ostie n'as pas de Plafonement. 
+
+Definition salaire brute : salaire de base - retenue sur absence + Indamnite + Rappel + Autre + heure sup.
+
+Definition revenue imposable : salaire brute - (1%(CNAPS) - 1%(OSTIE))(pas de calcul avec 8% et 5% , rien avoir)
+
+avec revenue qu'on calcul l'impot
+Recherche sur IRSA(Impot sur les revenues des salariaux) selon loi de finance 2026.
+recherche le mode de calcul , depart avec le revenue imposable 
+Si on voit la valeur du IRSA , et puis il y a le total retenue
+le total retenue : CNAPS 1% + OSTIE 1% + IRSA
+apres ça
+il y a la salaire nette
+salaire nette : salaire brute - total retenue. 
+apres l'obtention salaire nette
+on enleve les avances qu'on appris pendant une periode 
+exemple : etat de paie mois de novemebre,30 Nov qu'on sort l'etat de paie mais du 10 Nov il a pris un avance,
+constater (dans le code) l'avance , donc il est obligatoire d'enlever dans l'etat de paie l'avance qu'il a pris,
+Si 2.959.920 Ar son salaire , il y pris avance 100.000 Ar, alors 2.859.920 Ar le reste a donne a lui.
+
+Pour l'heure supp :
+En general , on peut pas depasser 20H par semaine l'heure supplementaire d'un employe.
+20H : 12H majore 30% , 8H majore 50%.
+exemple : si exemple 1000 Ar taux horaire, pour heure sup, 1300 Ar pour les 12 premieres heures 
+mais si les 12 premieres heures est fini , alors 50% la majoration alors 
+au lieu de 1000 Ar normal heure, 1300 pour 12H, mais au dela c'est 1500 Ar
+
+Mais comment calcule le Taux horaires? si on a la salaire de base et on connait aussi le secteur d'activite 
+alors on obtient le taux horaire d'un employe
+Pour le secteur agricole , c'est travaille 200H par mois pour un employe
+Et Pour le secteur non agricole, c'est travailler 173,33H par mois pour un employe , 
+pour obtenir ce 173.33 , c'est 40H par semaine fois 52 semaines divise par 12 (40H X 52 /12)
+Donc heure normal + heure sup = maximum 60H par semaine.
+
+Weekend : majore 200%, au lieu fois 1 virgule ,c'est fois 2
+Si on parle de weekend, c'est juste DIMANCHE(retient bien ça), pas de samedi weekend
+Ici a Madagascar, si on travail le DIMANCHE , la loi dit si on fait trvailler un employe le dimanche,
+alors 2 fois de son Taux horaire que tu le donnes, c'est pas a propos de l'heure sup 
+exemple : il travail 8H pendant le dimanche, 2 fois du 1000 Ar fois 8 qu'on le donne.
+et ce 8H auquel il a travaille est heure sup , le 40H est fini jusqu'a samedi mais on le fait travailler 8H heure sup.
+
+Si Lundi a Vendredi , 32H , il a pas travailler samedi, alors 8h dimanche il travail
+alors dans ce 8h de travail dimanchec, c'est pas une heure sup mais heure normal , c'est 1000 Ar qu'on paie pour ce 8h mais 1000 Ar fois 2 parce que c'est dimanche.
+
+si fini 40H jusqu'a samedi, on le fait travailler heure sup dimanche 8H, alors c'est heure sup et travail de weekend ce qu'il fait.
+
+Il y a aussi travaux de nuit 
+nuit : 22H a 4h du matin
+travail de nuit est le meme principe que le dimanche mais le taux n'est pas 2 mais 1,5.
+
+Question de reflexion :
+Lundi a vendredi fini 40H , mais la societe le fait travailler appartir de la nuit 22H dimanche jusqu'a Lundi 4H????
+Il faut chercher ce calcul.
+
+majoration : dimanche et nuit, majoration 20H
+
+Pour le fiche de paie :
+tous les colonnes dans l'etat de paie devient lignes dans fiche de paie d'un employe.
+arrete au quoi la fiche
+
+precision : 
+Majore 100% le fois 2 ;
+Taux journalier : taux mensuel(si on connait le tm) / 30
+Taux horaire : taux mensuel / nombre d'heure par secteur (divise par 173,33 ou divise 200H).

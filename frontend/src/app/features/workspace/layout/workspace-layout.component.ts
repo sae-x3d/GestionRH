@@ -8,7 +8,7 @@ import { ToastModule } from 'primeng/toast';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import { InboxNotification, InboxNotificationService } from '../../../core/notifications/inbox-notification.service';
 
-type SidebarSection = 'equipe' | 'planning' | 'futur' | 'offre' | 'contrat' | 'recrutement' | 'conges' | 'contrats' | 'organisation' | 'personnel' | 'pilotage' | 'paie' | 'comptes' | 'acces' | 'finance';
+type SidebarSection = 'equipe' | 'planning' | 'futur' | 'offre' | 'contrat' | 'recrutement' | 'conges' | 'contrats' | 'organisation' | 'personnel' | 'pilotage' | 'paie' | 'comptes' | 'acces' | 'finance' | 'developpement';
 
 @Component({
   selector: 'app-workspace-layout',
@@ -49,7 +49,8 @@ export class WorkspaceLayoutComponent implements OnInit, OnDestroy {
     paie: false,
     comptes: false,
     acces: false,
-    finance: false
+    finance: false,
+    developpement: false
   });
 
   ngOnInit(): void {

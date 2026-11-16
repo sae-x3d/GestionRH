@@ -1,0 +1,82 @@
+<main class="evaluation-list-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">
+        {{ role === 'manager' ? 'MON EQUIPE / DEVELOPPEMENT' : role === 'rh' ? 'RESSOURCES HUMAINES / EVALUATIONS' : 'MON DEVELOPPEMENT / EVALUATIONS' }}
+      </p>
+      <h1>{{ role === 'manager' ? 'Evaluer mon equipe' : role === 'rh' ? 'Evaluations a valider' : 'Mes evaluations' }}</h1>
+      <p class="page-intro">
+        {{ role === 'manager'
+          ? 'Renseignez le niveau acquis de chaque competence. Les ecarts au niveau attendu declenchent un besoin de formation apres validation RH.'
+          : role === 'rh'
+            ? 'Validez les evaluations soumises par les managers. La validation cree automatiquement les besoins de formation necessaires.'
+            : 'Consultez uniquement les evaluations validees par les RH et les besoins de formation associes.' }}
+      </p>
+    </div>
+    <span class="count-pill">{{ evaluations.length }} evaluation(s)</span>
+  </header>
+
+  @if (loading) {
+    <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des evaluations...</div>
+  } @else {
+    @if (role === 'manager') {
+      <section class="panel">
+        <div class="section-heading"><div><p class="eyebrow">EQUIPE</p><h2>Salaries a evaluer</h2></div></div>
+        @if (!employees.length) {
+          <div class="empty-state">Aucun salarie actif dans votre equipe.</div>
+        } @else {
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Salarie</th><th>Poste</th><th>Bareme</th><th>Derniere evaluation</th><th>Actions</th></tr></thead>
+              <tbody>
+                @for (employee of employees; track employee.employeId) {
+                  <tr>
+                    <td><strong>{{ employee.employe }}</strong><small>{{ employee.matricule }}</small></td>
+                    <td>{{ employee.poste }}</td>
+                    <td>{{ employee.niveauMin }} a {{ employee.niveauMax }} · {{ employee.nbCriteres }} critere(s)</td>
+                    <td>{{ employee.derniereEvaluation ? (employee.derniereEvaluation | date:'dd/MM/yyyy') : 'Jamais' }}</td>
+                    <td><p-button label="Evaluer" icon="pi pi-pencil" [disabled]="!employee.nbCriteres" (onClick)="startEvaluation(employee.employeId)" /></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    }
+
+    <section class="panel">
+      <div class="section-heading"><div><p class="eyebrow">HISTORIQUE</p><h2>{{ role === 'rh' ? 'Toutes les evaluations' : role === 'employee' ? 'Evaluations validees' : 'Evaluations de mon equipe' }}</h2></div></div>
+      @if (!evaluations.length) {
+        <div class="empty-state">Aucune evaluation disponible.</div>
+      } @else {
+        <div class="evaluation-grid">
+          @for (evaluation of evaluations; track evaluation.id) {
+            <article class="evaluation-card">
+              <header>
+                <div>
+                  <p class="eyebrow">EVALUATION N°{{ evaluation.id }}</p>
+                  <h3>{{ evaluation.employe }}</h3>
+                  <span>{{ evaluation.poste }}{{ evaluation.departement ? ' · ' + evaluation.departement : '' }}</span>
+                </div>
+                <span class="status-pill" [class.pending]="evaluation.statut === 'SOUMISE'">{{ evaluation.statut === 'SOUMISE' ? 'A valider' : 'Validee' }}</span>
+              </header>
+              <div class="evaluation-facts">
+                <div><small>Date</small><strong>{{ evaluation.dateEvaluation | date:'dd/MM/yyyy' }}</strong></div>
+                <div><small>Criteres</small><strong>{{ evaluation.nbCriteres }}</strong></div>
+                <div><small>Ecarts</small><strong>{{ evaluation.nbEcarts }}</strong></div>
+                <div><small>Besoins</small><strong>{{ evaluation.nbBesoins ?? '—' }}</strong></div>
+              </div>
+              <footer>
+                <p-button label="Consulter" icon="pi pi-eye" [outlined]="true" (onClick)="openEvaluation(evaluation.id)" />
+                @if (role === 'rh' && evaluation.statut === 'SOUMISE') {
+                  <p-button label="Valider" icon="pi pi-check" [disabled]="actionId !== null" [loading]="actionId === evaluation.id" (onClick)="validate(evaluation)" />
+                }
+              </footer>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+</main>

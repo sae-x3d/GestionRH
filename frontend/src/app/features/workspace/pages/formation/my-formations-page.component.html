@@ -1,0 +1,34 @@
+<main class="my-formations-page">
+  <header class="page-heading">
+    <div><p class="eyebrow">MON DEVELOPPEMENT / FORMATION</p><h1>Mes formations</h1><p class="page-intro">Suivez les formations auxquelles vous etes inscrit et le pourcentage du manque de competence comble apres la mesure RH.</p></div>
+    <span class="count-pill">{{ formations.length }} formation(s)</span>
+  </header>
+
+  @if (loading) {
+    <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement de vos formations...</div>
+  } @else if (!formations.length) {
+    <div class="panel empty-state"><i class="pi pi-graduation-cap" aria-hidden="true"></i><strong>Aucune formation</strong><span>Les formations planifiees par les RH apparaitront ici.</span></div>
+  } @else {
+    <section class="formation-grid">
+      @for (formation of formations; track formation.participationId) {
+        <article class="panel formation-card">
+          <header>
+            <div><p class="eyebrow">{{ formation.competenceCode }}</p><h2>{{ formation.titre }}</h2><span>{{ formation.competence }}</span></div>
+            <span class="status-pill">{{ formation.statutFormation }}</span>
+          </header>
+          <div class="formation-facts">
+            <div><small>Periode</small><strong>{{ formation.dateDebut ? (formation.dateDebut | date:'dd/MM/yyyy') : 'A definir' }}{{ formation.dateFin ? ' - ' + (formation.dateFin | date:'dd/MM/yyyy') : '' }}</strong></div>
+            <div><small>Organisme</small><strong>{{ formation.organisme || 'Interne' }}</strong></div>
+            <div><small>Niveau attendu</small><strong>{{ formation.niveauAttendu }}</strong></div>
+            <div><small>Ma participation</small><strong>{{ formation.statutParticipation }}</strong></div>
+          </div>
+          <div class="progress-block">
+            <div class="progress-head"><span>Pourcentage acquis</span><strong>{{ formation.pourcentage == null ? 'En attente de mesure' : (formation.pourcentage | number:'1.2-2') + ' %' }}</strong></div>
+            <div class="progress-track" role="progressbar" [attr.aria-valuenow]="formation.pourcentage ?? 0" aria-valuemin="0" aria-valuemax="100"><span [style.width.%]="formation.pourcentage ?? 0"></span></div>
+            @if (formation.commentaireMesure) { <small>{{ formation.commentaireMesure }}</small> }
+          </div>
+        </article>
+      }
+    </section>
+  }
+</main>
