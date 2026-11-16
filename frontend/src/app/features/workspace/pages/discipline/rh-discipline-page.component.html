@@ -1,0 +1,189 @@
+<main class="discipline-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">RESSOURCES HUMAINES / DISCIPLINE</p>
+      <h1>Procédures disciplinaires</h1>
+      <p class="page-intro">Déclarez un incident, demandez une explication puis prenez la décision finale. Les mises à pied génèrent automatiquement les retenues de paie.</p>
+    </div>
+    <p-button label="Déclarer un incident" icon="pi pi-plus" (onClick)="openDeclare()" />
+  </header>
+
+  <section class="panel">
+    <header class="section-head">
+      <div><h2>Procédures</h2><p>{{ procedures.length }} procédure(s)</p></div>
+      <label class="filter">Statut
+        <select [(ngModel)]="statutFilter" (change)="loadProcedures()">
+          @for (statut of statuts; track statut.code) { <option [value]="statut.code">{{ statut.libelle }}</option> }
+        </select>
+      </label>
+    </header>
+    @if (loadingProcedures) { <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des procédures…</div> }
+    @else if (!procedures.length) { <div class="inline-state">Aucune procédure pour ce filtre.</div> }
+    @else {
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>N°</th><th>Employé</th><th>Incident</th><th>Gravité</th><th>Statut</th><th>Réponse</th><th>Sanction</th><th></th></tr></thead>
+          <tbody>
+            @for (procedure of procedures; track procedure.id) {
+              <tr>
+                <td>#{{ procedure.id }}</td>
+                <td><strong>{{ procedure.employe }}</strong><small>{{ procedure.poste }} · {{ procedure.departement }}</small></td>
+                <td><strong>{{ procedure.titre }}</strong><small>{{ procedure.dateFaits | date:'dd/MM/yyyy' }}</small></td>
+                <td>{{ procedure.gravite }}</td>
+                <td><span class="status-pill">{{ procedure.statut }}</span></td>
+                <td>
+                  @if (procedure.demandeId) {
+                    <strong>{{ procedure.reponseRecue ? 'Reçue' : 'En attente' }}</strong>
+                    <small>Limite {{ procedure.dateLimite | date:'dd/MM/yyyy' }}</small>
+                  } @else { <span class="muted">—</span> }
+                </td>
+                <td>{{ procedure.sanction ?? '—' }}</td>
+                <td class="actions">
+                  <p-button label="Détails" icon="pi pi-search" [text]="true" (onClick)="openDetail(procedure)" />
+                  @if (procedure.statutCode === 'OUVERTE') {
+                    <p-button label="Explication" icon="pi pi-envelope" [text]="true" (onClick)="openExplain(procedure)" />
+                  }
+                  @if (procedure.statutCode === 'EXPLICATION_DEMANDEE' || procedure.statutCode === 'EXPLICATION_RECUE') {
+                    <p-button label="Décider" icon="pi pi-check" [text]="true" (onClick)="openDecide(procedure)" />
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <section class="panel">
+    <header class="section-head"><div><h2>Incidents sans procédure</h2><p>{{ incidents.length }} incident(s) à traiter</p></div></header>
+    @if (loadingIncidents) { <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des incidents…</div> }
+    @else if (!incidents.length) { <div class="inline-state">Aucun incident en attente d’ouverture de procédure.</div> }
+    @else {
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Employé</th><th>Incident</th><th>Gravité</th><th>Faits</th><th></th></tr></thead>
+          <tbody>
+            @for (incident of incidents; track incident.id) {
+              <tr>
+                <td><strong>{{ incident.employe }}</strong><small>{{ incident.poste }} · {{ incident.departement }}</small></td>
+                <td><strong>{{ incident.titre }}</strong><small>{{ incident.description }}</small></td>
+                <td>{{ incident.gravite }}</td>
+                <td>{{ incident.dateFaits | date:'dd/MM/yyyy' }}</td>
+                <td class="actions">
+                  <p-button label="Ouvrir une procédure" icon="pi pi-folder-open" [text]="true" [loading]="busyIncidentId === incident.id" [disabled]="busyIncidentId !== null" (onClick)="openProcedure(incident)" />
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <p-dialog header="Déclarer un incident" [(visible)]="declareVisible" [modal]="true" [draggable]="false" [resizable]="false" [style]="{ width: 'min(640px, calc(100vw - 32px))' }">
+    <div class="form-grid">
+      <label>Employé
+        <select [(ngModel)]="declareForm.employeId" [disabled]="loadingEmployees">
+          <option [ngValue]="null">Sélectionner…</option>
+          @for (employee of employees; track employee.id) { <option [ngValue]="employee.id">{{ employee.nom }} ({{ employee.matricule }})</option> }
+        </select>
+      </label>
+      <label>Gravité
+        <select [(ngModel)]="declareForm.graviteCode">
+          @for (gravite of gravites; track gravite.code) { <option [value]="gravite.code">{{ gravite.libelle }}</option> }
+        </select>
+      </label>
+      <label>Date des faits<input type="date" [(ngModel)]="declareForm.dateFaits" /></label>
+      <label class="span-2">Titre<input pInputText maxlength="200" [(ngModel)]="declareForm.titre" placeholder="Ex. Retard répété non justifié" /></label>
+      <label class="span-2">Description<textarea pInputText rows="4" maxlength="5000" [(ngModel)]="declareForm.description" placeholder="Décrivez les faits constatés"></textarea></label>
+    </div>
+    <footer class="dialog-actions">
+      <p-button label="Annuler" [text]="true" (onClick)="declareVisible = false" />
+      <p-button label="Enregistrer" icon="pi pi-check" [loading]="declaring" [disabled]="declaring" (onClick)="submitDeclare()" />
+    </footer>
+  </p-dialog>
+
+  <p-dialog header="Demander une explication" [(visible)]="explainVisible" [modal]="true" [draggable]="false" [resizable]="false" [style]="{ width: 'min(600px, calc(100vw - 32px))' }">
+    @if (explainProcedure) { <p class="dialog-context">{{ explainProcedure.employe }} · {{ explainProcedure.titre }}</p> }
+    <div class="form-grid">
+      <label class="span-2">Message<textarea pInputText rows="4" maxlength="5000" [(ngModel)]="explainForm.message" placeholder="Expliquez les faits reprochés et ce qui est attendu"></textarea></label>
+      <label>Date limite (optionnelle)<input type="date" [(ngModel)]="explainForm.dateLimite" /></label>
+    </div>
+    <footer class="dialog-actions">
+      <p-button label="Annuler" [text]="true" (onClick)="explainVisible = false" />
+      <p-button label="Envoyer la demande" icon="pi pi-send" [loading]="explaining" [disabled]="explaining" (onClick)="submitExplain()" />
+    </footer>
+  </p-dialog>
+
+  <p-dialog header="Décision disciplinaire" [(visible)]="decideVisible" [modal]="true" [draggable]="false" [resizable]="false" [style]="{ width: 'min(620px, calc(100vw - 32px))' }">
+    @if (decideProcedure) { <p class="dialog-context">{{ decideProcedure.employe }} · {{ decideProcedure.titre }}</p> }
+    <div class="form-grid">
+      <label>Décision
+        <select [(ngModel)]="decideForm.decision">
+          @for (decision of decisions; track decision.code) { <option [value]="decision.code">{{ decision.libelle }}</option> }
+        </select>
+      </label>
+      @if (isMiseAPied) {
+        <label>Début<input type="date" [min]="minDate" [(ngModel)]="decideForm.dateDebut" /></label>
+        <label>Fin<input type="date" [min]="minDate" [(ngModel)]="decideForm.dateFin" /></label>
+      }
+      @if (decideForm.decision !== 'SANS_SUITE') {
+        <label class="span-2">Motif<textarea pInputText rows="3" maxlength="5000" [(ngModel)]="decideForm.motif" placeholder="Motif de la sanction"></textarea></label>
+      }
+    </div>
+    <footer class="dialog-actions">
+      <p-button label="Annuler" [text]="true" (onClick)="decideVisible = false" />
+      <p-button label="Enregistrer la décision" icon="pi pi-check" [loading]="deciding" [disabled]="deciding" (onClick)="submitDecide()" />
+    </footer>
+  </p-dialog>
+
+  <p-dialog header="Détail de la procédure" [(visible)]="detailVisible" [modal]="true" [draggable]="false" [resizable]="false" [style]="{ width: 'min(760px, calc(100vw - 32px))' }">
+    @if (detailLoading) { <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement…</div> }
+    @else if (detail) {
+      <div class="detail">
+        <div class="detail-head">
+          <div><p class="eyebrow">PROCÉDURE N°{{ detail.id }}</p><h3>{{ detail.titre }}</h3><span>{{ detail.employe }} · {{ detail.poste }} · {{ detail.departement }}</span></div>
+          <span class="status-pill">{{ detail.statut }}</span>
+        </div>
+        <div class="detail-facts">
+          <div><small>Gravité</small><strong>{{ detail.gravite }}</strong></div>
+          <div><small>Faits</small><strong>{{ detail.dateFaits | date:'dd/MM/yyyy' }}</strong></div>
+          <div><small>Ouverte le</small><strong>{{ detail.ouverteAt | date:'dd/MM/yyyy' }}</strong></div>
+          <div><small>Sanction</small><strong>{{ detail.sanction ?? '—' }}</strong></div>
+        </div>
+        <p class="detail-description">{{ detail.description }}</p>
+
+        @if (detail.demandeMessage) {
+          <section class="detail-block"><h4>Demande d’explication</h4><p>{{ detail.demandeMessage }}</p><small>Limite : {{ detail.dateLimite | date:'dd/MM/yyyy' }}</small></section>
+        }
+        @if (detail.reponseTexte) {
+          <section class="detail-block"><h4>Réponse de l’employé</h4><p>{{ detail.reponseTexte }}</p>@if (detail.repondueAt) { <small>Reçue le {{ detail.repondueAt | date:'dd/MM/yyyy, HH:mm' }}</small> }</section>
+        }
+        @if (detail.pieces.length) {
+          <section class="detail-block"><h4>Pièces jointes</h4>
+            <ul class="piece-list">@for (piece of detail.pieces; track piece.id) {
+              <li><a [href]="pieceUrl(piece.id)">{{ piece.nomFichier }}</a><small>{{ piece.tailleOctets | number }} octets · {{ piece.ajouteeAt | date:'dd/MM/yyyy' }}</small></li>
+            }</ul>
+          </section>
+        }
+        @if (detail.sanctionId) {
+          <section class="detail-block"><h4>Sanction</h4>
+            <p><strong>{{ detail.sanction }}</strong> — {{ detail.sanctionMotif }}</p>
+            @if (detail.sanctionDebut && detail.sanctionFin) { <small>Du {{ detail.sanctionDebut | date:'dd/MM/yyyy' }} au {{ detail.sanctionFin | date:'dd/MM/yyyy' }} ({{ detail.sanctionJours }} jour(s))</small> }
+          </section>
+        }
+        @if (detail.retenues.length) {
+          <section class="detail-block"><h4>Retenues de salaire</h4>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Période</th><th>Jours</th><th>Taux journalier</th><th>Montant</th><th>Variable paie</th></tr></thead>
+              <tbody>@for (retenue of detail.retenues; track retenue.id) {
+                <tr><td>{{ retenue.dateDebut | date:'dd/MM/yyyy' }} – {{ retenue.dateFin | date:'dd/MM/yyyy' }}</td><td>{{ retenue.nombreJours }}</td><td>{{ retenue.tauxJournalier | number:'1.0-2' }}</td><td>{{ retenue.montant | number:'1.0-2' }}</td><td>{{ retenue.variablePaieId ? ('#' + retenue.variablePaieId) : 'En attente de période' }}</td></tr>
+              }</tbody>
+            </table></div>
+          </section>
+        }
+      </div>
+    }
+  </p-dialog>
+</main>

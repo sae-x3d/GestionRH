@@ -1,0 +1,57 @@
+<main class="discipline-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">MON ÉQUIPE / DISCIPLINE</p>
+      <h1>Incidents de mon équipe</h1>
+      <p class="page-intro">Signalez un incident constaté. Les RH ouvrent ensuite la procédure, demandent une explication et prennent la décision.</p>
+    </div>
+    <p-button label="Déclarer un incident" icon="pi pi-plus" (onClick)="openDeclare()" />
+  </header>
+
+  <section class="panel">
+    <header class="section-head"><div><h2>Incidents déclarés</h2><p>{{ incidents.length }} incident(s)</p></div></header>
+    @if (loadingIncidents) { <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des incidents…</div> }
+    @else if (!incidents.length) { <div class="inline-state">Vous n’avez déclaré aucun incident pour le moment.</div> }
+    @else {
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Employé</th><th>Incident</th><th>Gravité</th><th>Faits</th><th>Suivi RH</th></tr></thead>
+          <tbody>
+            @for (incident of incidents; track incident.id) {
+              <tr>
+                <td><strong>{{ incident.employe }}</strong><small>{{ incident.poste }} · {{ incident.departement }}</small></td>
+                <td><strong>{{ incident.titre }}</strong><small>{{ incident.description }}</small></td>
+                <td>{{ incident.gravite }}</td>
+                <td>{{ incident.dateFaits | date:'dd/MM/yyyy' }}</td>
+                <td><span class="status-pill">{{ incident.statut ?? 'En attente d’ouverture' }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <p-dialog header="Déclarer un incident" [(visible)]="declareVisible" [modal]="true" [draggable]="false" [resizable]="false" [style]="{ width: 'min(640px, calc(100vw - 32px))' }">
+    <div class="form-grid">
+      <label>Membre de l’équipe
+        <select [(ngModel)]="declareForm.employeId" [disabled]="loadingEmployees">
+          <option [ngValue]="null">Sélectionner…</option>
+          @for (employee of employees; track employee.id) { <option [ngValue]="employee.id">{{ employee.nom }} ({{ employee.matricule }})</option> }
+        </select>
+      </label>
+      <label>Gravité
+        <select [(ngModel)]="declareForm.graviteCode">
+          @for (gravite of gravites; track gravite.code) { <option [value]="gravite.code">{{ gravite.libelle }}</option> }
+        </select>
+      </label>
+      <label>Date des faits<input type="date" [(ngModel)]="declareForm.dateFaits" /></label>
+      <label class="span-2">Titre<input pInputText maxlength="200" [(ngModel)]="declareForm.titre" placeholder="Ex. Retard répété non justifié" /></label>
+      <label class="span-2">Description<textarea pInputText rows="4" maxlength="5000" [(ngModel)]="declareForm.description" placeholder="Décrivez les faits constatés"></textarea></label>
+    </div>
+    <footer class="dialog-actions">
+      <p-button label="Annuler" [text]="true" (onClick)="declareVisible = false" />
+      <p-button label="Enregistrer" icon="pi pi-check" [loading]="declaring" [disabled]="declaring" (onClick)="submitDeclare()" />
+    </footer>
+  </p-dialog>
+</main>

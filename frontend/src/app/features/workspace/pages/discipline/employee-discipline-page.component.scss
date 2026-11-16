@@ -1,0 +1,38 @@
+.discipline-page { display:grid; gap:20px; }
+.page-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; }
+.page-heading h1 { margin:8px 0; font-size:clamp(28px,3vw,40px); }
+.eyebrow { color:#176b63; font-size:13px; font-weight:800; letter-spacing:.14em; }
+.page-intro { max-width:760px; color:#65756d; line-height:1.6; }
+.request-count { flex:none; padding:8px 12px; border-radius:30px; background:#edf4f0; color:#176b63; font-size:15.6px; font-weight:700; }
+.procedures-grid { display:grid; gap:14px; }
+.pending-alert { display:flex; align-items:center; gap:14px; border-color:#f0d9a8; background:#fff9ea; }
+.pending-alert i { color:#a66a12; font-size:24px; }
+.pending-alert div { display:grid; gap:3px; }
+.pending-alert strong { color:#6f4b0f; font-size:16px; }
+.pending-alert span { color:#7d632f; font-size:14px; }
+.panel { min-width:0; padding:clamp(18px,2.3vw,26px); border:1px solid #dfe8e3; border-radius:17px; background:#fff; }
+.procedure-card > header { display:flex; justify-content:space-between; gap:14px; }
+.procedure-card h2 { margin:5px 0; font-size:21px; }
+.procedure-card header div > span { color:#64756d; font-size:15px; }
+.status-pill { align-self:flex-start; padding:7px 10px; border-radius:30px; background:#edf4f0; color:#176b63; font-size:14px; font-weight:700; white-space:nowrap; }
+.procedure-description { color:#53665b; line-height:1.6; }
+.procedure-block { margin-top:14px; padding-top:14px; border-top:1px solid #eef3f0; }
+.procedure-block h3 { margin:0 0 8px; font-size:16px; }
+.procedure-block p { margin:0 0 6px; color:#53665b; line-height:1.55; }
+.procedure-block small { color:#78877f; font-size:13px; }
+.respond-action { display:flex; justify-content:flex-end; margin-top:14px; }
+.piece-list { margin:0; padding:0; list-style:none; display:grid; gap:8px; }
+.piece-list li { display:flex; flex-wrap:wrap; align-items:baseline; gap:10px; }
+.piece-list a { color:#176b63; font-weight:700; }
+.decision-block { padding:14px; border:1px solid #f0dfd6; border-radius:12px; background:#fdf7f3; }
+.dialog-context { margin:0 0 16px; color:#53665b; font-size:15px; }
+.form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.form-grid label { display:grid; gap:6px; color:#43574b; font-size:14px; font-weight:700; }
+.form-grid .span-2 { grid-column:1 / -1; }
+.form-grid textarea { width:100%; padding:10px 12px; border:1px solid #d9e3dd; border-radius:9px; font:inherit; resize:vertical; }
+.form-grid small { color:#78877f; font-size:13px; }
+.dialog-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+.empty-state { display:grid; justify-items:center; gap:9px; padding:48px 20px; color:#64756d; text-align:center; }
+.empty-state i { color:#176b63; font-size:36px; }
+.inline-state { display:flex; align-items:center; justify-content:center; gap:9px; color:#64756d; }
+@media(max-width:760px) { .page-heading { align-items:flex-start; flex-direction:column; } .procedure-card > header { flex-direction:column; } .form-grid { grid-template-columns:1fr; } }
