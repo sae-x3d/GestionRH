@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { RoleService } from '../../../../core/auth/role.service';
@@ -16,7 +16,7 @@ interface DashboardMetric { id: string; label: string; value: number | string; d
 interface DashboardShortcut { label: string; description: string; route: string; icon: string; }
 
 @Component({
-  selector: 'app-home-page', standalone: true, imports: [DatePipe, RouterLink],
+  selector: 'app-home-page', standalone: true, imports: [DatePipe, DecimalPipe, RouterLink],
   templateUrl: './home-page.component.html', styleUrl: './home-page.component.scss'
 })
 export class HomePageComponent implements OnInit {
@@ -57,7 +57,7 @@ export class HomePageComponent implements OnInit {
   get shortcuts(): DashboardShortcut[] {
     const links: Record<string, DashboardShortcut[]> = {
       simple_user: [
-        { label: 'Offres d’emploi', description: 'Voir les postes ouverts', route: '/espace/offres', icon: 'pi-briefcase' },
+        { label: 'Offres d’emploi', description: 'Voir les postes ouverts', route: '/offres', icon: 'pi-briefcase' },
         { label: 'Mes candidatures', description: 'Suivre les reponses des RH', route: '/espace/candidatures', icon: 'pi-file-edit' },
         { label: 'Mon profil', description: 'Mettre à jour vos coordonnees', route: '/espace/profil', icon: 'pi-user' },
         { label: 'Notifications', description: 'Voir les dernières nouvelles', route: '/espace/notifications', icon: 'pi-bell' }

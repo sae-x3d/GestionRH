@@ -1,16 +1,40 @@
 <section class="home-page" aria-labelledby="home-title">
-  <span class="home-eyebrow">ESPACE PERSONNEL</span>
-  @if (currentRole() === 'manager') {
-    <h1 id="home-title">Mon dash<span>.</span></h1>
-  } @else if (currentRole() === 'employe') {
-    <h1 id="home-title">Mon dashboard<span>.</span></h1>
-  } @else if (currentRole() === 'rh') {
-    <h1 id="home-title">Tableau de bord RH<span>.</span></h1>
-  } @else if (currentRole() === 'administration') {
-    <h1 id="home-title">Tableau de bord Administration<span>.</span></h1>
-  } @else if (currentRole() === 'gestionnaire') {
-    <h1 id="home-title">Tableau de bord comptes<span>.</span></h1>
-  } @else {
-    <h1 id="home-title">Connect&#233;<span>.</span></h1>
-  }
+  <header class="dashboard-heading">
+    <div>
+      <span class="home-eyebrow">{{ currentRole() === 'rh' ? 'RESSOURCES HUMAINES' : currentRole() === 'administration' ? 'PILOTAGE' : currentRole() === 'gestionnaire' ? 'ADMINISTRATION DES COMPTES' : currentRole() === 'manager' ? 'VOTRE ÉQUIPE' : currentRole() === 'employe' ? 'ESPACE SALARIÉ' : 'ESPACE CANDIDAT' }}</span>
+      <h1 id="home-title">{{ title }}<span>.</span></h1>
+      <p class="dashboard-intro">{{ introduction }}</p>
+    </div>
+    <time class="today-card" [dateTime]="today.toISOString()"><i class="pi pi-calendar" aria-hidden="true"></i>{{ today | date:'EEEE d MMMM y' }}</time>
+  </header>
+
+  <section class="metric-grid" aria-label="Indicateurs clés">
+    @for (metric of metrics; track metric.id) {
+      <article class="metric-card" [class.metric-primary]="$index === 0">
+        <span class="metric-icon"><i [class]="'pi ' + metric.icon" aria-hidden="true"></i></span>
+        <div><span class="metric-label">{{ metric.label }}</span><strong>{{ metric.value }}</strong><small>{{ metric.detail }}</small></div>
+      </article>
+    }
+  </section>
+
+  <section class="dashboard-lower">
+    <div class="shortcut-panel">
+      <div class="section-heading"><div><span class="home-eyebrow">ACCÈS DIRECT</span><h2>Vos actions utiles</h2></div><span class="section-mark">{{ shortcuts.length | number:'2.0' }}</span></div>
+      <nav class="shortcut-grid" aria-label="Raccourcis">
+        @for (shortcut of shortcuts; track shortcut.route) {
+          <a class="shortcut-card" [routerLink]="shortcut.route">
+            <span class="shortcut-icon"><i [class]="'pi ' + shortcut.icon" aria-hidden="true"></i></span>
+            <span class="shortcut-copy"><strong>{{ shortcut.label }}</strong><small>{{ shortcut.description }}</small></span>
+            <i class="pi pi-arrow-up-right shortcut-arrow" aria-hidden="true"></i>
+          </a>
+        }
+      </nav>
+    </div>
+    <aside class="dashboard-note">
+      <span class="home-eyebrow">SUIVI EN DIRECT</span>
+      <h2>{{ currentRole() === 'employe' ? 'Votre situation' : currentRole() === 'manager' ? 'Votre département' : currentRole() === 'rh' ? 'File RH' : currentRole() === 'administration' ? 'Décisions globales' : currentRole() === 'gestionnaire' ? 'Comptes et accès' : 'Votre parcours' }}</h2>
+      <p>{{ currentRole() === 'employe' ? 'Planning, congés, paie et documents sont accessibles depuis les raccourcis.' : currentRole() === 'manager' ? 'Les indicateurs ci-dessus sont limités à votre département.' : currentRole() === 'rh' ? 'Les demandes et dossiers nécessitant une action sont regroupés ici.' : currentRole() === 'administration' ? 'Les volumes affichés proviennent des offres et circuits en cours.' : currentRole() === 'gestionnaire' ? 'Les comptes en attente et les salariés sont actualisés depuis la base.' : 'Consultez les offres et suivez les réponses à vos candidatures.' }}</p>
+      <a routerLink="/espace/notifications"><i class="pi pi-bell" aria-hidden="true"></i> Ouvrir les notifications</a>
+    </aside>
+  </section>
 </section>

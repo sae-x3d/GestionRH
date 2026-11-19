@@ -46,6 +46,16 @@ export const WORKSPACE_ROUTES: Routes = [
         loadComponent: () => import('./pages/discipline/manager-discipline-page.component').then((page) => page.ManagerDisciplinePageComponent)
       },
       {
+        path: 'manager/equipe/sorties', canActivate: [managerGuard],
+        data: { title: 'Départs de mon équipe', exitRole: 'manager' },
+        loadComponent: () => import('./pages/offboarding/exit-management-page.component').then((page) => page.ExitManagementPageComponent)
+      },
+      {
+        path: 'rh/sorties', canActivate: [roleGuard],
+        data: { roles: ['rh'], title: 'Dossiers de sortie', exitRole: 'rh' },
+        loadComponent: () => import('./pages/offboarding/exit-management-page.component').then((page) => page.ExitManagementPageComponent)
+      },
+      {
         path: 'manager/planning/pointage',
         canActivate: [managerGuard],
         data: { title: 'Pointage' },
@@ -63,24 +73,9 @@ export const WORKSPACE_ROUTES: Routes = [
         data: { title: 'Planning de mon équipe' },
         loadComponent: () => import('./pages/manager/team-planning-page.component').then((page) => page.TeamPlanningPageComponent)
       },
-      {
-        path: 'manager/futur/conges',
-        canActivate: [managerGuard],
-        data: { title: 'Congés' },
-        loadComponent: () => import('./pages/placeholder/workspace-placeholder.component').then((page) => page.WorkspacePlaceholderComponent)
-      },
-      {
-        path: 'manager/contrat',
-        canActivate: [managerGuard],
-        data: { title: 'Contrat' },
-        loadComponent: () => import('./pages/placeholder/workspace-placeholder.component').then((page) => page.WorkspacePlaceholderComponent)
-      },
-      {
-        path: 'manager/contrat/historique',
-        canActivate: [managerGuard],
-        data: { title: 'Historique du contrat' },
-        loadComponent: () => import('./pages/placeholder/workspace-placeholder.component').then((page) => page.WorkspacePlaceholderComponent)
-      },
+      { path: 'manager/futur/conges', redirectTo: 'employe/conges', pathMatch: 'full' },
+      { path: 'manager/contrat', redirectTo: 'employe/contrat', pathMatch: 'full' },
+      { path: 'manager/contrat/historique', redirectTo: 'employe/carriere', pathMatch: 'full' },
       {
         path: 'manager/demandes/nouvelle',
         canActivate: [managerGuard],
@@ -175,10 +170,14 @@ export const WORKSPACE_ROUTES: Routes = [
         data: { roles: ['employe', 'manager'], title: 'Mes formations', formationRole: 'employee' },
         loadComponent: () => import('./pages/formation/my-formations-page.component').then((page) => page.MyFormationsPageComponent)
       },
-      ...rolePlaceholderRoutes('rh', [
-        ['rh/contrats', 'Contrats'],
-        ['rh/contrats/historique', 'Historique des contrats']
-      ]),
+      {
+        path: 'rh/contrats', canActivate: [roleGuard], data: { roles: ['rh'], title: 'Dossiers et contrats du personnel' },
+        loadComponent: () => import('./pages/dossier/employee-directory-page.component').then((page) => page.EmployeeDirectoryPageComponent)
+      },
+      {
+        path: 'rh/contrats/historique', canActivate: [roleGuard], data: { roles: ['rh'], title: 'Historique des contrats et affectations', careerMode: 'rh' },
+        loadComponent: () => import('./pages/career/career-page.component').then((page) => page.CareerPageComponent)
+      },
       {
         path: 'rh/conges/demandes', canActivate: [roleGuard], data: { roles: ['rh'], title: 'Demandes de congés à traiter', leaveRole: 'rh' },
         loadComponent: () => import('./pages/leave/leave-approval-page.component').then((page) => page.LeaveApprovalPageComponent)
@@ -262,15 +261,27 @@ export const WORKSPACE_ROUTES: Routes = [
         data: { roles: ['employe', 'manager'], title: 'Mes bulletins de paie', payrollView: 'employee' },
         loadComponent: () => import('./pages/payroll/payroll-bulletins-page.component').then((page) => page.PayrollBulletinsPageComponent)
       },
-      ...rolePlaceholderRoutes('administration', [
-        ['administration/organisation/departements', 'Départements'],
-        ['administration/organisation/postes', 'Postes'],
-        ['administration/organisation/effectifs', 'Effectifs'],
-        ['administration/recrutement/offres', 'Offres d’emploi'],
-        ['administration/personnel/employes', 'Employés'],
-        ['administration/personnel/contrats', 'Contrats'],
-        ['administration/pilotage', 'Indicateurs et rapports']
-      ]),
+      ...['departements', 'postes', 'effectifs'].map((kind) => ({
+        path: `administration/organisation/${kind}`, canActivate: [roleGuard],
+        data: { roles: ['administration'], title: 'Organisation et effectifs' },
+        loadComponent: () => import('./pages/dossier/employee-directory-page.component').then((page) => page.EmployeeDirectoryPageComponent)
+      })),
+      {
+        path: 'administration/recrutement/offres', canActivate: [roleGuard], data: { roles: ['administration'], title: 'Offres d’emploi' },
+        loadComponent: () => import('./pages/workflow/administration-offer-page.component').then((page) => page.AdministrationOfferPageComponent)
+      },
+      {
+        path: 'administration/personnel/employes', canActivate: [roleGuard], data: { roles: ['administration'], title: 'Dossiers des employés' },
+        loadComponent: () => import('./pages/dossier/employee-directory-page.component').then((page) => page.EmployeeDirectoryPageComponent)
+      },
+      {
+        path: 'administration/personnel/contrats', canActivate: [roleGuard], data: { roles: ['administration'], title: 'Contrats du personnel' },
+        loadComponent: () => import('./pages/dossier/employee-directory-page.component').then((page) => page.EmployeeDirectoryPageComponent)
+      },
+      {
+        path: 'administration/pilotage', canActivate: [roleGuard], data: { roles: ['administration'], title: 'Indicateurs et rapports' },
+        loadComponent: () => import('./pages/home/home-page.component').then((page) => page.HomePageComponent)
+      },
       {
         path: 'administration/personnel/planning', canActivate: [roleGuard], data: { roles: ['administration'], area: 'administration', title: 'Planning global' },
         loadComponent: () => import('./pages/planning/global-planning-page.component').then((page) => page.GlobalPlanningPageComponent)
@@ -345,11 +356,7 @@ export const WORKSPACE_ROUTES: Routes = [
         data: { title: 'Ma carrière', roles: ['employe', 'manager'], careerMode: 'self' },
         loadComponent: () => import('./pages/career/career-page.component').then((page) => page.CareerPageComponent)
       },
-      {
-        path: 'employe/historiques', canActivate: [roleGuard],
-        data: { title: 'Historiques', roles: ['employe', 'manager'] },
-        loadComponent: () => import('./pages/placeholder/workspace-placeholder.component').then((page) => page.WorkspacePlaceholderComponent)
-      },
+      { path: 'employe/historiques', redirectTo: 'employe/carriere', pathMatch: 'full' },
       {
         path: 'candidatures', canActivate: [roleGuard],
         data: { title: 'Mes candidatures', roles: ['simple_user'] },
@@ -372,14 +379,3 @@ export const WORKSPACE_ROUTES: Routes = [
     ]
   }
 ];
-
-function rolePlaceholderRoutes(role: string, pages: [string, string][]) {
-  return pages.map(([path, title]) => ({
-    path,
-    canActivate: [roleGuard],
-    data: { title, roles: [role] },
-    loadComponent: () => import('./pages/placeholder/workspace-placeholder.component')
-      .then((page) => page.WorkspacePlaceholderComponent)
-  }));
-}
-
