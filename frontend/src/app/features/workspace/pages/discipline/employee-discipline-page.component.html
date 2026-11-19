@@ -1,0 +1,93 @@
+<main class="discipline-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">MON ESPACE / DISCIPLINE</p>
+      <h1>Mes procédures disciplinaires</h1>
+      <p class="page-intro">Consultez les demandes d’explication, répondez avant la date limite et téléchargez vos pièces jointes.</p>
+    </div>
+    <span class="request-count">{{ procedures.length }} procédure(s)</span>
+  </header>
+
+  @if (pendingAnswers() > 0) {
+    <section class="panel pending-alert" role="status">
+      <i class="pi pi-bell" aria-hidden="true"></i>
+      <div><strong>Réponse attendue</strong><span>Vous avez {{ pendingAnswers() }} demande{{ pendingAnswers() === 1 ? '' : 's' }} d’explication à traiter avant la date limite.</span></div>
+    </section>
+  }
+
+  @if (loading) { <div class="panel inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement de vos procédures…</div> }
+  @else if (!procedures.length) { <section class="panel empty-state"><i class="pi pi-check-circle" aria-hidden="true"></i><strong>Aucune procédure disciplinaire</strong><span>Vous n’avez aucune procédure en cours.</span></section> }
+  @else {
+    <section class="procedures-grid">
+      @for (procedure of procedures; track procedure.procedureId) {
+        <article class="panel procedure-card">
+          <header>
+            <div><p class="eyebrow">PROCÉDURE N°{{ procedure.procedureId }}</p><h2>{{ procedure.titre }}</h2><span>{{ procedure.gravite }} · faits du {{ procedure.dateFaits | date:'dd/MM/yyyy' }}</span></div>
+            <span class="status-pill">{{ procedure.statut }}</span>
+          </header>
+          <p class="procedure-description">{{ procedure.description }}</p>
+
+          @if (procedure.demandeMessage) {
+            <section class="procedure-block">
+              <h3>Demande d’explication</h3>
+              <p>{{ procedure.demandeMessage }}</p>
+              @if (procedure.dateLimite) { <small>Réponse attendue avant le {{ procedure.dateLimite | date:'dd/MM/yyyy' }}</small> }
+            </section>
+          }
+
+          @if (procedure.statutCode === 'OUVERTE' && !procedure.demandeId) {
+            <section class="procedure-block">
+              <small>La procédure est en cours d’instruction. Vous serez notifié dès qu’une explication vous sera demandée.</small>
+            </section>
+          }
+
+          @if (procedure.reponseTexte) {
+            <section class="procedure-block">
+              <h3>Ma réponse</h3>
+              <p>{{ procedure.reponseTexte }}</p>
+              @if (procedure.repondueAt) { <small>Envoyée le {{ procedure.repondueAt | date:'dd/MM/yyyy, HH:mm' }}</small> }
+            </section>
+          }
+
+          @if (canRespond(procedure)) {
+            <footer class="respond-action">
+              <p-button label="Répondre à la demande" icon="pi pi-reply" (onClick)="openRespond(procedure)" />
+            </footer>
+          }
+
+          @if (procedure.pieces.length) {
+            <section class="procedure-block">
+              <h3>Mes pièces jointes</h3>
+              <ul class="piece-list">
+                @for (piece of procedure.pieces; track piece.id) {
+                  <li><a [href]="pieceUrl(piece.id)">{{ piece.nomFichier }}</a><small>{{ piece.ajouteeAt | date:'dd/MM/yyyy' }}</small></li>
+                }
+              </ul>
+            </section>
+          }
+
+          @if (procedure.sanctionId) {
+            <section class="procedure-block decision-block">
+              <h3>Décision</h3>
+              <p><strong>{{ procedure.sanction }}</strong>@if (procedure.sanctionMotif) { — {{ procedure.sanctionMotif }} }</p>
+              @if (procedure.sanctionDebut && procedure.sanctionFin) { <small>Du {{ procedure.sanctionDebut | date:'dd/MM/yyyy' }} au {{ procedure.sanctionFin | date:'dd/MM/yyyy' }}</small> }
+            </section>
+          }
+        </article>
+      }
+    </section>
+  }
+
+  <p-dialog header="Répondre à la demande d’explication" [(visible)]="respondVisible" [modal]="true" [draggable]="false" [resizable]="false" [style]="{ width: 'min(620px, calc(100vw - 32px))' }">
+    @if (answering) { <p class="dialog-context">{{ answering.titre }}@if (answering.dateLimite) { · limite {{ answering.dateLimite | date:'dd/MM/yyyy' }}}</p> }
+    <div class="form-grid">
+      <label class="span-2">Votre explication<textarea pInputText rows="5" maxlength="5000" [(ngModel)]="answerText" placeholder="Rédigez votre explication"></textarea></label>
+      <label class="span-2">Pièces jointes (optionnel)<input type="file" multiple (change)="onFiles($event)" /></label>
+      @if (answerFiles.length) { <small class="span-2">{{ answerFiles.length }} fichier(s) sélectionné(s)</small> }
+    </div>
+    <footer class="dialog-actions">
+      <p-button label="Annuler" [text]="true" (onClick)="respondVisible = false" />
+      <p-button label="Envoyer ma réponse" icon="pi pi-send" [loading]="submitting" [disabled]="submitting" (onClick)="submitAnswer()" />
+    </footer>
+  </p-dialog>
+</main>

@@ -35,6 +35,12 @@ export const WORKSPACE_ROUTES: Routes = [
         loadComponent: () => import('./pages/planning/team-presence-page.component').then((page) => page.TeamPresencePageComponent)
       },
       {
+        path: 'manager/equipe/discipline',
+        canActivate: [managerGuard],
+        data: { title: 'Discipline de mon équipe' },
+        loadComponent: () => import('./pages/discipline/manager-discipline-page.component').then((page) => page.ManagerDisciplinePageComponent)
+      },
+      {
         path: 'manager/planning/pointage',
         canActivate: [managerGuard],
         data: { title: 'Pointage' },
@@ -180,6 +186,10 @@ export const WORKSPACE_ROUTES: Routes = [
         loadComponent: () => import('./pages/planning/team-presence-page.component').then((page) => page.TeamPresencePageComponent)
       },
       {
+        path: 'rh/discipline', canActivate: [roleGuard], data: { roles: ['rh'], title: 'Procédures disciplinaires' },
+        loadComponent: () => import('./pages/discipline/rh-discipline-page.component').then((page) => page.RhDisciplinePageComponent)
+      },
+      {
         path: 'rh/planning', canActivate: [roleGuard], data: { roles: ['rh'], area: 'rh', title: 'Planning global' },
         loadComponent: () => import('./pages/planning/global-planning-page.component').then((page) => page.GlobalPlanningPageComponent)
       },
@@ -304,6 +314,11 @@ export const WORKSPACE_ROUTES: Routes = [
         path: 'employe/conges', canActivate: [roleGuard],
         data: { title: 'Mes congés', roles: ['employe', 'manager'] },
         loadComponent: () => import('./pages/leave/employee-leave-page.component').then((page) => page.EmployeeLeavePageComponent)
+      },
+      {
+        path: 'employe/discipline', canActivate: [roleGuard],
+        data: { title: 'Mes procédures disciplinaires', roles: ['employe', 'manager'] },
+        loadComponent: () => import('./pages/discipline/employee-discipline-page.component').then((page) => page.EmployeeDisciplinePageComponent)
       },
       {
         path: 'employe/contrat', canActivate: [roleGuard],

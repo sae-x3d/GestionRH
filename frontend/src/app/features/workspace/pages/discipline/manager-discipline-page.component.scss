@@ -1,0 +1,28 @@
+.discipline-page { display:grid; gap:20px; }
+.page-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; }
+.page-heading h1 { margin:8px 0; font-size:clamp(28px,3vw,40px); }
+.eyebrow { color:#176b63; font-size:13px; font-weight:800; letter-spacing:.14em; }
+.page-intro { max-width:760px; color:#65756d; line-height:1.6; }
+.panel { min-width:0; padding:clamp(18px,2.3vw,26px); border:1px solid #dfe8e3; border-radius:17px; background:#fff; }
+.section-head { display:flex; align-items:flex-end; justify-content:space-between; gap:14px; margin-bottom:16px; }
+.section-head h2 { margin:0 0 4px; font-size:21px; }
+.section-head p { margin:0; color:#64756d; font-size:15px; }
+.inline-state { display:flex; align-items:center; justify-content:center; gap:9px; padding:32px 16px; color:#64756d; }
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:15px; }
+thead th { padding:10px 12px; border-bottom:1px solid #dfe8e3; color:#65756d; font-size:13px; font-weight:800; letter-spacing:.04em; text-align:left; text-transform:uppercase; white-space:nowrap; }
+tbody td { padding:12px; border-bottom:1px solid #eef3f0; vertical-align:top; }
+tbody tr:last-child td { border-bottom:none; }
+tbody td strong { display:block; font-size:15px; }
+tbody td small { display:block; margin-top:3px; color:#78877f; font-size:13px; }
+.status-pill { display:inline-block; padding:6px 10px; border-radius:30px; background:#edf4f0; color:#176b63; font-size:13px; font-weight:700; white-space:nowrap; }
+.form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.form-grid label { display:grid; gap:6px; color:#43574b; font-size:14px; font-weight:700; }
+.form-grid .span-2 { grid-column:1 / -1; }
+.form-grid select, .form-grid input, .form-grid textarea { width:100%; padding:10px 12px; border:1px solid #d9e3dd; border-radius:9px; background:#fff; font:inherit; font-weight:400; }
+.form-grid textarea { resize:vertical; }
+.dialog-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+@media(max-width:760px) {
+  .page-heading { align-items:flex-start; flex-direction:column; }
+  .form-grid { grid-template-columns:1fr; }
+}
