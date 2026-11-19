@@ -51,7 +51,8 @@ export class WorkspaceLayoutComponent implements OnInit, OnDestroy {
     acces: false,
     finance: false,
     disciplineEmploye: false,
-    disciplineRh: false
+    disciplineRh: false,
+    carriere: false
   });
 
   ngOnInit(): void {
