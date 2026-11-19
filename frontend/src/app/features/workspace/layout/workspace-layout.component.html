@@ -164,6 +164,11 @@
               <nav class="workspace-nav employee-subnav" aria-label="Mon développement">
                 <a routerLink="/espace/employe/evaluations" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-chart-bar" aria-hidden="true"></i><span>Mes évaluations</span><span class="active-mark" aria-hidden="true"></span></a>
                 <a routerLink="/espace/employe/formations" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-graduation-cap" aria-hidden="true"></i><span>Mes formations</span><span class="active-mark" aria-hidden="true"></span></a>
+              </nav>
+            }
+          </section>
+
+          <section class="employee-menu-group">
             <button class="workspace-section-toggle" type="button" [attr.aria-expanded]="expandedSections().disciplineEmploye" (click)="toggleEmployeeSection('disciplineEmploye')">
               <i class="pi pi-exclamation-triangle" aria-hidden="true"></i><span>Discipline</span>
               <i class="pi section-chevron" [class.pi-chevron-down]="!expandedSections().disciplineEmploye" [class.pi-chevron-up]="expandedSections().disciplineEmploye" aria-hidden="true"></i>

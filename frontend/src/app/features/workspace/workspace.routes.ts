@@ -129,6 +129,11 @@ export const WORKSPACE_ROUTES: Routes = [
         loadComponent: () => import('./pages/evaluation/evaluation-detail-page.component').then((page) => page.EvaluationDetailPageComponent)
       },
       {
+        path: 'rh/formations/besoins',
+        redirectTo: 'rh/besoins',
+        pathMatch: 'full'
+      },
+      {
         path: 'rh/besoins',
         canActivate: [roleGuard],
         data: { roles: ['rh'], title: 'Besoins de formation', needRole: 'rh' },
