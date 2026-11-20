@@ -101,7 +101,7 @@ public class PayrollProcessingService {
     public Map<String,Object> variableOptions(Integer actorId,Integer periodId){
         requireRh(actorId);Map<String,Object> p=period(actorId,periodId);
         if(!List.of("BROUILLON","CALCULEE").contains(p.get("statutCode")))throw conflict("La période est déjà validée.");
-        LocalDate start=(LocalDate)p.get("dateDebut"),end=(LocalDate)p.get("dateFin");
+        LocalDate start=localDate(p.get("dateDebut")),end=localDate(p.get("dateFin"));
         Map<String,Object> result=new LinkedHashMap<>();
         result.put("employees",jdbc.queryForList("""
             SELECT DISTINCT e.id, e.matricule, COALESCE(u.full_name,u.username) AS nom
@@ -134,7 +134,7 @@ public class PayrollProcessingService {
         if(!"BROUILLON".equals(p.get("statutCode")))throw conflict("Les variables doivent être saisies avant le calcul de la période.");
         if(employeeId==null||rubricId==null||amount==null||amount.signum()<=0)throw bad("Sélectionnez un salarié, une rubrique et un montant positif.");
         if(source==null||source.trim().length()<8||source.trim().length()>1000)throw bad("Ajoutez une justification de 8 à 1000 caractères.");
-        LocalDate start=(LocalDate)p.get("dateDebut"),end=(LocalDate)p.get("dateFin");
+        LocalDate start=localDate(p.get("dateDebut")),end=localDate(p.get("dateFin"));
         Integer eligible=jdbc.queryForObject("""
             SELECT COUNT(*) FROM employes e JOIN candidatures ca ON ca.candidat_id=e.user_id JOIN contrats c ON c.candidature_id=ca.id
             JOIN statuts_contrat sc ON sc.id=c.statut_id AND sc.code='ACTIF'
@@ -186,7 +186,7 @@ public class PayrollProcessingService {
         if(!"BROUILLON".equals(p.get("statutCode")))throw conflict("Les avances doivent être saisies avant le calcul de la période.");
         if(employeeId==null||advanceDate==null||amount==null||amount.signum()<=0)throw bad("Sélectionnez un salarié, une date et un montant positif.");
         if(reason==null||reason.trim().length()<8||reason.trim().length()>500)throw bad("Indiquez un motif de 8 à 500 caractères.");
-        LocalDate start=(LocalDate)p.get("dateDebut"),end=(LocalDate)p.get("dateFin");
+        LocalDate start=localDate(p.get("dateDebut")),end=localDate(p.get("dateFin"));
         if(advanceDate.isBefore(start)||advanceDate.isAfter(end))throw bad("La date de l’avance doit appartenir à la période de déduction.");
         Integer eligible=jdbc.queryForObject("""
             SELECT COUNT(*) FROM employes e JOIN candidatures ca ON ca.candidat_id=e.user_id JOIN contrats c ON c.candidature_id=ca.id
@@ -233,7 +233,7 @@ public class PayrollProcessingService {
         jdbc.update("DELETE FROM bulletins_paie WHERE periode_id=?", periodId);
         jdbc.update("UPDATE variables_paie SET statut_id=(SELECT id FROM statuts_variable_paie WHERE code='VALIDEE'), valide_par_id=NULL, valide_at=NULL WHERE periode_id=? AND statut_id=(SELECT id FROM statuts_variable_paie WHERE code='INTEGREE')", periodId);
 
-        LocalDate start = (LocalDate) period.get("dateDebut"), end = (LocalDate) period.get("dateFin");
+        LocalDate start = localDate(period.get("dateDebut")), end = localDate(period.get("dateFin"));
         List<Map<String, Object>> employees = jdbc.queryForList("""
             SELECT e.id AS "employeId",e.matricule,COALESCE(u.full_name,u.username) AS nom,p.intitule AS fonction,
                    c.id AS "contratId",c.salaire_base_mensuel AS salaire,c.date_debut AS "contratDebut",c.date_fin AS "contratFin",
@@ -317,9 +317,9 @@ public class PayrollProcessingService {
         int employeeId = ((Number)e.get("employeId")).intValue();
         int regimeId = ((Number)e.get("regimeId")).intValue();
         BigDecimal contractSalary = decimal(e.get("salaire"));
-        LocalDate activeStart = max(start, (LocalDate)e.get("contratDebut"));
+        LocalDate activeStart = max(start, localDate(e.get("contratDebut")));
         Object contractEndValue = e.get("contratFin");
-        LocalDate activeEnd = contractEndValue instanceof LocalDate d ? min(end,d) : end;
+        LocalDate activeEnd = contractEndValue == null ? end : min(end,localDate(contractEndValue));
         long periodDays = ChronoUnit.DAYS.between(start,end)+1, activeDays=ChronoUnit.DAYS.between(activeStart,activeEnd)+1;
         BigDecimal base = contractSalary.multiply(BigDecimal.valueOf(activeDays)).divide(BigDecimal.valueOf(periodDays),2,RoundingMode.HALF_UP);
         Map<String,Object> regime = jdbc.queryForMap("SELECT id,code FROM regimes_paie WHERE id=?",regimeId);
@@ -384,7 +384,7 @@ public class PayrollProcessingService {
 
     private void addConfiguredPremiums(List<Map<String,Object>> lines,int employeeId,LocalDate start,LocalDate end,BigDecimal salary){
         Map<String,Object> employee=jdbc.queryForMap("SELECT date_embauche,user_id FROM employes WHERE id=?",employeeId);
-        LocalDate hire=(LocalDate)employee.get("date_embauche");
+        LocalDate hire=localDate(employee.get("date_embauche"));
         int seniorityYears=Math.max(0,Period.between(hire,end).getYears());
         if(seniorityYears>0){
             BigDecimal rate=parameter("PRIME_ANCIENNETE_TAUX",null,start,end);
@@ -442,7 +442,7 @@ public class PayrollProcessingService {
             ORDER BY a.date_debut,a.id
             """,employeeId,end,start);
         for(Map<String,Object> a:absences){
-            LocalDate from=max(start,(LocalDate)a.get("debut")),to=min(end,(LocalDate)a.get("fin"));
+            LocalDate from=max(start,localDate(a.get("debut"))),to=min(end,localDate(a.get("fin")));
             Integer days=jdbc.queryForObject("""
                 SELECT COUNT(*) FROM generate_series(?::date,?::date,INTERVAL '1 day') AS days(calendar_day)
                 LEFT JOIN jours_planning_employe j ON j.employe_id=? AND j.date_travail=days.calendar_day::date
@@ -478,17 +478,18 @@ public class PayrollProcessingService {
             FROM jours_planning_employe j JOIN types_jour_planning t ON t.id=j.type_jour_id AND t.code='TRAVAIL'
             WHERE j.employe_id=? AND j.date_travail BETWEEN ? AND ? GROUP BY date_trunc('week',j.date_travail)::date
             """,employeeId,weekStart,weekEnd);
-        for(Map<String,Object> schedule:schedules)plannedByWeek.put(weekKey((LocalDate)schedule.get("semaine")),decimal(schedule.get("heures")));
+        for(Map<String,Object> schedule:schedules)plannedByWeek.put(weekKey(localDate(schedule.get("semaine"))),decimal(schedule.get("heures")));
         for(Map<String,Object> s:sessions){
             if(s.get("heure_debut")==null||s.get("heure_fin")==null||s.get("arrivee")==null||s.get("fin_service")==null)continue;
             double actual=hoursBetween(s.get("arrivee"),s.get("fin_service"));
             if(s.get("debut_pause")!=null&&s.get("fin_pause")!=null)actual-=hoursBetween(s.get("debut_pause"),s.get("fin_pause"));
-            double planned=java.time.Duration.between((java.time.LocalTime)s.get("heure_debut"),(java.time.LocalTime)s.get("heure_fin")).toMinutes()/60d;
-            if(s.get("pause_debut")!=null&&s.get("pause_fin")!=null)planned-=java.time.Duration.between((java.time.LocalTime)s.get("pause_debut"),(java.time.LocalTime)s.get("pause_fin")).toMinutes()/60d;
+            double planned=java.time.Duration.between(localTime(s.get("heure_debut")),localTime(s.get("heure_fin"))).toMinutes()/60d;
+            if(s.get("pause_debut")!=null&&s.get("pause_fin")!=null)planned-=java.time.Duration.between(localTime(s.get("pause_debut")),localTime(s.get("pause_fin"))).toMinutes()/60d;
             double extra=actual-planned;if(extra<=0)continue;
-            LocalDate date=(LocalDate)s.get("date_service");
-            overtimeDays.add(new OvertimeDay(date,weekKey(date),((Number)s.get("id")).intValue(),extra,(OffsetDateTime)s.get("fin_service")));
+            LocalDate date=localDate(s.get("date_service"));
+            overtimeDays.add(new OvertimeDay(date,weekKey(date),((Number)s.get("id")).intValue(),extra,offsetDateTime(s.get("fin_service"))));
         }
+        if(overtimeDays.isEmpty())return;
         BigDecimal firstTier=parameter("HEURES_SUP_SEUIL_1",null,start,end),secondTier=parameter("HEURES_SUP_SEUIL_2",null,start,end);
         BigDecimal maxWeekly=parameter("HEURES_MAX_SEMAINE",null,start,end);
         BigDecimal rateOne=BigDecimal.ONE.add(parameter("MAJORATION_HEURES_SUP_1",null,start,end));
@@ -543,7 +544,7 @@ public class PayrollProcessingService {
 
     private BigDecimal deductAdvances(List<Map<String,Object>> lines,int employeeId,int periodId){
         List<Map<String,Object>> advances=jdbc.queryForList("""
-            SELECT id,montant,motif FROM avances_salariales a JOIN statuts_avance_paie s ON s.id=a.statut_id
+            SELECT a.id,a.montant,a.motif FROM avances_salariales a JOIN statuts_avance_paie s ON s.id=a.statut_id
             WHERE a.employe_id=? AND a.periode_deduction_id=? AND s.code='VERSEE' ORDER BY a.id
             """,employeeId,periodId);
         BigDecimal total=ZERO;
@@ -604,18 +605,32 @@ public class PayrollProcessingService {
         BigDecimal miseAPied=sumCode(lines,"RETENUE_MISE_A_PIED");
         return gross.subtract(deductions.subtract(absence).subtract(miseAPied)).max(ZERO);
     }
-    private static double hoursBetween(Object start,Object end){return java.time.Duration.between((java.time.OffsetDateTime)start,(java.time.OffsetDateTime)end).toSeconds()/3600d;}
+    private static LocalDate localDate(Object value) {
+        return value instanceof java.sql.Date date ? date.toLocalDate() : (LocalDate) value;
+    }
+    private static java.time.LocalTime localTime(Object value) {
+        return value instanceof java.sql.Time time ? time.toLocalTime() : (java.time.LocalTime) value;
+    }
+    private static OffsetDateTime offsetDateTime(Object value) {
+        return value instanceof java.sql.Timestamp timestamp
+            ? timestamp.toInstant().atOffset(java.time.ZoneOffset.UTC) : (OffsetDateTime) value;
+    }
+    private static double hoursBetween(Object start,Object end){return java.time.Duration.between(offsetDateTime(start),offsetDateTime(end)).toSeconds()/3600d;}
     private Map<String,Object> lockPeriod(int id){return jdbc.query("""
         SELECT p.id,p.date_debut AS "dateDebut",p.date_fin AS "dateFin",s.code AS "statutCode",s.libelle AS statut
         FROM periodes_paie p JOIN statuts_periode_paie s ON s.id=p.statut_id WHERE p.id=? FOR UPDATE
         """,rs->{if(!rs.next())throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Période de paie introuvable.");Map<String,Object> m=new LinkedHashMap<>();m.put("id",rs.getInt("id"));m.put("dateDebut",rs.getDate("dateDebut").toLocalDate());m.put("dateFin",rs.getDate("dateFin").toLocalDate());m.put("statutCode",rs.getString("statutCode"));m.put("statut",rs.getString("statut"));return m;},id);}
-    private Map<String,Object> period(Integer actorId,int id){requireRh(actorId);return jdbc.queryForMap("""
+    private Map<String,Object> period(Integer actorId,int id){requireRh(actorId);Map<String,Object> result=jdbc.queryForMap("""
         SELECT p.id,p.date_debut AS "dateDebut",p.date_fin AS "dateFin",s.code AS "statutCode",s.libelle AS statut,
           COUNT(b.id)::integer AS "nombreBulletins",COALESCE(SUM(b.salaire_brut),0) AS "totalBrut",
           COALESCE(SUM(b.net_a_payer),0) AS "totalNet",COALESCE(SUM(b.total_charges_patronales),0) AS "totalCharges"
         FROM periodes_paie p JOIN statuts_periode_paie s ON s.id=p.statut_id LEFT JOIN bulletins_paie b ON b.periode_id=p.id
         WHERE p.id=? GROUP BY p.id,s.code,s.libelle
-        """,id);}
+        """,id);
+        result.put("dateDebut", localDate(result.get("dateDebut")));
+        result.put("dateFin", localDate(result.get("dateFin")));
+        return result;
+    }
     private void requireRh(Integer actorId){Integer count=jdbc.queryForObject("""
         SELECT COUNT(*) FROM users u JOIN statuts_validation_compte sv ON sv.id=u.administrative_validation_status_id AND sv.code='APPROVED'
         JOIN user_roles ur ON ur.user_id=u.id JOIN roles r ON r.id=ur.role_id AND LOWER(r.role_name)='rh'

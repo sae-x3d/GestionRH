@@ -124,6 +124,7 @@ public class PayrollPayslipService {
             writer.highlight("NET À PAYER", money(b.get("netAPayer")));
             if (b.get("ordrePaiement") != null) writer.text("Référence de paiement : " + b.get("ordrePaiement"));
             writer.footer("Valeurs issues du bulletin et des rubriques archivés dans le SIRH. Généré le " + LocalDate.now() + ".");
+            writer.close();
             document.save(output);
             return output.toByteArray();
         } catch (IOException exception) {
@@ -171,13 +172,13 @@ public class PayrollPayslipService {
             this.document = document; this.regular = regular; this.bold = bold; this.italic = italic; newPage();
         }
         void heading(String title, String subtitle) throws IOException {
-            stream.setNonStrokingColor(31, 75, 62); stream.addRect(0, 735, 595, 107); stream.fill();
+            stream.setNonStrokingColor(new java.awt.Color(31, 75, 62)); stream.addRect(0, 735, 595, 107); stream.fill();
             write(title, 42, 800, 19, bold, 255, 255, 255); write(subtitle, 42, 777, 9, regular, 226, 241, 233); y = 716;
         }
         void section(String label) throws IOException { ensure(32); y -= 15; write(label, 42, y, 9, bold, 36, 112, 94); y -= 15; }
         void text(String value) throws IOException { ensure(22); write(value, 42, y, 9, regular, 45, 57, 51); y -= 15; }
         void columns(String name, String base, String rate, String amount) throws IOException {
-            ensure(22); stream.setNonStrokingColor(237, 245, 240); stream.addRect(38, y - 5, 519, 21); stream.fill();
+            ensure(22); stream.setNonStrokingColor(new java.awt.Color(237, 245, 240)); stream.addRect(38, y - 5, 519, 21); stream.fill();
             write(name, 44, y, 8, bold, 43, 75, 61); write(base, 325, y, 8, bold, 43, 75, 61);
             write(rate, 425, y, 8, bold, 43, 75, 61); write(amount, 492, y, 8, bold, 43, 75, 61); y -= 19;
         }
@@ -189,14 +190,15 @@ public class PayrollPayslipService {
             ensure(20); write(name, 325, y, 8, regular, 45, 57, 51); write(amount, 492, y, 8, bold, 45, 57, 51); y -= 15;
         }
         void highlight(String name, String amount) throws IOException {
-            ensure(38); stream.setNonStrokingColor(31, 75, 62); stream.addRect(38, y - 10, 519, 30); stream.fill();
+            ensure(38); stream.setNonStrokingColor(new java.awt.Color(31, 75, 62)); stream.addRect(38, y - 10, 519, 30); stream.fill();
             write(name, 48, y, 10, bold, 255, 255, 255); write(amount, 480, y, 10, bold, 255, 255, 255); y -= 40;
         }
         void footer(String value) throws IOException { ensure(30); write(value, 42, 32, 7, italic, 112, 124, 117); }
+        void close() throws IOException { if (stream != null) { stream.close(); stream = null; } }
         private void ensure(float space) throws IOException { if (y - space < 48) newPage(); }
         private void newPage() throws IOException { if (stream != null) stream.close(); PDPage page = new PDPage(PDRectangle.A4); document.addPage(page); stream = new PDPageContentStream(document, page); y = 790; }
         private void write(String value, float x, float y, int size, PDType1Font font, int r, int g, int b) throws IOException {
-            stream.setNonStrokingColor(r, g, b); stream.beginText(); stream.setFont(font, size); stream.newLineAtOffset(x, y);
+            stream.setNonStrokingColor(new java.awt.Color(r, g, b)); stream.beginText(); stream.setFont(font, size); stream.newLineAtOffset(x, y);
             stream.showText(toWinAnsi(value)); stream.endText();
         }
         private static String trim(String value, int max) { return value.length() <= max ? value : value.substring(0, max - 1) + "…"; }
