@@ -40,7 +40,7 @@ public class TimeManagementService {
         result.put("semaineFin", monday.plusDays(6));
         result.put("horairesParDefaut", defaultSchedule());
         result.put("jours", jdbc.queryForList("""
-            SELECT COALESCE(j.id, -a.id) AS id, cal.date_travail::date AS date,
+            SELECT COALESCE(j.id, -a.id) AS id, TO_CHAR(cal.date_travail, 'YYYY-MM-DD') AS date,
                    CASE WHEN a.id IS NOT NULL THEN CASE WHEN a.demande_conge_id IS NOT NULL THEN 'CONGE' ELSE 'ABSENCE' END ELSE tj.code END AS type_code,
                    COALESCE(taffiche.libelle, tj.libelle) AS type_jour,
                    CASE WHEN a.id IS NULL THEN j.heure_debut END AS debut,
@@ -494,7 +494,7 @@ public class TimeManagementService {
             WHERE j.employe_id = ? AND j.date_travail = ?
             """, employeeId, date);
         if (schedule.isEmpty() || !"TRAVAIL".equals(schedule.getFirst().get("code"))) {
-            if ("ARRIVEE".equals(action)) createAnomaly(sessionId, "HORS_PLANNING", "Arrivée enregistrée sans affectation de travail planifiée.");
+            if ("ARRIVEE".equals(action)) createAnomaly(sessionId, "POINTAGE_HORS_PLANNING", "Arrivée enregistrée sans affectation de travail planifiée.");
             return;
         }
         Map<String, Object> shift = schedule.getFirst();
@@ -558,7 +558,7 @@ public class TimeManagementService {
 
     private static long workedMinutes(List<Map<String, Object>> events) {
         Map<String, OffsetDateTime> times = new LinkedHashMap<>();
-        events.forEach(event -> times.put((String) event.get("code"), (OffsetDateTime) event.get("horodatage")));
+        events.forEach(event -> times.put((String) event.get("code"), offsetDateTime(event.get("horodatage"))));
         OffsetDateTime arrival = times.get("ARRIVEE");
         if (arrival == null) return 0;
         OffsetDateTime pauseStart = times.get("DEBUT_PAUSE");
@@ -799,6 +799,13 @@ public class TimeManagementService {
         if (value instanceof LocalTime time) return time;
         if (value instanceof java.sql.Time time) return time.toLocalTime();
         throw new IllegalArgumentException("Heure de planning invalide : " + value);
+    }
+
+    private static OffsetDateTime offsetDateTime(Object value) {
+        if (value instanceof OffsetDateTime datetime) return datetime;
+        if (value instanceof java.sql.Timestamp timestamp) return timestamp.toInstant().atZone(HR_ZONE).toOffsetDateTime();
+        if (value instanceof java.util.Date date) return date.toInstant().atZone(HR_ZONE).toOffsetDateTime();
+        throw new IllegalArgumentException("Horodatage de pointage invalide : " + value);
     }
 
     private static String cleanObservation(String observation) {
