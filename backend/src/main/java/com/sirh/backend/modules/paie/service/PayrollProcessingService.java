@@ -57,7 +57,44 @@ public class PayrollProcessingService {
             INSERT INTO periodes_paie(date_debut,date_fin,statut_id,cree_par_id)
             SELECT ?,?,id,? FROM statuts_periode_paie WHERE code='BROUILLON' RETURNING id
             """, Integer.class, start, end, actorId);
+        attachPendingSanctions(id, start, end);
         return period(actorId, id);
+    }
+
+    void attachPendingSanctions(int periodId, LocalDate start, LocalDate end) {
+        List<Map<String, Object>> pending = jdbc.queryForList("""
+            SELECT rs.id AS "retenueId", rs.sanction_id AS "sanctionId", i.employe_id AS "employeId",
+                   rs.date_debut AS "dateDebut", rs.date_fin AS "dateFin", rs.nombre_jours AS "nombreJours",
+                   rs.taux_journalier AS "tauxJournalier", rs.montant, s.decide_par_id AS "decideParId"
+            FROM retenues_sanction rs
+            JOIN sanctions s ON s.id = rs.sanction_id
+            JOIN procedures_disciplinaires pr ON pr.id = s.procedure_id
+            JOIN incidents i ON i.id = pr.incident_id
+            WHERE rs.variable_paie_id IS NULL AND rs.date_debut >= ? AND rs.date_fin <= ?
+            ORDER BY rs.id
+            """, start, end);
+        for (Map<String, Object> row : pending) {
+            BigDecimal montant = decimal(row.get("montant"));
+            BigDecimal taux = decimal(row.get("tauxJournalier"));
+            int jours = ((Number) row.get("nombreJours")).intValue();
+            String source = "Mise à pied #" + row.get("sanctionId") + " du " + row.get("dateDebut")
+                + " au " + row.get("dateFin") + " : " + jours + " j × " + taux.toPlainString()
+                + " Ar (reprise à l’ouverture de la période)";
+            Integer variableId = jdbc.queryForObject("""
+                INSERT INTO variables_paie
+                    (periode_id, employe_id, rubrique_id, quantite, montant_unitaire, montant,
+                     source_detail, statut_id, saisi_par_id, valide_par_id, valide_at,
+                     motif_decision, sanction_id)
+                SELECT ?, ?, r.id, ?, ?, ?, ?, sv.id, ?, ?, CURRENT_TIMESTAMP, ?, ?
+                FROM rubriques_paie r, statuts_variable_paie sv
+                WHERE r.code = 'RETENUE_MISE_A_PIED' AND sv.code = 'VALIDEE'
+                RETURNING id
+                """, Integer.class, periodId, row.get("employeId"), jours, taux, montant, source,
+                row.get("decideParId"), row.get("decideParId"),
+                "Retenue automatique - sanction #" + row.get("sanctionId"), row.get("sanctionId"));
+            jdbc.update("UPDATE retenues_sanction SET variable_paie_id = ? WHERE id = ?",
+                variableId, row.get("retenueId"));
+        }
     }
 
     @Transactional(readOnly = true)
@@ -296,8 +333,7 @@ public class PayrollProcessingService {
         addUnpaidAbsence(lines,employeeId,start,end,contractSalary);
         addOvertime(lines,employeeId,start,end,hourRate);
 
-        BigDecimal unpaidAbsence=sumCode(lines,"RETENUE_ABSENCE");
-        BigDecimal gross=sum(lines,"GAIN").subtract(unpaidAbsence).max(ZERO);
+        BigDecimal gross=computeGross(lines);
         BigDecimal cnapsBase=gross.min(parameter("SME_MENSUEL",regimeId,start,end).multiply(parameter("CNAPS_PLAFOND_MULTIPLICATEUR",null,start,end)));
         BigDecimal cnapsEmployee=cnapsBase.multiply(parameter("TAUX_CNAPS_SALARIAL",null,start,end)).setScale(0,RoundingMode.HALF_UP);
         BigDecimal healthEmployee=gross.multiply(parameter("TAUX_SANTE_SALARIAL",null,start,end)).setScale(0,RoundingMode.HALF_UP);
@@ -313,7 +349,7 @@ public class PayrollProcessingService {
 
         BigDecimal employeeDeductions=sum(lines,"RETENUE_SALARIALE");
         BigDecimal employerCharges=sum(lines,"CHARGE_PATRONALE");
-        BigDecimal net=gross.subtract(employeeDeductions.subtract(unpaidAbsence)).max(ZERO);
+        BigDecimal net=computeNet(gross,lines);
         BigDecimal advances=deductAdvances(lines,employeeId,periodId);
         if (advances.compareTo(net)>0) throw conflict("Le montant des avances à déduire dépasse le net du salarié "+e.get("matricule")+". Ajustez la déduction avant le calcul.");
         BigDecimal netPayable=net.subtract(advances).max(ZERO);
@@ -328,7 +364,7 @@ public class PayrollProcessingService {
 
     private void addVariables(List<Map<String,Object>> lines,int periodId,int employeeId,LocalDate start,LocalDate end) {
         List<Map<String,Object>> variables=jdbc.queryForList("""
-            SELECT v.id,v.quantite,v.montant_unitaire,v.montant,v.source_detail,r.code,r.libelle,c.code AS categorie
+            SELECT v.id,v.quantite,v.montant_unitaire,v.montant,v.source_detail,v.sanction_id,r.code,r.libelle,c.code AS categorie
             FROM variables_paie v JOIN statuts_variable_paie sv ON sv.id=v.statut_id AND sv.code='VALIDEE'
             JOIN rubriques_paie r ON r.id=v.rubrique_id AND r.actif=TRUE
             JOIN categories_rubrique_paie c ON c.id=r.categorie_id
@@ -342,7 +378,7 @@ public class PayrollProcessingService {
                 BigDecimal cap=parameter(capCode,null,start,end);
                 if(cap.signum()>0&&decimal(v.get("montant")).compareTo(cap)>0)throw conflict("La variable "+code+" dépasse le plafond daté de "+cap+" Ar.");
             }
-            addLine(lines,(String)v.get("code"),(String)v.get("libelle"),(String)v.get("categorie"),decimal(v.get("montant")),decimal(v.get("quantite")),decimal(v.get("montant_unitaire")),(String)v.get("source_detail"),((Number)v.get("id")).intValue(),null,null,null);
+            addLine(lines,(String)v.get("code"),(String)v.get("libelle"),(String)v.get("categorie"),decimal(v.get("montant")),decimal(v.get("quantite")),decimal(v.get("montant_unitaire")),(String)v.get("source_detail"),((Number)v.get("id")).intValue(),null,null,null,v.get("sanction_id")==null?null:((Number)v.get("sanction_id")).intValue());
         }
     }
 
@@ -543,19 +579,31 @@ public class PayrollProcessingService {
     }
 
     private void addLine(List<Map<String,Object>> lines,String code,String label,String category,BigDecimal amount,BigDecimal quantity,BigDecimal base,String source,Integer variable,Integer session,Integer absence,Integer advance){
-        Map<String,Object> line=new LinkedHashMap<>();line.put("code",code);line.put("label",label);line.put("category",category);line.put("amount",amount.setScale(2,RoundingMode.HALF_UP));line.put("quantity",quantity);line.put("base",base);line.put("source",source);line.put("variable",variable);line.put("session",session);line.put("absence",absence);line.put("advance",advance);lines.add(line);
+        addLine(lines,code,label,category,amount,quantity,base,source,variable,session,absence,advance,null);
+    }
+    private void addLine(List<Map<String,Object>> lines,String code,String label,String category,BigDecimal amount,BigDecimal quantity,BigDecimal base,String source,Integer variable,Integer session,Integer absence,Integer advance,Integer sanction){
+        Map<String,Object> line=new LinkedHashMap<>();line.put("code",code);line.put("label",label);line.put("category",category);line.put("amount",amount.setScale(2,RoundingMode.HALF_UP));line.put("quantity",quantity);line.put("base",base);line.put("source",source);line.put("variable",variable);line.put("session",session);line.put("absence",absence);line.put("advance",advance);line.put("sanction",sanction);lines.add(line);
     }
     private void persistLine(int bulletinId,int order,Map<String,Object> l){
         BigDecimal base=decimal(l.get("base")),quantity=decimal(l.get("quantity")),amount=decimal(l.get("amount"));
         BigDecimal denominator=base.multiply(quantity);
         BigDecimal rate=denominator.signum()==0?null:amount.divide(denominator,6,RoundingMode.HALF_UP);
         jdbc.update("""
-            INSERT INTO lignes_bulletin_paie(bulletin_id,rubrique_id,code_snapshot,libelle_snapshot,categorie_snapshot,quantite,base_calcul,taux_applique,montant,variable_id,session_pointage_id,absence_id,avance_id,source_snapshot,ordre)
-            SELECT ?,r.id,?,?,?,?,?,?,?,?,?,?,?,?,? FROM rubriques_paie r WHERE r.code=?
-            """,bulletinId,l.get("code"),l.get("label"),l.get("category"),l.get("quantity"),l.get("base"),rate,l.get("amount"),l.get("variable"),l.get("session"),l.get("absence"),l.get("advance"),l.get("source"),order,l.get("code"));
+            INSERT INTO lignes_bulletin_paie(bulletin_id,rubrique_id,code_snapshot,libelle_snapshot,categorie_snapshot,quantite,base_calcul,taux_applique,montant,variable_id,session_pointage_id,absence_id,avance_id,sanction_id,source_snapshot,ordre)
+            SELECT ?,r.id,?,?,?,?,?,?,?,?,?,?,?,?,?,? FROM rubriques_paie r WHERE r.code=?
+            """,bulletinId,l.get("code"),l.get("label"),l.get("category"),l.get("quantity"),l.get("base"),rate,l.get("amount"),l.get("variable"),l.get("session"),l.get("absence"),l.get("advance"),l.get("sanction"),l.get("source"),order,l.get("code"));
     }
     private static BigDecimal sum(List<Map<String,Object>> lines,String category){return lines.stream().filter(l->category.equals(l.get("category"))).map(l->decimal(l.get("amount"))).reduce(ZERO,BigDecimal::add);}
     private static BigDecimal sumCode(List<Map<String,Object>> lines,String code){return lines.stream().filter(l->code.equals(l.get("code"))).map(l->decimal(l.get("amount"))).reduce(ZERO,BigDecimal::add);}
+    static BigDecimal computeGross(List<Map<String,Object>> lines){
+        return sum(lines,"GAIN").subtract(sumCode(lines,"RETENUE_ABSENCE")).subtract(sumCode(lines,"RETENUE_MISE_A_PIED")).max(ZERO);
+    }
+    static BigDecimal computeNet(BigDecimal gross,List<Map<String,Object>> lines){
+        BigDecimal deductions=sum(lines,"RETENUE_SALARIALE");
+        BigDecimal absence=sumCode(lines,"RETENUE_ABSENCE");
+        BigDecimal miseAPied=sumCode(lines,"RETENUE_MISE_A_PIED");
+        return gross.subtract(deductions.subtract(absence).subtract(miseAPied)).max(ZERO);
+    }
     private static double hoursBetween(Object start,Object end){return java.time.Duration.between((java.time.OffsetDateTime)start,(java.time.OffsetDateTime)end).toSeconds()/3600d;}
     private Map<String,Object> lockPeriod(int id){return jdbc.query("""
         SELECT p.id,p.date_debut AS "dateDebut",p.date_fin AS "dateFin",s.code AS "statutCode",s.libelle AS statut

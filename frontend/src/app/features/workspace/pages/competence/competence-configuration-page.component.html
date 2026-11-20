@@ -1,0 +1,109 @@
+<main class="competence-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">RESSOURCES HUMAINES / COMPETENCES</p>
+      <h1>Evaluation et competences</h1>
+      <p class="page-intro">Definissez les competences attendues et le bareme propre a chaque poste. L'ecart constate lors de l'evaluation declenche ensuite un besoin de formation.</p>
+    </div>
+  </header>
+
+  @if (loading) {
+    <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement de la configuration...</div>
+  } @else if (!data) {
+    <div class="inline-state error-state" role="alert">La configuration est indisponible.</div>
+  } @else {
+    <section class="panel">
+      <div class="section-heading">
+        <div><p class="eyebrow">REFERENTIEL</p><h2>Competences</h2></div>
+        <span class="count-pill">{{ data.competences.length }} competence(s)</span>
+      </div>
+      <div class="create-grid">
+        <label>Code<input pInputText maxlength="40" [(ngModel)]="newCompetence.code" placeholder="EX: TECH_JAVA"></label>
+        <label>Libelle<input pInputText maxlength="150" [(ngModel)]="newCompetence.libelle" placeholder="Developpement Java"></label>
+        <label class="wide">Description<textarea pInputText rows="2" maxlength="1000" [(ngModel)]="newCompetence.description"></textarea></label>
+        <p-button label="Ajouter la competence" icon="pi pi-plus" [disabled]="saving" [loading]="saving" (onClick)="createCompetence()" />
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Code</th><th>Competence</th><th>Utilisations</th><th>Statut</th><th></th></tr></thead>
+          <tbody>
+            @for (competence of data.competences; track competence.id) {
+              <tr>
+                <td><span class="code-pill">{{ competence.code }}</span></td>
+                <td><strong>{{ competence.libelle }}</strong><small>{{ competence.description }}</small></td>
+                <td>{{ competence.criteresUtilises }} critere(s)</td>
+                <td><span class="status-pill" [class.inactive]="!competence.actif">{{ competence.actif ? 'Active' : 'Desactivee' }}</span></td>
+                <td><p-button [label]="competence.actif ? 'Desactiver' : 'Reactiver'" severity="secondary" [outlined]="true" [disabled]="saving" (onClick)="toggleActive(competence)" /></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div><p class="eyebrow">BAREME PAR POSTE</p><h2>Niveaux du poste</h2></div>
+      </div>
+      <p class="section-intro">Chaque poste possede son propre bareme. Les criteres existants doivent rester compatibles avant toute modification.</p>
+      <div class="bareme-grid">
+        <label>Poste
+          <select [(ngModel)]="selectedPosteId" (change)="selectPoste()">
+            @for (poste of data.postes; track poste.id) {
+              <option [ngValue]="poste.id">{{ poste.departement }} · {{ poste.poste }}</option>
+            }
+          </select>
+        </label>
+        <label>Niveau minimum<input pInputText type="number" min="0" max="100" step="1" [(ngModel)]="baremeMin"></label>
+        <label>Niveau maximum<input pInputText type="number" min="1" max="100" step="1" [(ngModel)]="baremeMax"></label>
+        <p-button label="Enregistrer le bareme" icon="pi pi-save" [disabled]="saving || !data.poste" [loading]="saving" (onClick)="saveBareme()" />
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div><p class="eyebrow">CRITERES DU POSTE</p><h2>{{ data.poste?.poste ?? 'Aucun poste' }}</h2><span>{{ data.poste?.departement }} · bareme {{ data.poste?.niveauMin }} a {{ data.poste?.niveauMax }}</span></div>
+      </div>
+      @if (!data.poste) {
+        <div class="empty-state">Aucun poste actif n'est disponible.</div>
+      } @else {
+        <div class="criterion-form">
+          <label>Competence
+            <select [(ngModel)]="criterion.competenceId">
+              <option [ngValue]="null">Choisir une competence</option>
+              @for (competence of activeCompetences(); track competence.id) {
+                <option [ngValue]="competence.id">{{ competence.code }} · {{ competence.libelle }}</option>
+              }
+            </select>
+          </label>
+          <label>Niveau attendu<input pInputText type="number" [min]="data.poste.niveauMin" [max]="data.poste.niveauMax" step="1" [(ngModel)]="criterion.niveauAttendu"></label>
+          <label>Seuil d'ecart<input pInputText type="number" min="0" [max]="data.poste.niveauMax - data.poste.niveauMin" step="1" [(ngModel)]="criterion.seuilEcart"></label>
+          <label class="checkbox-field"><input type="checkbox" [(ngModel)]="criterion.obligatoire"> Critere obligatoire</label>
+          <label class="wide">Commentaire<input pInputText maxlength="1000" [(ngModel)]="criterion.commentaire" placeholder="Precision sur l'attendu"></label>
+          <p-button label="Enregistrer le critere" icon="pi pi-save" [disabled]="saving" [loading]="saving" (onClick)="saveCriterion()" />
+        </div>
+        @if (!data.criteres.length) {
+          <div class="empty-state">Aucun critere n'est configure pour ce poste.</div>
+        } @else {
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Competence</th><th>Attendu</th><th>Seuil</th><th>Obligatoire</th><th>Commentaire</th><th></th></tr></thead>
+              <tbody>
+                @for (critere of data.criteres; track critere.id) {
+                  <tr>
+                    <td><span class="code-pill">{{ critere.competenceCode }}</span><strong>{{ critere.competence }}</strong></td>
+                    <td>{{ critere.niveauAttendu }}</td>
+                    <td>{{ critere.seuilEcart }}</td>
+                    <td>{{ critere.obligatoire ? 'Oui' : 'Non' }}</td>
+                    <td>{{ critere.commentaire || '—' }}</td>
+                    <td><p-button label="Supprimer" severity="danger" [outlined]="true" [disabled]="saving" (onClick)="deleteCriterion(critere.id)" /></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+    </section>
+  }
+</main>

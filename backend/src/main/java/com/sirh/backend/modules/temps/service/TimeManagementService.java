@@ -68,7 +68,7 @@ public class TimeManagementService {
                     EXISTS (SELECT 1 FROM jours_planning_employe jp
                         JOIN types_jour_planning jpt ON jpt.id=jp.type_jour_id
                         WHERE jp.employe_id=ab.employe_id AND jp.date_travail=cal.date_travail
-                          AND jpt.code IN ('TRAVAIL','CONGE','ABSENCE'))
+                          AND jpt.code IN ('TRAVAIL','CONGE','ABSENCE','MISE_A_PIED'))
                     OR (NOT EXISTS (SELECT 1 FROM jours_planning_employe jp
                             WHERE jp.employe_id=ab.employe_id AND jp.date_travail=cal.date_travail)
                         AND EXISTS (SELECT 1 FROM jours_semaine js WHERE js.numero_iso=EXTRACT(ISODOW FROM cal.date_travail)
@@ -242,7 +242,7 @@ public class TimeManagementService {
                        AND COALESCE(se.code, 'ACTIF') = 'ACTIF') AS effectif_actif,
                     COUNT(*) FILTER (WHERE tj.code = 'TRAVAIL') AS planifies,
                     COUNT(*) FILTER (WHERE tj.code = 'REPOS') AS repos,
-                    COUNT(*) FILTER (WHERE tj.code IN ('CONGE','ABSENCE')) AS absents,
+                    COUNT(*) FILTER (WHERE tj.code IN ('CONGE','ABSENCE','MISE_A_PIED')) AS absents,
                     COUNT(*) FILTER (WHERE tj.code = 'TRAVAIL' AND j.id IS NOT NULL AND EXISTS (
                         SELECT 1 FROM sessions_pointage sp JOIN evenements_pointage ep ON ep.session_id = sp.id
                         JOIN types_evenement_pointage tep ON tep.id = ep.type_id
@@ -306,6 +306,10 @@ public class TimeManagementService {
                     throw new ResponseStatusException(HttpStatus.CONFLICT,
                         "Cette journée est protégée par un congé approuvé. La planification ne peut pas l’écraser.");
                 }
+                if (isMiseAPied(employeeId, date)) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Cette journée est protégée par une mise à pied. La planification ne peut pas l’écraser.");
+                }
             }
         }
         if (workday && (request.heureDebut() == null || request.heureFin() == null || !request.heureFin().isAfter(request.heureDebut()))) {
@@ -319,7 +323,7 @@ public class TimeManagementService {
                 || request.pauseDebut().isBefore(request.heureDebut()) || request.pauseFin().isAfter(request.heureFin()))) {
             throw badRequest("Les horaires de pause sont incomplets ou incohérents avec le service.");
         }
-        Integer planningId = planningForUpdate(userId, departmentId, week);
+        Integer planningId = ensurePlanningRow(userId, departmentId, week);
         Map<String, Object> current = jdbc.queryForMap("""
             SELECT s.code AS statut FROM plannings_equipe p JOIN statuts_planning_equipe s ON s.id = p.statut_id
             WHERE p.id = ? FOR UPDATE OF p
@@ -327,6 +331,7 @@ public class TimeManagementService {
         if (!"BROUILLON".equals(current.get("statut"))) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Le planning est publié. Rouvrez-le avant toute modification.");
         }
+        syncMiseAPiedForWeek(departmentId, week, userId);
         Integer jourId = jdbc.queryForObject("SELECT id FROM types_jour_planning WHERE code = ?", Integer.class, dayTypes.getFirst().get("code"));
         for (Integer employeeId : employeeIds) {
             for (LocalDate date : dates) {
@@ -436,6 +441,10 @@ public class TimeManagementService {
             WHERE ep.empreinte_requete = ? AND sp.employe_id = ?
             """, request.idempotencyKey(), employeeId);
         if (!existingRequest.isEmpty()) return punchStatus(employeeId, date);
+        if (isMiseAPied(employeeId, date)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "Pointage impossible : une mise à pied est en cours pour cette journée.");
+        }
         String action = request.action().trim().toUpperCase(java.util.Locale.ROOT);
         List<Map<String, Object>> actionRef = jdbc.queryForList("SELECT id, ordre FROM types_evenement_pointage WHERE code = ?", action);
         if (actionRef.isEmpty()) throw badRequest("Action de pointage inconnue.");
@@ -580,13 +589,133 @@ public class TimeManagementService {
         return rules.getFirst();
     }
 
-    private Integer planningForUpdate(Integer userId, Integer departmentId, LocalDate monday) {
+    private Integer ensurePlanningRow(Integer userId, Integer departmentId, LocalDate monday) {
         jdbc.update("""
             INSERT INTO plannings_equipe (departement_id, semaine_debut, statut_id, cree_par_id)
             SELECT ?, ?, id, ? FROM statuts_planning_equipe WHERE code = 'BROUILLON'
             ON CONFLICT (departement_id, semaine_debut) DO NOTHING
             """, departmentId, monday, userId);
         return jdbc.queryForObject("SELECT id FROM plannings_equipe WHERE departement_id = ? AND semaine_debut = ?", Integer.class, departmentId, monday);
+    }
+
+    @Transactional
+    public void applyMiseAPiedPlanning(Integer employeeId, LocalDate start, LocalDate end, Integer actorId, String observation) {
+        Integer departmentId = departmentForEmployee(employeeId);
+        Integer miseAPiedTypeId = dayTypeId("MISE_A_PIED");
+        Integer travailTypeId = dayTypeId("TRAVAIL");
+        for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
+            if (!employeeWorkday(employeeId, date)) continue;
+            Integer planningId = ensurePlanningRow(actorId, departmentId,
+                date.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY)));
+            List<Map<String, Object>> scheduled = jdbc.queryForList("""
+                SELECT j.id, t.code AS type_code FROM jours_planning_employe j
+                JOIN types_jour_planning t ON t.id = j.type_jour_id
+                WHERE j.employe_id = ? AND j.date_travail = ? FOR UPDATE OF j
+                """, employeeId, date);
+            if (scheduled.isEmpty()) {
+                jdbc.update("""
+                    INSERT INTO jours_planning_employe(planning_id, employe_id, date_travail, type_jour_id, observation, modifie_par_id)
+                    VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (employe_id, date_travail) DO NOTHING
+                    """, planningId, employeeId, date, miseAPiedTypeId, observation, actorId);
+                continue;
+            }
+            Map<String, Object> day = scheduled.getFirst();
+            if ("MISE_A_PIED".equals(day.get("type_code"))) continue;
+            if (!"TRAVAIL".equals(day.get("type_code"))) continue;
+            jdbc.update("""
+                INSERT INTO historiques_jour_planning(jour_planning_id, planning_id, employe_id, date_travail,
+                    ancien_type_jour_id, nouveau_type_jour_id, ancienne_heure_debut, ancienne_heure_fin,
+                    ancienne_pause_debut, ancienne_pause_fin, observation, modifie_par_id)
+                SELECT j.id, j.planning_id, j.employe_id, j.date_travail, j.type_jour_id, ?, j.heure_debut, j.heure_fin,
+                    j.pause_debut, j.pause_fin, ?, ?
+                FROM jours_planning_employe j WHERE j.id = ?
+                """, miseAPiedTypeId, observation, actorId, day.get("id"));
+            jdbc.update("""
+                UPDATE jours_planning_employe SET type_jour_id = ?, heure_debut = NULL, heure_fin = NULL,
+                    pause_debut = NULL, pause_fin = NULL, observation = ?, modifie_par_id = ?,
+                    version = version + 1, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ? AND type_jour_id = ?
+                """, miseAPiedTypeId, observation, actorId, day.get("id"), travailTypeId);
+        }
+    }
+
+    private void syncMiseAPiedForWeek(Integer departmentId, LocalDate monday, Integer actorId) {
+        LocalDate end = monday.plusDays(6);
+        List<Map<String, Object>> sanctions = jdbc.queryForList("""
+            SELECT sa.id, i.employe_id, sa.date_debut, sa.date_fin
+            FROM sanctions sa
+            JOIN types_sanction ts ON ts.id = sa.type_id AND ts.code = 'MISE_A_PIED'
+            JOIN procedures_disciplinaires pr ON pr.id = sa.procedure_id
+            JOIN incidents i ON i.id = pr.incident_id
+            JOIN employes e ON e.id = i.employe_id
+            JOIN postes p ON p.id = e.poste_id
+            WHERE p.departement_id = ? AND sa.date_debut <= ? AND sa.date_fin >= ?
+            """, departmentId, end, monday);
+        for (Map<String, Object> sanction : sanctions) {
+            LocalDate start = toLocalDate(sanction.get("date_debut"));
+            LocalDate finish = toLocalDate(sanction.get("date_fin"));
+            LocalDate from = start.isBefore(monday) ? monday : start;
+            LocalDate to = finish.isAfter(end) ? end : finish;
+            applyMiseAPiedPlanning(((Number) sanction.get("employe_id")).intValue(), from, to, actorId,
+                "Mise à pied (sanction #" + sanction.get("id") + ")");
+        }
+    }
+
+    private boolean isMiseAPied(Integer employeeId, LocalDate date) {
+        return Boolean.TRUE.equals(jdbc.queryForObject("""
+            SELECT EXISTS(SELECT 1 FROM sanctions sa
+              JOIN types_sanction ts ON ts.id = sa.type_id AND ts.code = 'MISE_A_PIED'
+              JOIN procedures_disciplinaires pr ON pr.id = sa.procedure_id
+              JOIN incidents i ON i.id = pr.incident_id
+              WHERE i.employe_id = ? AND sa.date_debut <= ? AND sa.date_fin >= ?)
+            """, Boolean.class, employeeId, date, date));
+    }
+
+    private Integer departmentForEmployee(Integer employeeId) {
+        List<Integer> ids = jdbc.queryForList(
+            "SELECT p.departement_id FROM employes e JOIN postes p ON p.id = e.poste_id WHERE e.id = ?",
+            Integer.class, employeeId);
+        if (ids.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employé introuvable.");
+        return ids.getFirst();
+    }
+
+    private Integer dayTypeId(String code) {
+        List<Integer> ids = jdbc.queryForList(
+            "SELECT id FROM types_jour_planning WHERE code = ? AND actif = TRUE", Integer.class, code);
+        if (ids.isEmpty()) throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+            "Type de journée manquant : " + code + ". Réimportez le script de données.");
+        return ids.getFirst();
+    }
+
+    private boolean employeeWorkday(Integer employeeId, LocalDate date) {
+        List<String> scheduled = jdbc.queryForList("""
+            SELECT t.code FROM jours_planning_employe j
+            JOIN types_jour_planning t ON t.id = j.type_jour_id
+            JOIN plannings_equipe p ON p.id = j.planning_id
+            WHERE j.employe_id = ? AND j.date_travail = ? AND t.actif = TRUE
+            ORDER BY CASE WHEN (SELECT s.code FROM statuts_planning_equipe s WHERE s.id = p.statut_id) = 'PUBLIE' THEN 0 ELSE 1 END
+            LIMIT 1
+            """, String.class, employeeId, date);
+        if (!scheduled.isEmpty()) return "TRAVAIL".equals(scheduled.getFirst());
+        return calendarWorkday(date);
+    }
+
+    private boolean calendarWorkday(LocalDate date) {
+        Boolean holiday = jdbc.queryForObject(
+            "SELECT EXISTS(SELECT 1 FROM jours_feries WHERE date_ferie = ? AND actif = TRUE)", Boolean.class, date);
+        if (Boolean.TRUE.equals(holiday)) return false;
+        Boolean workday = jdbc.queryForObject("""
+            SELECT ouvrable_par_defaut FROM jours_semaine WHERE numero_iso = ? AND actif = TRUE
+            """, Boolean.class, date.getDayOfWeek().getValue());
+        if (workday == null) throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+            "Calendrier hebdomadaire incomplet. Vérifiez les données de référence SQL.");
+        return workday;
+    }
+
+    private static LocalDate toLocalDate(Object value) {
+        if (value instanceof LocalDate localDate) return localDate;
+        if (value instanceof java.sql.Date sqlDate) return sqlDate.toLocalDate();
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Date de sanction illisible.");
     }
 
     private Map<String, Object> ownPlanning(Integer planningId, Integer departmentId) {
@@ -597,6 +726,11 @@ public class TimeManagementService {
             """, planningId, departmentId);
         if (found.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Planning introuvable pour votre département.");
         return found.getFirst();
+    }
+
+    @Transactional(readOnly = true)
+    public Integer managerDepartmentId(Integer managerUserId) {
+        return managerDepartment(managerUserId);
     }
 
     private Integer managerDepartment(Integer userId) {

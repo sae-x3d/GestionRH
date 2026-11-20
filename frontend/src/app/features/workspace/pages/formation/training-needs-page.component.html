@@ -1,0 +1,36 @@
+<main class="training-needs-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">{{ role === 'manager' ? 'MON EQUIPE / FORMATION' : 'RESSOURCES HUMAINES / FORMATION' }}</p>
+      <h1>Besoins de formation</h1>
+      <p class="page-intro">Les besoins sont crees automatiquement lorsque l'ecart entre le niveau attendu et le niveau acquis atteint le seuil defini pour le poste.</p>
+    </div>
+    @if (role === 'rh') {
+      <p-button label="Gerer les formations" icon="pi pi-calendar-plus" (onClick)="openFormations()" />
+    }
+  </header>
+
+  @if (loading) {
+    <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des besoins...</div>
+  } @else if (!needs.length) {
+    <div class="panel empty-state"><i class="pi pi-check-circle" aria-hidden="true"></i><strong>Aucun besoin de formation</strong><span>Les besoins issus des evaluations validees apparaitront ici.</span></div>
+  } @else {
+    <section class="needs-grid">
+      @for (need of needs; track need.id) {
+        <article class="panel need-card">
+          <header>
+            <div><p class="eyebrow">BESOIN N°{{ need.id }}</p><h2>{{ need.employe }}</h2><span>{{ need.matricule }} · {{ need.poste }}</span></div>
+            <span class="status-pill" [class.closed]="need.statut === 'CLOTURE' || need.statut === 'ANNULE'">{{ need.statut }}</span>
+          </header>
+          <div class="need-facts">
+            <div><small>Competence</small><strong>{{ need.competence }}</strong></div>
+            <div><small>Attendu</small><strong>{{ need.niveauAttendu }}</strong></div>
+            <div><small>Acquis initial</small><strong>{{ need.niveauAcquisInitial }}</strong></div>
+            <div><small>Ecart / seuil</small><strong>{{ need.ecartInitial }} / {{ need.seuilEcart }}</strong></div>
+          </div>
+          <footer><span>{{ need.departement }}</span><time>Cree le {{ need.createdAt | date:'dd/MM/yyyy' }}</time></footer>
+        </article>
+      }
+    </section>
+  }
+</main>

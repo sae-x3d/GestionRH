@@ -87,6 +87,9 @@ public class LeaveManagementService {
         }
         jdbc.queryForObject("SELECT id FROM employes WHERE id=? FOR UPDATE", Integer.class, employeeId);
         if (overlaps(employeeId, start, end, null)) throw conflict("Cette période chevauche une autre demande ou une absence déjà enregistrée.");
+        Map<String, Object> miseAPied = miseAPiedOverlap(employeeId, start, end);
+        if (miseAPied != null) throw conflict("Cette période chevauche une mise à pied du "
+            + miseAPied.get("date_debut") + " au " + miseAPied.get("date_fin") + ".");
         if (Boolean.TRUE.equals(type.get("acquisition_active"))) {
             BigDecimal available = balance(employeeId, typeId, null);
             if (available.compareTo(days) < 0) throw conflict("Solde insuffisant. Solde disponible après réservation des demandes en cours : " + available + " jour(s).");
@@ -168,6 +171,9 @@ public class LeaveManagementService {
                     "SELECT EXISTS(SELECT 1 FROM justificatifs_demande_conge WHERE demande_id=?)", Boolean.class, requestId)))
                 throw conflict("Un justificatif est obligatoire avant l’approbation finale.");
             if (overlaps(employeeId, start, end, requestId)) throw conflict("La période chevauche désormais une autre absence approuvée.");
+            Map<String, Object> miseAPied = miseAPiedOverlap(employeeId, start, end);
+            if (miseAPied != null) throw conflict("Cette période chevauche une mise à pied du "
+                + miseAPied.get("date_debut") + " au " + miseAPied.get("date_fin") + ".");
             if (Boolean.TRUE.equals(request.get("acquisition_active"))) {
                 BigDecimal available = balance(employeeId, typeId, requestId);
                 if (available.compareTo(days) < 0) throw conflict("Le solde est devenu insuffisant avant la validation finale.");
@@ -406,6 +412,19 @@ public class LeaveManagementService {
                   AND (a.date_fin AT TIME ZONE 'Indian/Antananarivo')::date>?
             )
             """, Boolean.class, employeeId, end, start, exceptId, employeeId, end, start));
+    }
+
+    private Map<String, Object> miseAPiedOverlap(Integer employeeId, LocalDate start, LocalDate end) {
+        List<Map<String, Object>> rows = jdbc.queryForList("""
+            SELECT sa.date_debut, sa.date_fin
+            FROM sanctions sa
+            JOIN types_sanction ts ON ts.id = sa.type_id AND ts.code = 'MISE_A_PIED'
+            JOIN procedures_disciplinaires pr ON pr.id = sa.procedure_id
+            JOIN incidents i ON i.id = pr.incident_id
+            WHERE i.employe_id = ? AND sa.date_debut <= ? AND sa.date_fin >= ?
+            ORDER BY sa.date_debut LIMIT 1
+            """, employeeId, end, start);
+        return rows.isEmpty() ? null : rows.getFirst();
     }
 
     private BigDecimal balance(Integer employeeId, Integer typeId, Integer exceptRequest) {

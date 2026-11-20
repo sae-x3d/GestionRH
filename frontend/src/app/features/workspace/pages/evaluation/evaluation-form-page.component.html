@@ -1,0 +1,42 @@
+<main class="evaluation-form-page">
+  <header class="page-heading">
+    <div><p class="eyebrow">MON EQUIPE / EVALUATION</p><h1>Nouvelle evaluation</h1><p class="page-intro">Notez le niveau acquis pour chaque competence. Un ecart superieur ou egal au seuil cree un besoin de formation apres validation RH.</p></div>
+    <p-button label="Annuler" icon="pi pi-arrow-left" severity="secondary" [outlined]="true" (onClick)="cancel()" />
+  </header>
+
+  @if (loading) {
+    <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement du formulaire...</div>
+  } @else if (!form) {
+    <div class="inline-state error-state" role="alert">Le formulaire d'evaluation est indisponible.</div>
+  } @else {
+    <section class="panel employee-panel">
+      <div><p class="eyebrow">SALARIE</p><h2>{{ form.employe.employe }}</h2><span>{{ form.employe.matricule }} · {{ form.employe.poste }}</span></div>
+      <div class="bareme-badge">Bareme {{ form.employe.niveauMin }} a {{ form.employe.niveauMax }}</div>
+    </section>
+
+    <section class="panel">
+      <div class="form-meta">
+        <label>Date de l'evaluation<input pInputText type="date" [(ngModel)]="dateEvaluation" [max]="form.dateEvaluation"></label>
+        <label class="wide">Commentaire general<input pInputText maxlength="1500" [(ngModel)]="commentaire" placeholder="Points forts, contexte et axes de progression"></label>
+      </div>
+
+      <div class="criterion-list">
+        @for (critere of form.criteres; track critere.id) {
+          <article class="criterion-card">
+            <div class="criterion-title"><span class="code-pill">{{ critere.competenceCode }}</span><div><h3>{{ critere.competence }}</h3><p>{{ critere.obligatoire ? 'Critere obligatoire' : 'Critere complementaire' }}{{ critere.commentaire ? ' · ' + critere.commentaire : '' }}</p></div></div>
+            <div class="criterion-values">
+              <div><small>Attendu</small><strong>{{ critere.niveauAttendu }}</strong></div>
+              <div><small>Seuil</small><strong>{{ critere.seuilEcart }}</strong></div>
+              <div><small>Ecart calcule</small><strong [class.gap]="gap(critere) >= critere.seuilEcart">{{ gap(critere) }}</strong></div>
+              <label>Niveau acquis<input pInputText type="number" [min]="form.employe.niveauMin" [max]="form.employe.niveauMax" step="1" [(ngModel)]="notes[critere.id]" [attr.aria-label]="'Niveau acquis pour ' + critere.competence"></label>
+            </div>
+          </article>
+        }
+      </div>
+
+      <footer class="form-actions">
+        <p-button label="Soumettre aux RH" icon="pi pi-send" [disabled]="saving" [loading]="saving" (onClick)="submit()" />
+      </footer>
+    </section>
+  }
+</main>

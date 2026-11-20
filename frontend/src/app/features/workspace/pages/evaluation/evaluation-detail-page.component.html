@@ -1,0 +1,79 @@
+<main class="evaluation-detail-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">{{ role === 'employee' ? 'MON DEVELOPPEMENT / EVALUATION' : role === 'rh' ? 'RESSOURCES HUMAINES / EVALUATION' : 'MON EQUIPE / EVALUATION' }}</p>
+      <h1>Evaluation de {{ detail?.evaluation?.employe ?? '...' }}</h1>
+      <p class="page-intro">Comparez les niveaux attendus et acquis, puis suivez les besoins de formation generes par les ecarts.</p>
+    </div>
+    <div class="heading-actions">
+      <p-button label="Retour" icon="pi pi-arrow-left" severity="secondary" [outlined]="true" (onClick)="back()" />
+      @if (role === 'rh' && detail?.evaluation?.statut === 'SOUMISE') {
+        <p-button label="Valider l'evaluation" icon="pi pi-check" [disabled]="validating" [loading]="validating" (onClick)="validate()" />
+      }
+    </div>
+  </header>
+
+  @if (loading) {
+    <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement de l'evaluation...</div>
+  } @else if (!detail) {
+    <div class="inline-state error-state" role="alert">Cette evaluation est introuvable ou n'est pas accessible.</div>
+  } @else {
+    <section class="panel summary-panel">
+      <div class="summary-main">
+        <p class="eyebrow">EVALUATION N°{{ detail.evaluation.id }}</p>
+        <h2>{{ detail.evaluation.employe }}</h2>
+        <span>{{ detail.evaluation.poste }} · {{ detail.evaluation.departement }}</span>
+        <p>{{ detail.evaluation.commentaire || 'Aucun commentaire general.' }}</p>
+      </div>
+      <div class="summary-facts">
+        <div><small>Statut</small><strong>{{ detail.evaluation.statut === 'SOUMISE' ? 'A valider' : 'Validee' }}</strong></div>
+        <div><small>Date</small><strong>{{ detail.evaluation.dateEvaluation | date:'dd/MM/yyyy' }}</strong></div>
+        <div><small>Evaluateurs</small><strong>{{ detail.evaluation.evaluateur }}</strong></div>
+        <div><small>Validation RH</small><strong>{{ detail.evaluation.valideur || 'En attente' }}</strong></div>
+        <div><small>Bareme</small><strong>{{ detail.evaluation.baremeMin }} a {{ detail.evaluation.baremeMax }}</strong></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading"><div><p class="eyebrow">COMPETENCES</p><h2>Niveaux constates</h2></div><span>{{ detail.lignes.length }} critere(s)</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Competence</th><th>Attendu</th><th>Acquis</th><th>Ecart</th><th>Seuil</th><th>Besoin</th></tr></thead>
+          <tbody>
+            @for (ligne of detail.lignes; track ligne.id) {
+              <tr>
+                <td><span class="code-pill">{{ ligne.competenceCode }}</span><strong>{{ ligne.competence }}</strong></td>
+                <td>{{ ligne.niveauAttendu }}</td>
+                <td>{{ ligne.niveauAcquis }}</td>
+                <td><strong [class.gap]="ligne.ecart >= ligne.seuilEcart">{{ ligne.ecart }}</strong></td>
+                <td>{{ ligne.seuilEcart }}</td>
+                <td><span class="status-pill" [class.gap-status]="ligne.ecart >= ligne.seuilEcart">{{ ligne.ecart >= ligne.seuilEcart ? 'Declenche' : 'Non declenche' }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading"><div><p class="eyebrow">SUITE</p><h2>Besoins de formation</h2></div><span>{{ detail.besoins.length }} besoin(s)</span></div>
+      @if (!detail.besoins.length) {
+        <div class="empty-state">Aucun besoin de formation n'est associe a cette evaluation.</div>
+      } @else {
+        <div class="need-grid">
+          @for (besoin of detail.besoins; track besoin.id) {
+            <article class="need-card">
+              <div><p class="eyebrow">BESOIN N°{{ besoin.id }}</p><h3>{{ besoin.competence }}</h3></div>
+              <div class="need-facts">
+                <div><small>Attendu</small><strong>{{ besoin.niveauAttendu }}</strong></div>
+                <div><small>Acquis initial</small><strong>{{ besoin.niveauAcquisInitial }}</strong></div>
+                <div><small>Ecart initial</small><strong>{{ besoin.ecartInitial }}</strong></div>
+                <div><small>Statut</small><strong>{{ besoin.statut }}</strong></div>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+</main>

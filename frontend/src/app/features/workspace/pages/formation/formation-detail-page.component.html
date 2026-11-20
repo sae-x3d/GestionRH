@@ -1,0 +1,96 @@
+<main class="formation-detail-page">
+  <header class="page-heading">
+    <div><p class="eyebrow">RESSOURCES HUMAINES / FORMATION</p><h1>{{ detail?.formation?.titre ?? 'Formation' }}</h1><p class="page-intro">Inscrivez les salaries dont le besoin est ouvert, puis mesurez le niveau acquis pour calculer le pourcentage du manque comble.</p></div>
+    <p-button label="Retour" icon="pi pi-arrow-left" severity="secondary" [outlined]="true" (onClick)="back()" />
+  </header>
+
+  @if (loading) {
+    <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement de la formation...</div>
+  } @else if (!detail) {
+    <div class="inline-state error-state" role="alert">Cette formation est introuvable.</div>
+  } @else {
+    <section class="panel summary-panel">
+      <div class="summary-main">
+        <div class="summary-title"><span class="code-pill">{{ detail.formation.competenceCode }}</span><h2>{{ detail.formation.competence }}</h2><span class="status-pill">{{ detail.formation.statut }}</span></div>
+        <p>{{ detail.formation.description || 'Aucune description renseignee.' }}</p>
+        <small>Creation par {{ detail.formation.creePar }} le {{ detail.formation.createdAt | date:'dd/MM/yyyy' }}</small>
+      </div>
+      <div class="summary-facts">
+        <div><small>Organisme</small><strong>{{ detail.formation.organisme || 'Interne' }}</strong></div>
+        <div><small>Niveau cible</small><strong>{{ detail.formation.niveauCible ?? 'Non precise' }}</strong></div>
+        <div><small>Debut</small><strong>{{ detail.formation.dateDebut ? (detail.formation.dateDebut | date:'dd/MM/yyyy') : 'A definir' }}</strong></div>
+        <div><small>Fin</small><strong>{{ detail.formation.dateFin ? (detail.formation.dateFin | date:'dd/MM/yyyy') : 'A definir' }}</strong></div>
+      </div>
+    </section>
+
+    @if (measureTarget) {
+      <section class="panel measure-panel">
+        <div class="section-heading"><div><p class="eyebrow">MESURE</p><h2>Mesurer l'acquis de {{ measureTarget.employe }}</h2></div><p-button label="Fermer" icon="pi pi-times" severity="secondary" [text]="true" (onClick)="cancelMeasure()" /></div>
+        <p class="measure-hint">Manque initial : {{ measureTarget.manque ?? (measureTarget.niveauAttendu - measureTarget.niveauAcquisInitial) }} point(s). Le pourcentage acquis est calcule a partir de l'amelioration entre le niveau avant et le niveau apres.</p>
+        <div class="measure-grid">
+          <label>Niveau avant<input pInputText type="number" min="0" max="100" step="1" [(ngModel)]="measureForm.niveauAvant"></label>
+          <label>Niveau apres<input pInputText type="number" min="0" max="100" step="1" [(ngModel)]="measureForm.niveauApres"></label>
+          <label class="wide">Commentaire<input pInputText maxlength="1000" [(ngModel)]="measureForm.commentaire" placeholder="Evaluation de fin de formation"></label>
+        </div>
+        <footer class="form-actions"><p-button label="Enregistrer la mesure" icon="pi pi-check" [disabled]="measuring" [loading]="measuring" (onClick)="submitMeasure()" /></footer>
+      </section>
+    }
+
+    <section class="panel">
+      <div class="section-heading"><div><p class="eyebrow">INSCRIPTIONS</p><h2>Participants</h2></div><span>{{ detail.participants.length }} participant(s)</span></div>
+      @if (!detail.participants.length) {
+        <div class="empty-state">Aucun participant inscrit. Rattachez un besoin eligible ci-dessous.</div>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Salarie</th><th>Statut</th><th>Attendu</th><th>Avant</th><th>Apres</th><th>Acquis / manque</th><th>Pourcentage</th><th>Actions</th></tr></thead>
+            <tbody>
+              @for (participant of detail.participants; track participant.participationId) {
+                <tr>
+                  <td><strong>{{ participant.employe }}</strong><small>{{ participant.matricule }}</small></td>
+                  <td><span class="status-pill" [class.done]="participant.statut === 'TERMINE'">{{ participant.statut }}</span></td>
+                  <td>{{ participant.niveauAttendu }}</td>
+                  <td>{{ participant.niveauAvant ?? participant.niveauAcquisInitial }}</td>
+                  <td>{{ participant.niveauApres ?? '—' }}</td>
+                  <td>{{ participant.acquis ?? '—' }} / {{ participant.manque ?? (participant.niveauAttendu - participant.niveauAcquisInitial) }}</td>
+                  <td><strong class="percentage">{{ participant.pourcentage == null ? '—' : (participant.pourcentage | number:'1.2-2') + ' %' }}</strong></td>
+                  <td>
+                    @if (!participant.mesureId && participant.statut !== 'ABANDONNE') {
+                      <p-button label="Mesurer" icon="pi pi-chart-line" [outlined]="true" (onClick)="openMeasure(participant)" />
+                    } @else {
+                      <span class="muted">{{ participant.mesureAt ? (participant.mesureAt | date:'dd/MM/yyyy') : '—' }}</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    <section class="panel">
+      <div class="section-heading"><div><p class="eyebrow">A RATTACHER</p><h2>Besoins eligibles</h2></div><span>{{ detail.besoinsEligibles.length }} besoin(s)</span></div>
+      @if (!detail.besoinsEligibles.length) {
+        <div class="empty-state">Aucun besoin ouvert pour cette competence.</div>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Salarie</th><th>Attendu</th><th>Acquis initial</th><th>Ecart</th><th>Actions</th></tr></thead>
+            <tbody>
+              @for (need of detail.besoinsEligibles; track need.id) {
+                <tr>
+                  <td><strong>{{ need.employe }}</strong><small>{{ need.matricule }}</small></td>
+                  <td>{{ need.niveauAttendu }}</td>
+                  <td>{{ need.niveauAcquisInitial }}</td>
+                  <td>{{ need.ecartInitial }}</td>
+                  <td><p-button label="Inscrire" icon="pi pi-user-plus" [disabled]="actionId !== null" [loading]="actionId === need.id" (onClick)="enroll(need)" /></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+</main>

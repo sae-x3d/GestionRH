@@ -1,5 +1,7 @@
 package com.sirh.backend.modules.accounts.service;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -190,15 +192,25 @@ public class AccountManagementService {
         Integer employeeId = ((Number) employee.get("id")).intValue();
         Integer oldPostId = ((Number) employee.get("poste_id")).intValue();
         if (!oldPostId.equals(request.posteId())) {
-            String provenanceCode = jdbc.queryForObject("""
-                SELECT CASE WHEN ancien.departement_id = nouveau.departement_id THEN 'PROMOTION' ELSE 'TRANSFERT' END
+            Map<String, Object> departments = jdbc.queryForMap("""
+                SELECT ancien.departement_id AS ancien_departement_id,
+                       nouveau.departement_id AS nouveau_departement_id
                 FROM postes ancien JOIN postes nouveau ON nouveau.id = ? WHERE ancien.id = ?
-                """, String.class, request.posteId(), oldPostId);
+                """, request.posteId(), oldPostId);
+            boolean sameDepartment = ((Number) departments.get("ancien_departement_id")).intValue()
+                == ((Number) departments.get("nouveau_departement_id")).intValue();
+            String provenanceCode = sameDepartment ? "PROMOTION" : "TRANSFERT";
+            String movementCode = sameDepartment ? "CHANGEMENT_POSTE" : "MUTATION";
             Integer provenanceId = jdbc.queryForObject("SELECT id FROM provenances_employe WHERE code = ?", Integer.class, provenanceCode);
             jdbc.update("""
-                INSERT INTO historique_affectation_employe (employe_id, ancien_poste_id, nouveau_poste_id, provenance_id, date_effet, motif, acteur_id)
-                VALUES (?, ?, ?, ?, CURRENT_DATE, 'Affectation mise a jour par le gestionnaire des comptes', ?)
-                """, employeeId, oldPostId, request.posteId(), provenanceId, managerId);
+                INSERT INTO historique_affectation_employe
+                    (employe_id, ancien_poste_id, nouveau_poste_id, ancien_departement_id, nouveau_departement_id,
+                     provenance_id, type_mouvement_id, date_effet, motif, acteur_id)
+                VALUES (?, ?, ?, ?, ?, ?, (SELECT id FROM types_mouvement_carriere WHERE code = ?), ?, ?, ?)
+                """, employeeId, oldPostId, request.posteId(),
+                departments.get("ancien_departement_id"), departments.get("nouveau_departement_id"),
+                provenanceId, movementCode, LocalDate.now(ZoneId.of("Indian/Antananarivo")),
+                "Affectation mise a jour par le gestionnaire des comptes", managerId);
             jdbc.update("UPDATE employes SET poste_id = ?, provenance_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
                 request.posteId(), provenanceId, employeeId);
         }

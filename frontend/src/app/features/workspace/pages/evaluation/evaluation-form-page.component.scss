@@ -1,0 +1,36 @@
+.evaluation-form-page { display: grid; gap: 20px; }
+.page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; }
+.page-heading h1 { margin: 8px 0; font-size: clamp(28px, 3vw, 40px); }
+.eyebrow { color: #176b63; font-size: 12px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; margin: 0; }
+.page-intro { max-width: 820px; color: #65756d; line-height: 1.6; }
+.panel { min-width: 0; padding: clamp(18px, 2.5vw, 30px); border: 1px solid #dfe8e3; border-radius: 18px; background: #fff; }
+.employee-panel { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.employee-panel h2 { margin: 5px 0; }
+.employee-panel span { color: #65756d; }
+.bareme-badge { padding: 8px 12px; border-radius: 30px; background: #edf4f0; color: #176b63; font-weight: 700; }
+.form-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+.form-meta label { display: grid; gap: 7px; color: #43574b; font-size: 14px; font-weight: 700; }
+.form-meta .wide { grid-column: span 2; }
+.criterion-list { display: grid; gap: 12px; }
+.criterion-card { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(320px, 2fr); gap: 18px; align-items: center; padding: 16px; border: 1px solid #e3ebe7; border-radius: 12px; background: #fbfdfc; }
+.criterion-title { display: flex; align-items: flex-start; gap: 10px; }
+.criterion-title h3 { margin: 2px 0 4px; font-size: 18px; }
+.criterion-title p { margin: 0; color: #65756d; font-size: 14px; }
+.code-pill { padding: 4px 8px; border-radius: 20px; background: #edf4f0; color: #176b63; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.criterion-values { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; align-items: end; }
+.criterion-values > div { display: grid; gap: 4px; padding: 9px; border-radius: 8px; background: #f2f7f4; text-align: center; }
+.criterion-values small { color: #77847d; }
+.criterion-values strong { font-size: 18px; }
+.criterion-values strong.gap { color: #b05d12; }
+.criterion-values label { display: grid; gap: 6px; font-size: 13px; font-weight: 700; }
+.criterion-values input { width: 100%; }
+.form-actions { display: flex; justify-content: flex-end; margin-top: 20px; }
+.inline-state { display: flex; align-items: center; gap: 9px; padding: 22px; border: 1px solid #dfe8e3; border-radius: 14px; background: #fff; color: #65756d; }
+.error-state { color: #8a3030; }
+@media (max-width: 900px) { .criterion-card { grid-template-columns: 1fr; } }
+@media (max-width: 700px) {
+  .page-heading { align-items: flex-start; flex-direction: column; }
+  .form-meta { grid-template-columns: 1fr; }
+  .form-meta .wide { grid-column: auto; }
+  .criterion-values { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

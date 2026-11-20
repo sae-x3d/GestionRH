@@ -444,6 +444,7 @@
   .workspace-sidebar {
     position: fixed;
     inset: 0 auto 0 0;
+    z-index: 30;
     width: min(280px, 82vw);
     min-height: 100dvh;
     height: 100dvh;
@@ -541,16 +542,61 @@
   .sidebar-scrim {
     position: fixed;
     inset: 0;
-    z-index: 4;
+    z-index: 20;
     display: block;
     border: 0;
     background: rgba(20, 20, 20, 0.42);
   }
 
   .workspace-topbar {
-    min-height: 70px;
-    padding-inline: 18px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    min-height: calc(70px + env(safe-area-inset-top));
+    gap: 10px;
+    padding-top: env(safe-area-inset-top);
+    padding-inline: 14px;
     background: #9fc4b5;
+  }
+
+  .topbar-context {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .topbar-kicker,
+  .topbar-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .notification-popover {
+    position: fixed;
+    top: calc(70px + env(safe-area-inset-top) + 8px);
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-height: calc(100dvh - 90px - env(safe-area-inset-top));
+    display: flex;
+    flex-direction: column;
+  }
+
+  .notification-popover > header,
+  .notification-popover > a {
+    flex: 0 0 auto;
+  }
+
+  .notification-preview-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .notification-empty {
+    flex: 1 1 auto;
   }
 
   .menu-toggle {
@@ -576,6 +622,17 @@
 
   .workspace-main {
     overflow: visible;
+  }
+}
+
+@media (max-width: 380px) {
+  .workspace-topbar {
+    gap: 8px;
+    padding-inline: 12px;
+  }
+
+  .topbar-kicker {
+    display: none;
   }
 }
 

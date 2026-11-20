@@ -28,8 +28,13 @@
             @if (expandedSections().equipe) {
               <nav class="workspace-nav employee-subnav" aria-label="Mon équipe">
                 <a routerLink="/espace/manager/equipe/effectif" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-users" aria-hidden="true"></i><span>Effectif</span><span class="active-mark" aria-hidden="true"></span></a>
+                <a routerLink="/espace/manager/equipe/carriere" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-chart-line" aria-hidden="true"></i><span>Carrière</span><span class="active-mark" aria-hidden="true"></span></a>
                 <a routerLink="/espace/manager/equipe/conges" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-calendar-plus" aria-hidden="true"></i><span>Demandes de congé</span><span class="active-mark" aria-hidden="true"></span></a>
                 <a routerLink="/espace/manager/equipe/presence" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-clock" aria-hidden="true"></i><span>Présence</span><span class="active-mark" aria-hidden="true"></span></a>
+                <a routerLink="/espace/manager/equipe/evaluations" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-chart-bar" aria-hidden="true"></i><span>Évaluations</span><span class="active-mark" aria-hidden="true"></span></a>
+                <a routerLink="/espace/manager/equipe/besoins-formation" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-graduation-cap" aria-hidden="true"></i><span>Besoins de formation</span><span class="active-mark" aria-hidden="true"></span></a>
+                <a routerLink="/espace/manager/equipe/discipline" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><span>Discipline</span><span class="active-mark" aria-hidden="true"></span></a>
+                <a routerLink="/espace/manager/equipe/sorties" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-sign-out" aria-hidden="true"></i><span>Départs signalés</span><span class="active-mark" aria-hidden="true"></span></a>
               </nav>
             }
           </section>
@@ -70,6 +75,19 @@
                 <a routerLink="/espace/manager/contrat" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-file" aria-hidden="true"></i><span>Contrat</span><span class="active-mark" aria-hidden="true"></span></a>
                 <a routerLink="/espace/manager/contrat/historique" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-history" aria-hidden="true"></i><span>Historique</span><span class="active-mark" aria-hidden="true"></span></a>
                 <a routerLink="/espace/employe/paie" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-wallet" aria-hidden="true"></i><span>Mes bulletins</span><span class="active-mark" aria-hidden="true"></span></a>
+              </nav>
+            }
+          </section>
+
+          <section class="employee-menu-group">
+            <button class="workspace-section-toggle" type="button" [attr.aria-expanded]="expandedSections().developpement" (click)="toggleEmployeeSection('developpement')">
+              <i class="pi pi-graduation-cap" aria-hidden="true"></i><span>Mon développement</span>
+              <i class="pi section-chevron" [class.pi-chevron-down]="!expandedSections().developpement" [class.pi-chevron-up]="expandedSections().developpement" aria-hidden="true"></i>
+            </button>
+            @if (expandedSections().developpement) {
+              <nav class="workspace-nav employee-subnav" aria-label="Mon développement">
+                <a routerLink="/espace/employe/evaluations" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-chart-bar" aria-hidden="true"></i><span>Mes évaluations</span><span class="active-mark" aria-hidden="true"></span></a>
+                <a routerLink="/espace/employe/formations" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-graduation-cap" aria-hidden="true"></i><span>Mes formations</span><span class="active-mark" aria-hidden="true"></span></a>
               </nav>
             }
           </section>
@@ -131,8 +149,34 @@
             @if (expandedSections().contrat) {
               <nav class="workspace-nav employee-subnav" aria-label="Contrat">
                 <a routerLink="/espace/employe/contrat" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-file" aria-hidden="true"></i><span>Mon contrat</span><span class="active-mark" aria-hidden="true"></span></a>
+                <a routerLink="/espace/employe/carriere" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-chart-line" aria-hidden="true"></i><span>Ma carrière</span><span class="active-mark" aria-hidden="true"></span></a>
                 <a routerLink="/espace/employe/historiques" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-history" aria-hidden="true"></i><span>Historiques</span><span class="active-mark" aria-hidden="true"></span></a>
                 <a routerLink="/espace/employe/paie" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-wallet" aria-hidden="true"></i><span>Mes bulletins</span><span class="active-mark" aria-hidden="true"></span></a>
+              </nav>
+            }
+          </section>
+
+          <section class="employee-menu-group">
+            <button class="workspace-section-toggle" type="button" [attr.aria-expanded]="expandedSections().developpement" (click)="toggleEmployeeSection('developpement')">
+              <i class="pi pi-graduation-cap" aria-hidden="true"></i><span>Mon développement</span>
+              <i class="pi section-chevron" [class.pi-chevron-down]="!expandedSections().developpement" [class.pi-chevron-up]="expandedSections().developpement" aria-hidden="true"></i>
+            </button>
+            @if (expandedSections().developpement) {
+              <nav class="workspace-nav employee-subnav" aria-label="Mon développement">
+                <a routerLink="/espace/employe/evaluations" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-chart-bar" aria-hidden="true"></i><span>Mes évaluations</span><span class="active-mark" aria-hidden="true"></span></a>
+                <a routerLink="/espace/employe/formations" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-graduation-cap" aria-hidden="true"></i><span>Mes formations</span><span class="active-mark" aria-hidden="true"></span></a>
+              </nav>
+            }
+          </section>
+
+          <section class="employee-menu-group">
+            <button class="workspace-section-toggle" type="button" [attr.aria-expanded]="expandedSections().disciplineEmploye" (click)="toggleEmployeeSection('disciplineEmploye')">
+              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i><span>Discipline</span>
+              <i class="pi section-chevron" [class.pi-chevron-down]="!expandedSections().disciplineEmploye" [class.pi-chevron-up]="expandedSections().disciplineEmploye" aria-hidden="true"></i>
+            </button>
+            @if (expandedSections().disciplineEmploye) {
+              <nav class="workspace-nav employee-subnav" aria-label="Discipline">
+                <a routerLink="/espace/employe/discipline" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><span>Mes procédures</span><span class="active-mark" aria-hidden="true"></span></a>
               </nav>
             }
           </section>
@@ -152,6 +196,7 @@
                 <a routerLink="/espace/rh/recrutement/demandes" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-inbox" aria-hidden="true"></i><span>Demandes à traiter</span><span class="active-mark" aria-hidden="true"></span></a>
                 <a routerLink="/espace/rh/recrutement/offres" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-megaphone" aria-hidden="true"></i><span>Offres d’emploi</span><span class="active-mark" aria-hidden="true"></span></a>
                 <a routerLink="/espace/rh/recrutement/candidatures" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-file-edit" aria-hidden="true"></i><span>Candidatures</span><span class="active-mark" aria-hidden="true"></span></a>
+                <a routerLink="/espace/rh/sorties" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-sign-out" aria-hidden="true"></i><span>Ruptures et STC</span><span class="active-mark" aria-hidden="true"></span></a>
               </nav>
             }
           </section>
@@ -168,6 +213,14 @@
             }
           </section>
           <section class="employee-menu-group">
+            <button class="workspace-section-toggle" type="button" [attr.aria-expanded]="expandedSections().carriere" (click)="toggleEmployeeSection('carriere')"><i class="pi pi-chart-line" aria-hidden="true"></i><span>Carrière</span><i class="pi section-chevron" [class.pi-chevron-down]="!expandedSections().carriere" [class.pi-chevron-up]="expandedSections().carriere" aria-hidden="true"></i></button>
+            @if (expandedSections().carriere) {
+              <nav class="workspace-nav employee-subnav" aria-label="Gestion de carrière">
+                <a routerLink="/espace/rh/carriere" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-sitemap" aria-hidden="true"></i><span>Gestion de carrière</span><span class="active-mark" aria-hidden="true"></span></a>
+              </nav>
+            }
+          </section>
+          <section class="employee-menu-group">
             <button class="workspace-section-toggle" type="button" [attr.aria-expanded]="expandedSections().conges" (click)="toggleEmployeeSection('conges')"><i class="pi pi-calendar" aria-hidden="true"></i><span>Congés</span><i class="pi section-chevron" [class.pi-chevron-down]="!expandedSections().conges" [class.pi-chevron-up]="expandedSections().conges" aria-hidden="true"></i></button>
             @if (expandedSections().conges) {
               <nav class="workspace-nav employee-subnav" aria-label="Congés RH">
@@ -178,11 +231,30 @@
             }
           </section>
           <section class="employee-menu-group">
+            <button class="workspace-section-toggle" type="button" [attr.aria-expanded]="expandedSections().disciplineRh" (click)="toggleEmployeeSection('disciplineRh')"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><span>Discipline</span><i class="pi section-chevron" [class.pi-chevron-down]="!expandedSections().disciplineRh" [class.pi-chevron-up]="expandedSections().disciplineRh" aria-hidden="true"></i></button>
+            @if (expandedSections().disciplineRh) {
+              <nav class="workspace-nav employee-subnav" aria-label="Discipline RH">
+                <a routerLink="/espace/rh/discipline" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-exclamation-triangle" aria-hidden="true"></i><span>Procédures disciplinaires</span><span class="active-mark" aria-hidden="true"></span></a>
+              </nav>
+            }
+          </section>
+          <section class="employee-menu-group">
             <button class="workspace-section-toggle" type="button" [attr.aria-expanded]="expandedSections().contrats" (click)="toggleEmployeeSection('contrats')"><i class="pi pi-folder" aria-hidden="true"></i><span>Contrats</span><i class="pi section-chevron" [class.pi-chevron-down]="!expandedSections().contrats" [class.pi-chevron-up]="expandedSections().contrats" aria-hidden="true"></i></button>
             @if (expandedSections().contrats) {
               <nav class="workspace-nav employee-subnav" aria-label="Contrats RH">
                 <a routerLink="/espace/rh/contrats" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-file" aria-hidden="true"></i><span>Contrats</span><span class="active-mark" aria-hidden="true"></span></a>
                 <a routerLink="/espace/rh/contrats/historique" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-history" aria-hidden="true"></i><span>Historique</span><span class="active-mark" aria-hidden="true"></span></a>
+              </nav>
+            }
+          </section>
+          <section class="employee-menu-group">
+            <button class="workspace-section-toggle" type="button" [attr.aria-expanded]="expandedSections().developpement" (click)="toggleEmployeeSection('developpement')"><i class="pi pi-graduation-cap" aria-hidden="true"></i><span>Compétences et formation</span><i class="pi section-chevron" [class.pi-chevron-down]="!expandedSections().developpement" [class.pi-chevron-up]="expandedSections().developpement" aria-hidden="true"></i></button>
+            @if (expandedSections().developpement) {
+              <nav class="workspace-nav employee-subnav" aria-label="Compétences et formation">
+                <a routerLink="/espace/rh/competences" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-sliders-h" aria-hidden="true"></i><span>Compétences et critères</span><span class="active-mark" aria-hidden="true"></span></a>
+                <a routerLink="/espace/rh/evaluations" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-chart-bar" aria-hidden="true"></i><span>Évaluations</span><span class="active-mark" aria-hidden="true"></span></a>
+                <a routerLink="/espace/rh/besoins" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-list-check" aria-hidden="true"></i><span>Besoins de formation</span><span class="active-mark" aria-hidden="true"></span></a>
+                <a routerLink="/espace/rh/formations" routerLinkActive="nav-active" ariaCurrentWhenActive="page" (click)="closeNavigation()"><i class="pi pi-graduation-cap" aria-hidden="true"></i><span>Formations</span><span class="active-mark" aria-hidden="true"></span></a>
               </nav>
             }
           </section>

@@ -1,0 +1,48 @@
+<section class="exit-page">
+  <header class="heading"><div><p class="eyebrow">{{ role==='manager'?'MON ÉQUIPE / MOBILITÉ':'RESSOURCES HUMAINES / DOSSIERS DE SORTIE' }}</p><h1>{{ role==='manager'?'Départs de mon équipe':'Ruptures et soldes de sortie' }}</h1><p>{{ role==='manager'?'Déclarez un départ pour contrôle RH. La demande ne clôture pas le contrat.':'Contrôlez les dates, les droits, les lignes du décompte et les pièces avant toute sortie effective.' }}</p></div><span class="count">{{ rows.length }} dossier{{ rows.length>1?'s':'' }}</span></header>
+  @if(role==='manager'){
+    <section class="panel request-panel"><div class="panel-title"><div><p class="eyebrow">NOUVELLE DEMANDE</p><h2>Déclarer un départ</h2></div></div><div class="form-grid">
+      <label>Salarié et contrat<select [ngModel]="selectedOption" (ngModelChange)="selectEmployee($event)"><option value="">Choisir un contrat actif</option>@for(option of options;track option.contractId){<option [value]="option.contractId">{{option.employeeName}} · {{option.matricule}} · {{option.poste}} · {{option.contractNumber}}</option>}</select></label>
+      <label>Motif<select [(ngModel)]="form.motifCode">@for(motif of motifs;track motif.code){<option [value]="motif.code">{{motif.libelle}}</option>}</select></label>
+      <label>Date de notification<input type="date" [(ngModel)]="form.dateNotification"></label>
+      <label>Dernier jour travaillé<input type="date" [(ngModel)]="form.dernierJourTravaille"></label>
+      <label class="wide">Commentaire ou contexte<textarea rows="2" maxlength="2000" [(ngModel)]="form.commentaire" placeholder="Indiquez les éléments factuels utiles au traitement RH"></textarea></label>
+    </div><button class="primary" type="button" [disabled]="busyId!==null" (click)="create()">{{busyId===0?'Transmission…':'Transmettre aux RH'}}</button></section>
+  }
+  <section class="panel list-panel"><div class="panel-title"><div><p class="eyebrow">SUIVI TRAÇABLE</p><h2>{{role==='manager'?'Demandes de mon département':'Tous les dossiers de sortie'}}</h2></div></div>
+    @if(loading){<div class="state">Chargement des dossiers…</div>}@else if(!rows.length){<div class="state empty">Aucun dossier de sortie pour le moment.</div>}@else{
+      <div class="table-wrap"><table><thead><tr><th>Salarié</th><th>Motif</th><th>Dernier jour travaillé</th><th>Statut</th>@if(role==='rh'){<th>STC brut provisoire</th>}<th></th></tr></thead><tbody>
+      @for(row of rows;track row.id){<tr><td><strong>{{row.nomEmploye}}</strong><small>{{row.matricule}} · {{row.numeroContrat}}</small></td><td>{{row.motif}}</td><td>{{row.dernierJourTravaille|date:'dd/MM/yyyy'}}</td><td><span class="status" [class.status-final]="row.statutCode==='FINALISEE'">{{row.statut}}</span></td>@if(role==='rh'){<td>{{row.totalStcBrut|number:'1.0-0'}} Ar</td>}<td><button class="link-button" type="button" (click)="expandedId=expandedId===row.id?null:row.id">{{expandedId===row.id?'Masquer':'Détails'}}</button></td></tr>
+       @if(expandedId===row.id){<tr class="detail-row"><td [attr.colspan]="role==='rh'?6:5"><p>{{row.commentaire||'Aucun commentaire fourni.'}}</p>
+         @if(role==='rh'){
+           @if(row.lignesStc?.length){<div class="stc-lines"><h3>Décompte de travail — montants provisoires</h3>@for(line of row.lignesStc;track $index){<article><div><strong>{{line.libelle}}</strong><small>{{line.detail}}</small></div><span>{{line.montant|number:'1.0-0'}} Ar</span></article>}<strong class="gross">Total brut provisoire : {{row.totalStcBrut|number:'1.0-0'}} Ar</strong>@if(row.totalRetenuesProvisoires){<strong class="gross">Retenues provisoires : {{row.totalRetenuesProvisoires|number:'1.0-0'}} Ar</strong>}<p class="caution">Ce brouillon n’est pas un net à payer. Préavis, indemnités de rupture, variables de paie, avances, cotisations et retenues applicables doivent être justifiés et vérifiés par les RH avant la validation.</p></div>}
+           @if(row.referencePaiement){<p>Paiement confirmé le {{row.datePaiement|date:'dd/MM/yyyy'}} · Référence {{row.referencePaiement}}</p>}
+           <div class="actions">
+             @if(row.statutCode==='SOUMISE_RH'){<button class="primary" [disabled]="busyId!==null" (click)="prepare(row)">Préparer le décompte</button>}
+             @if(row.statutCode==='STC_A_VERIFIER'){
+               <label>Net à payer validé (Ar)<input type="number" min="0" step="1" [(ngModel)]="netAmount" /></label>
+               <label class="wide">Base de contrôle du net<textarea rows="2" maxlength="2000" [(ngModel)]="netJustification" placeholder="Référence du calcul, pièces et contrôle effectué par RH"></textarea></label>
+               <button class="primary" [disabled]="busyId!==null" (click)="validate(row)">Valider le décompte contrôlé</button>
+             }
+             @if(row.statutCode==='STC_VALIDEE'){
+               <p>Net validé : <strong>{{row.montantNetValide|number:'1.0-0'}} Ar</strong></p>
+               <label>Référence de paiement<input maxlength="120" [(ngModel)]="paymentReference" placeholder="N° virement / reçu" /></label>
+               <label>Date du paiement<input type="date" [(ngModel)]="paymentDate" /></label>
+               <label>Montant payé (Ar)<input type="number" min="0" step="1" [(ngModel)]="paymentAmount" /></label>
+               <button class="primary" [disabled]="busyId!==null" (click)="confirmPayment(row)">Confirmer le paiement</button>
+             }
+             @if(row.statutCode==='STC_PAYE'){
+               @if((row.documentsGeneres||0)<2){<button class="primary" [disabled]="busyId!==null" (click)="generateDocuments(row)">Générer certificat et décompte PDF</button>}
+               @else {<p>2 documents PDF sont archivés au dossier salarié.</p><button class="primary" [disabled]="busyId!==null" (click)="documentsRemitted(row)">Confirmer leur remise</button>}
+             }
+             @if(row.statutCode==='DOCUMENTS_REMIS'){<button class="primary" [disabled]="busyId!==null" (click)="finalize(row)">Clôturer le dossier</button>}
+             @if(row.statutCode!=='FINALISEE'&&row.statutCode!=='ANNULEE'){<button class="secondary" [disabled]="busyId!==null" (click)="cancel(row)">Annuler la demande</button>}
+           </div>
+         }
+         <div class="history"><h3>Historique</h3>@for(event of row.historique;track $index){<p><strong>{{event.statut}}</strong> · {{event.date|date:'dd/MM/yyyy HH:mm'}} · {{event.acteur}}<small>{{event.commentaire}}</small></p>}</div>
+       </td></tr>}
+      }
+      </tbody></table></div>
+    }
+  </section>
+</section>
