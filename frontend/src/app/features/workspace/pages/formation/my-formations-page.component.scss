@@ -23,4 +23,11 @@
 .empty-state { display: grid; justify-items: center; gap: 9px; padding: 48px 20px; color: #65756d; text-align: center; }
 .empty-state i { color: #176b63; font-size: 36px; }
 .inline-state { display: flex; align-items: center; gap: 9px; padding: 22px; border: 1px solid #dfe8e3; border-radius: 14px; background: #fff; color: #65756d; }
-@media (max-width: 760px) { .page-heading { align-items: flex-start; flex-direction: column; } }
+.evolution-panel { border-color: #b7d8cf; background: #fbfdfc; }
+.section-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 14px; }
+.section-heading h2 { margin: 6px 0 0; font-size: clamp(20px, 2vw, 26px); }
+.metric-switch { display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: #eef5f1; flex: none; }
+.metric-switch button { border: 0; border-radius: 8px; padding: 8px 12px; background: transparent; color: #65756d; font-weight: 700; cursor: pointer; }
+.metric-switch button.active { background: #fff; color: #176b63; box-shadow: 0 1px 4px rgb(23 107 99 / 12%); }
+.chart-note { margin: 10px 0 0; color: #77847d; font-size: 13px; }
+@media (max-width: 760px) { .page-heading, .section-heading { align-items: flex-start; flex-direction: column; } }

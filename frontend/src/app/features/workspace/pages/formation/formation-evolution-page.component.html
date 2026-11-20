@@ -1,0 +1,74 @@
+<main class="formation-evolution-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">RESSOURCES HUMAINES / FORMATION</p>
+      <h1>Évolution après formation</h1>
+      <p class="page-intro">Suivez l’évolution des acquis dans le temps. Sélectionnez un ou plusieurs salariés, puis comparez le niveau atteint ou le pourcentage du manque comblé.</p>
+    </div>
+    <a pButton label="Formations" icon="pi pi-arrow-left" severity="secondary" [outlined]="true" routerLink="/espace/rh/formations"></a>
+  </header>
+
+  @if (loading) {
+    <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des mesures...</div>
+  } @else if (!employees.length) {
+    <div class="panel empty-state"><i class="pi pi-chart-line" aria-hidden="true"></i><strong>Aucune mesure</strong><span>Enregistrez une mesure depuis le détail d’une formation pour voir apparaître la courbe d’évolution.</span></div>
+  } @else {
+    <section class="panel">
+      <div class="section-heading">
+        <div><p class="eyebrow">SALARIÉS MESURÉS</p><h2>Comparer plusieurs salariés</h2></div>
+        <button class="link-button" type="button" (click)="toggleAll()">{{ selectedIds.size === employees.length ? 'Tout désélectionner' : 'Tout sélectionner' }}</button>
+      </div>
+      <div class="employee-filters">
+        @for (employee of employees; track employee.employeId) {
+          <label class="employee-chip" [class.selected]="isSelected(employee.employeId)">
+            <input type="checkbox" [checked]="isSelected(employee.employeId)" (change)="toggle(employee.employeId)" />
+            <span><strong>{{ employee.employe }}</strong><small>{{ employee.matricule }} · {{ employee.departement }}</small></span>
+            <em>{{ employee.points.length }} mesure(s)</em>
+          </label>
+        }
+      </div>
+    </section>
+
+    <section class="panel chart-panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">COURBE D’ÉVOLUTION</p>
+          <h2>{{ metric === 'pourcentage' ? 'Pourcentage du manque comblé' : 'Niveau acquis après formation' }}</h2>
+        </div>
+        <div class="metric-switch" role="group" aria-label="Mesure affichée">
+          <button type="button" [class.active]="metric === 'pourcentage'" (click)="setMetric('pourcentage')">% comblé</button>
+          <button type="button" [class.active]="metric === 'niveau'" (click)="setMetric('niveau')">Niveau acquis</button>
+        </div>
+      </div>
+      <app-formation-evolution-chart [series]="chartSeries" [yUnit]="metric === 'pourcentage' ? '%' : ''" [yMax]="100" />
+      <p class="chart-note">Chaque point correspond à une formation mesurée. Le niveau acquis est noté sur 100.</p>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading"><div><p class="eyebrow">DÉTAIL</p><h2>Mesures enregistrées</h2></div><span>{{ tableRows.length }} mesure(s)</span></div>
+      @if (!tableRows.length) {
+        <div class="empty-state">Sélectionnez au moins un salarié pour afficher ses mesures.</div>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Salarié</th><th>Formation</th><th>Compétence</th><th>Date</th><th>Avant</th><th>Après</th><th>Acquis / manque</th><th>%</th></tr></thead>
+            <tbody>
+              @for (row of tableRows; track row.mesureId) {
+                <tr>
+                  <td><strong>{{ row.employe }}</strong><small>{{ row.matricule }} · {{ row.poste }}</small></td>
+                  <td>{{ row.formation }}</td>
+                  <td>{{ row.competence }}</td>
+                  <td>{{ row.dateMesure | date:'dd/MM/yyyy' }}</td>
+                  <td>{{ row.niveauAvant }}</td>
+                  <td><strong>{{ row.niveauApres }}</strong></td>
+                  <td>{{ row.acquis }} / {{ row.manque }}</td>
+                  <td><strong class="percentage">{{ row.pourcentage | number:'1.2-2' }} %</strong></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+</main>

@@ -36,6 +36,8 @@ export class FormationDetailPageComponent implements OnInit {
 
   back(): void { void this.router.navigate(['/espace/rh/formations']); }
 
+  goEvolution(): void { void this.router.navigate(['/espace/rh/formations/evolution']); }
+
   enroll(need: EligibleNeed): void {
     if (this.actionId !== null) return;
     this.actionId = need.id;

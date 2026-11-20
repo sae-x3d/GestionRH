@@ -1,5 +1,6 @@
 .formation-detail-page { display: grid; gap: 20px; }
 .page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; }
+.heading-actions { display: flex; gap: 8px; flex: none; }
 .page-heading h1 { margin: 8px 0; font-size: clamp(28px, 3vw, 40px); }
 .eyebrow { color: #176b63; font-size: 12px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; margin: 0; }
 .page-intro { max-width: 820px; color: #65756d; line-height: 1.6; }

@@ -1,0 +1,10 @@
+.evolution-chart { display: grid; gap: 10px; }
+
+.chart-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0; padding: 0; list-style: none; }
+.chart-legend li { display: inline-flex; align-items: center; gap: 7px; color: #43574b; font-size: 13px; font-weight: 700; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+
+svg { display: block; width: 100%; height: auto; max-height: 340px; }
+.chart-grid { stroke: #e4ece7; stroke-width: 1; }
+.chart-axis { fill: #7a8881; font-size: 11px; }
+.chart-empty { margin: 0; padding: 28px; border-radius: 12px; background: #f7faf8; color: #65756d; text-align: center; }

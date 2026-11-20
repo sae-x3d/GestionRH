@@ -1,0 +1,32 @@
+<div class="evolution-chart">
+  @if (!allPoints.length) {
+    <p class="chart-empty">Aucune mesure enregistree pour afficher une courbe.</p>
+  } @else {
+    <ul class="chart-legend" aria-label="Series du graphique">
+      @for (item of series; track item.label) {
+        <li><span class="legend-dot" [style.background]="item.color"></span>{{ item.label }}</li>
+      }
+    </ul>
+    <svg [attr.viewBox]="'0 0 ' + width + ' ' + height" preserveAspectRatio="xMidYMid meet" role="img"
+      [attr.aria-label]="'Evolution des formations : ' + allPoints.length + ' mesure(s)'">
+      @for (value of gridValues; track value) {
+        <line class="chart-grid" [attr.x1]="padding.left" [attr.x2]="width - padding.right"
+          [attr.y1]="y(value)" [attr.y2]="y(value)" />
+        <text class="chart-axis" text-anchor="end" [attr.x]="padding.left - 8" [attr.y]="y(value) + 4">{{ formatValue(value) }}{{ yUnit }}</text>
+      }
+      @for (tick of xTicks; track formatDate(tick.date)) {
+        <text class="chart-axis" text-anchor="middle" [attr.x]="x(tick)" [attr.y]="height - 14">{{ formatDate(tick.date) }}</text>
+      }
+      @for (item of series; track item.label) {
+        @if (item.points.length > 1) {
+          <path [attr.d]="path(item)" fill="none" [attr.stroke]="item.color" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
+        }
+        @for (point of item.points; track point.label + point.date) {
+          <circle [attr.cx]="x(point)" [attr.cy]="y(point.value)" r="4.5" [attr.fill]="item.color" stroke="#fff" stroke-width="1.5">
+            <title>{{ item.label }} — {{ point.label }} — {{ formatValue(point.value) }}{{ yUnit }}</title>
+          </circle>
+        }
+      }
+    </svg>
+  }
+</div>

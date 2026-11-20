@@ -48,6 +48,11 @@ public class FormationController {
             request.niveauCible());
     }
 
+    @GetMapping("/api/rh/formations/evolution")
+    public List<Map<String, Object>> evolutionRh(@AuthenticationPrincipal AuthUserPrincipal user) {
+        return service.evolutionRh(user.getId());
+    }
+
     @GetMapping("/api/rh/formations/{formationId}")
     public Map<String, Object> detail(@AuthenticationPrincipal AuthUserPrincipal user,
             @PathVariable Integer formationId) {
@@ -70,6 +75,11 @@ public class FormationController {
     @GetMapping("/api/employe/formations")
     public List<Map<String, Object>> myFormations(@AuthenticationPrincipal AuthUserPrincipal user) {
         return service.myFormations(user.getId());
+    }
+
+    @GetMapping("/api/employe/formations/evolution")
+    public List<Map<String, Object>> evolutionEmploye(@AuthenticationPrincipal AuthUserPrincipal user) {
+        return service.evolutionEmploye(user.getId());
     }
 
     public record FormationRequest(

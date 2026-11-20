@@ -4,6 +4,24 @@
     <span class="count-pill">{{ formations.length }} formation(s)</span>
   </header>
 
+  @if (!loading && evolution.length) {
+    <section class="panel evolution-panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">MON ÉVOLUTION</p>
+          <h2>Progression de mes acquis</h2>
+        </div>
+        <div class="metric-switch" role="group" aria-label="Mesure affichée">
+          <button type="button" [class.active]="metric === 'niveau'" (click)="setMetric('niveau')">Niveaux</button>
+          <button type="button" [class.active]="metric === 'pourcentage'" (click)="setMetric('pourcentage')">% comblé</button>
+        </div>
+      </div>
+      <app-formation-evolution-chart [series]="metric === 'niveau' ? levelSeries : percentageSeries"
+        [yUnit]="metric === 'niveau' ? '' : '%'" [yMax]="100" />
+      <p class="chart-note">Chaque point represente une formation mesuree par les RH. Le niveau est note sur 100.</p>
+    </section>
+  }
+
   @if (loading) {
     <div class="inline-state" role="status"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement de vos formations...</div>
   } @else if (!formations.length) {

@@ -15,6 +15,31 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class FormationService {
+    private static final String EVOLUTION_SELECT = """
+        SELECT e.id AS "employeId", e.matricule,
+               COALESCE(u.full_name, u.username) AS employe,
+               d.nom AS departement, p.intitule AS poste,
+               m.id AS "mesureId", f.id AS "formationId", f.titre AS formation,
+               c.code AS "competenceCode", c.libelle AS competence,
+               m.mesure_at AS "dateMesure",
+               b.niveau_attendu AS "niveauAttendu",
+               b.niveau_acquis_initial AS "niveauInitial",
+               m.niveau_avant AS "niveauAvant", m.niveau_apres AS "niveauApres",
+               m.manque, m.acquis, m.pourcentage, m.commentaire,
+               ev.date_evaluation AS "dateEvaluation"
+        FROM mesures_formation m
+        JOIN participations_formation pf ON pf.id = m.participation_id
+        JOIN formations f ON f.id = pf.formation_id
+        JOIN competences c ON c.id = f.competence_id
+        JOIN besoins_formation b ON b.id = pf.besoin_id
+        JOIN employes e ON e.id = pf.employe_id
+        JOIN users u ON u.id = e.user_id
+        JOIN postes p ON p.id = b.poste_id
+        JOIN departements d ON d.id = p.departement_id
+        LEFT JOIN evaluation_lignes l ON l.id = b.evaluation_ligne_id
+        LEFT JOIN evaluations_employe ev ON ev.id = l.evaluation_id
+        """;
+
     private final JdbcTemplate jdbc;
     private final NotificationCenterService notifications;
 
@@ -301,6 +326,28 @@ public class FormationService {
             WHERE pf.employe_id = ?
             ORDER BY f.date_debut DESC NULLS LAST, pf.id DESC
             """, employeeId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> evolutionRh(Integer rhId) {
+        requireRole(rhId, "rh");
+        return evolution(null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> evolutionEmploye(Integer userId) {
+        Integer employeeId = employeeId(userId);
+        requireRoleAny(userId, "employe", "manager");
+        return evolution(employeeId);
+    }
+
+    private List<Map<String, Object>> evolution(Integer employeeId) {
+        String sql = EVOLUTION_SELECT
+            + (employeeId == null ? "" : " WHERE pf.employe_id = ? ")
+            + " ORDER BY employe, m.mesure_at, m.id";
+        return employeeId == null
+            ? jdbc.queryForList(sql)
+            : jdbc.queryForList(sql, employeeId);
     }
 
     private Map<String, Object> detailInternal(Integer formationId) {

@@ -135,6 +135,12 @@ export const WORKSPACE_ROUTES: Routes = [
         loadComponent: () => import('./pages/formation/training-needs-page.component').then((page) => page.TrainingNeedsPageComponent)
       },
       {
+        path: 'rh/formations/evolution',
+        canActivate: [roleGuard],
+        data: { roles: ['rh'], title: 'Évolution après formation' },
+        loadComponent: () => import('./pages/formation/formation-evolution-page.component').then((page) => page.FormationEvolutionPageComponent)
+      },
+      {
         path: 'rh/formations/nouvelle',
         canActivate: [roleGuard],
         data: { roles: ['rh'], title: 'Nouvelle formation' },

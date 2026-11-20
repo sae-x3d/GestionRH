@@ -1,7 +1,10 @@
 <main class="formation-detail-page">
   <header class="page-heading">
     <div><p class="eyebrow">RESSOURCES HUMAINES / FORMATION</p><h1>{{ detail?.formation?.titre ?? 'Formation' }}</h1><p class="page-intro">Inscrivez les salaries dont le besoin est ouvert, puis mesurez le niveau acquis pour calculer le pourcentage du manque comble.</p></div>
-    <p-button label="Retour" icon="pi pi-arrow-left" severity="secondary" [outlined]="true" (onClick)="back()" />
+    <div class="heading-actions">
+      <p-button label="Voir l'évolution" icon="pi pi-chart-line" [outlined]="true" (onClick)="goEvolution()" />
+      <p-button label="Retour" icon="pi pi-arrow-left" severity="secondary" [outlined]="true" (onClick)="back()" />
+    </div>
   </header>
 
   @if (loading) {

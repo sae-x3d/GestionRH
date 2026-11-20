@@ -99,6 +99,32 @@ export interface MyFormation {
   commentaireMesure: string | null;
 }
 
+export interface FormationEvolutionPoint {
+  mesureId: number;
+  formationId: number;
+  formation: string;
+  competenceCode: string;
+  competence: string;
+  dateMesure: string;
+  dateEvaluation: string | null;
+  niveauInitial: number;
+  niveauAttendu: number;
+  niveauAvant: number;
+  niveauApres: number;
+  manque: number;
+  acquis: number;
+  pourcentage: number;
+  commentaire: string | null;
+}
+
+export interface FormationEvolutionRow extends FormationEvolutionPoint {
+  employeId: number;
+  matricule: string;
+  employe: string;
+  departement: string;
+  poste: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class FormationService {
   constructor(private readonly http: HttpClient) { }
@@ -133,5 +159,13 @@ export class FormationService {
 
   myFormations(): Observable<MyFormation[]> {
     return this.http.get<MyFormation[]>('/api/employe/formations');
+  }
+
+  rhEvolution(): Observable<FormationEvolutionRow[]> {
+    return this.http.get<FormationEvolutionRow[]>('/api/rh/formations/evolution');
+  }
+
+  myEvolution(): Observable<FormationEvolutionPoint[]> {
+    return this.http.get<FormationEvolutionPoint[]>('/api/employe/formations/evolution');
   }
 }
