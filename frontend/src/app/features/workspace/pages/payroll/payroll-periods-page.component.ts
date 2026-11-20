@@ -35,6 +35,7 @@ export class PayrollPeriodsPageComponent implements OnInit {
   busy = false;
   loadingBulletins = false;
   downloadingId: number | null = null;
+  downloadingExcel = false;
 
   ngOnInit(): void { this.load(); }
   create(): void {
@@ -72,6 +73,18 @@ export class PayrollPeriodsPageComponent implements OnInit {
   download(row: PayrollPeriodBulletin): void {
     if (this.downloadingId !== null) return; this.downloadingId = row.id;
     this.payslips.rhPdf(row.id).subscribe({ next: blob => { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `bulletin-${row.matricule}.pdf`; a.click(); URL.revokeObjectURL(url); this.downloadingId = null; }, error: () => { this.downloadingId = null; this.notifications.error('PDF indisponible', 'Le bulletin n’a pas pu être téléchargé.'); } });
+  }
+  downloadExcel(): void {
+    if (!this.selected || this.downloadingExcel) return;
+    this.downloadingExcel = true;
+    this.service.payrollExcel(this.selected.id).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob); const a = document.createElement('a');
+        a.href = url; a.download = `etat-de-paie-${this.selected!.dateDebut.slice(0, 7)}.xlsx`; a.click(); URL.revokeObjectURL(url);
+        this.downloadingExcel = false;
+      },
+      error: () => { this.downloadingExcel = false; this.notifications.error('Excel indisponible', 'Aucun état Excel n’a pu être généré. Vérifiez que la période contient des bulletins calculés.'); }
+    });
   }
   private load(): void { this.loading = true; this.service.periods().subscribe({ next: rows => { this.periods = rows; this.loading = false; if (this.selected) this.selected = rows.find(p => p.id === this.selected!.id) ?? null; }, error: () => { this.loading = false; this.notifications.error('Paie indisponible', 'Les périodes de paie n’ont pas pu être chargées.'); } }); }
   private loadVariableOptions(id:number):void{this.service.advanceOptions(id).subscribe({next:rows=>this.variableOptions=rows,error:()=>this.notifications.error('Variables indisponibles','Les rubriques et éléments à saisir de cette période ne sont pas accessibles.')});}

@@ -119,12 +119,12 @@ public class EmployeeDossierService {
             ORDER BY latest.date_expiration
             """, employeeId));
         result.put("contratActif", jdbc.query("""
-            SELECT ct.numero, tc.libelle AS type, sc.libelle AS statut, ct.date_debut AS dateDebut,
+            SELECT ct.id, ct.numero, tc.libelle AS type, sc.code AS statutCode, sc.libelle AS statut, ct.date_debut AS dateDebut,
                    ct.date_fin AS dateFin, ct.salaire_base_mensuel AS salaireBase
             FROM employes e JOIN candidatures c ON c.candidat_id = e.user_id JOIN contrats ct ON ct.candidature_id = c.id
             JOIN types_contrat tc ON tc.id = ct.type_contrat_id JOIN statuts_contrat sc ON sc.id = ct.statut_id
             WHERE e.id = ? AND sc.code = 'ACTIF' ORDER BY ct.date_debut DESC LIMIT 1
-            """, rs -> rs.next() ? Map.of("numero", rs.getString("numero"), "type", rs.getString("type"), "statut", rs.getString("statut"),
+            """, rs -> rs.next() ? Map.of("id",rs.getInt("id"),"numero", rs.getString("numero"), "type", rs.getString("type"), "statutCode",rs.getString("statutCode"),"statut", rs.getString("statut"),
                 "dateDebut", rs.getObject("dateDebut", LocalDate.class), "dateFin", rs.getObject("dateFin", LocalDate.class) == null ? "" : rs.getObject("dateFin", LocalDate.class).toString(),
                 "salaireBase", rs.getBigDecimal("salaireBase")) : null, employeeId));
         if (canSeePersonal(actorId, employeeId)) {

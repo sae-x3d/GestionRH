@@ -28,6 +28,7 @@ export class PayrollOperationsService {
   markPaid(id: number,reference:string): Observable<PayrollPeriod> { return this.http.post<PayrollPeriod>(`/api/rh/paie/periodes/${id}/payer`, {reference}); }
   close(id: number): Observable<PayrollPeriod> { return this.http.post<PayrollPeriod>(`/api/rh/paie/periodes/${id}/cloturer`, {}); }
   bulletins(id: number): Observable<PayrollPeriodBulletin[]> { return this.http.get<PayrollPeriodBulletin[]>(`/api/rh/paie/periodes/${id}/bulletins`); }
+  payrollExcel(id: number): Observable<Blob> { return this.http.get(`/api/rh/paie/periodes/${id}/etat-excel`, { responseType: 'blob' }); }
   variableOptions(id: number): Observable<PayrollVariableOptions> { return this.http.get<PayrollVariableOptions>(`/api/rh/paie/periodes/${id}/variables`); }
   createVariable(id:number,employeId:number,rubriqueId:number,montant:number,justification:string):Observable<PayrollVariableOptions>{return this.http.post<PayrollVariableOptions>(`/api/rh/paie/periodes/${id}/variables`,{employeId,rubriqueId,montant,justification});}
   decideVariable(periodId:number,variableId:number,approuver:boolean,motif:string):Observable<PayrollVariableOptions>{return this.http.post<PayrollVariableOptions>(`/api/rh/paie/periodes/${periodId}/variables/${variableId}/decision`,{approuver,motif});}

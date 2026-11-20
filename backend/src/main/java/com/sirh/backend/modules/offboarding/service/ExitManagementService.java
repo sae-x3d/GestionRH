@@ -1,6 +1,7 @@
 package com.sirh.backend.modules.offboarding.service;
 
 import com.sirh.backend.modules.offboarding.dto.CreateExitRequest;
+import com.sirh.backend.modules.offboarding.dto.CreateEmployeeResignationRequest;
 import com.sirh.backend.modules.dossier.service.EmployeeDocumentStorageService;
 import com.sirh.backend.modules.notifications.service.NotificationCenterService;
 import java.io.ByteArrayOutputStream;
@@ -50,6 +51,20 @@ public class ExitManagementService {
     }
 
     @Transactional(readOnly = true)
+    public List<Map<String,Object>> ownList(Integer actorId) {
+        requireEmployeeRole(actorId);
+        Integer employeeId=jdbc.query("SELECT id FROM employes WHERE user_id=?",rs->rs.next()?rs.getInt(1):null,actorId);
+        if(employeeId==null)return List.of();
+        return jdbc.queryForList(query("AND d.employe_id=?"),employeeId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String,Object>> employeeList(Integer actorId,Integer employeeId) {
+        requireRole(actorId,"rh");
+        return jdbc.queryForList(query("AND d.employe_id=?"),employeeId);
+    }
+
+    @Transactional(readOnly = true)
     public List<Map<String,Object>> options(Integer actorId) {
         requireRole(actorId, "manager");
         return jdbc.queryForList("""
@@ -91,6 +106,51 @@ public class ExitManagementService {
                 r.dateNotification(), r.dernierJourTravaille(), r.commentaire());
         logStatus(id, null, "SOUMISE_RH", actorId, "Demande transmise par le manager");
         notifications.notifyRole("rh", "DOSSIER_SORTIE", "Départ à instruire", "Une demande de départ a été transmise pour contrôle RH.", "/espace/rh/sorties");
+        return detail(id);
+    }
+
+    @Transactional
+    public Map<String,Object> employeeResignation(Integer actorId,CreateEmployeeResignationRequest request) {
+        requireEmployeeRole(actorId);
+        if(request.dernierJourTravaille().isBefore(request.dateNotification()))throw bad("Le dernier jour travaillé ne peut pas précéder la notification.");
+        Integer employeeId=jdbc.query("SELECT id FROM employes WHERE user_id=?",rs->rs.next()?rs.getInt(1):null,actorId);
+        if(employeeId==null)throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Aucune fiche salarié n’est associée à ce compte.");
+        Integer contractId=jdbc.query("""
+            SELECT c.id FROM contrats c JOIN candidatures ca ON ca.id=c.candidature_id
+            JOIN statuts_contrat sc ON sc.id=c.statut_id AND sc.code='ACTIF'
+            WHERE c.id=? AND ca.candidat_id=? FOR UPDATE
+            """,rs->rs.next()?rs.getInt(1):null,request.contractId(),actorId);
+        if(contractId==null)throw conflict("Le contrat sélectionné n’est plus actif ou ne vous appartient pas.");
+        return createCase(actorId,employeeId,contractId,"DEMISSION",request.dateNotification(),request.dernierJourTravaille(),request.commentaire(),"Demande de démission transmise par le salarié.");
+    }
+
+    @Transactional
+    public Map<String,Object> employerDismissal(Integer actorId,CreateExitRequest request) {
+        requireRole(actorId,"rh");
+        if(!"LICENCIEMENT".equals(request.motifCode()))throw bad("Cette action crée uniquement un dossier de licenciement.");
+        if(request.commentaire()==null||request.commentaire().isBlank())throw bad("Ajoutez le motif factuel et les références de la décision RH.");
+        if(request.dernierJourTravaille().isBefore(request.dateNotification()))throw bad("Le dernier jour travaillé ne peut pas précéder la notification.");
+        Integer contractId=jdbc.query("""
+            SELECT c.id FROM contrats c JOIN candidatures ca ON ca.id=c.candidature_id
+            JOIN employes e ON e.user_id=ca.candidat_id JOIN statuts_contrat sc ON sc.id=c.statut_id AND sc.code='ACTIF'
+            WHERE c.id=? AND e.id=? FOR UPDATE
+            """,rs->rs.next()?rs.getInt(1):null,request.contractId(),request.employeeId());
+        if(contractId==null)throw conflict("Le contrat actif ne correspond pas au salarié sélectionné.");
+        if(!exists("SELECT EXISTS(SELECT 1 FROM motifs_sortie m JOIN types_initiative_sortie i ON i.id=m.initiative_id WHERE m.code='LICENCIEMENT' AND m.actif=TRUE AND i.code='EMPLOYEUR')"))throw conflict("Le motif de licenciement n’est pas configuré.");
+        return createCase(actorId,request.employeeId(),contractId,"LICENCIEMENT",request.dateNotification(),request.dernierJourTravaille(),request.commentaire(),"Dossier de licenciement ouvert par les ressources humaines.");
+    }
+
+    private Map<String,Object> createCase(Integer actorId,Integer employeeId,Integer contractId,String motifCode,
+            LocalDate notification,LocalDate lastDay,String comment,String historyMessage) {
+        if(exists("SELECT EXISTS(SELECT 1 FROM dossiers_sortie d JOIN statuts_sortie s ON s.id=d.statut_id WHERE d.contrat_id=? AND s.terminal=FALSE)",contractId))
+            throw conflict("Un dossier de sortie est déjà en cours pour ce contrat.");
+        Integer id=jdbc.queryForObject("""
+            INSERT INTO dossiers_sortie(employe_id,contrat_id,motif_id,statut_id,initie_par_id,date_notification,dernier_jour_travaille,commentaire)
+            SELECT ?,?,m.id,s.id,?,?,?,? FROM motifs_sortie m CROSS JOIN statuts_sortie s
+            WHERE m.code=? AND s.code='SOUMISE_RH' RETURNING id
+            """,Integer.class,employeeId,contractId,actorId,notification,lastDay,comment==null?"":comment.trim(),motifCode);
+        logStatus(id,null,"SOUMISE_RH",actorId,historyMessage);
+        notifications.notifyRole("rh","DOSSIER_SORTIE","Départ à instruire","Un dossier de sortie a été transmis au service RH.","/espace/rh/sorties");
         return detail(id);
     }
 
@@ -360,13 +420,25 @@ public class ExitManagementService {
         jdbc.update("INSERT INTO historique_sortie(dossier_sortie_id,ancien_statut_id,nouveau_statut_id,acteur_id,commentaire) SELECT ?,a.id,b.id,?,? FROM (SELECT id FROM statuts_sortie WHERE code IS NOT DISTINCT FROM ?) a FULL JOIN (SELECT id FROM statuts_sortie WHERE code=?) b ON TRUE", id, actor, note, from, to);
     }
     private void notifyInitiator(Integer exitId,String message,String link) {
-        Integer userId = jdbc.queryForObject("SELECT initie_par_id FROM dossiers_sortie WHERE id=?", Integer.class, exitId);
-        notifications.notifyUser(userId,"DOSSIER_SORTIE","Mise à jour d’un dossier de sortie",message,link);
+        Map<String,Object> initiator=jdbc.queryForMap("""
+            SELECT d.initie_par_id AS user_id,m.code AS motif,
+                   (SELECT h.commentaire FROM historique_sortie h WHERE h.dossier_sortie_id=d.id ORDER BY h.id LIMIT 1) AS origine
+            FROM dossiers_sortie d JOIN motifs_sortie m ON m.id=d.motif_id WHERE d.id=?
+            """,exitId);
+        Integer userId=((Number)initiator.get("user_id")).intValue();
+        String origin=String.valueOf(initiator.get("origine"));
+        String destination=switch(String.valueOf(initiator.get("motif"))){
+            case "DEMISSION" -> origin.toLowerCase(java.util.Locale.ROOT).contains("manager")?"/espace/manager/equipe/sorties":"/espace/employe/contrat";
+            case "LICENCIEMENT" -> "/espace/rh/sorties";
+            default -> link;
+        };
+        notifications.notifyUser(userId,"DOSSIER_SORTIE","Mise à jour d’un dossier de sortie",message,destination);
     }
     private boolean exists(String sql,Object... args) { return Boolean.TRUE.equals(jdbc.queryForObject(sql,Boolean.class,args)); }
     private static String safe(Object value) { return value == null ? "-" : value.toString(); }
     private int lookup(String table,String code) { return jdbc.queryForObject("SELECT id FROM " + table + " WHERE code=?",Integer.class,code); }
     private void requireRole(Integer user,String role) { if(!exists("SELECT EXISTS(SELECT 1 FROM user_roles ur JOIN roles r ON r.id=ur.role_id JOIN users u ON u.id=ur.user_id JOIN statuts_validation_compte v ON v.id=u.administrative_validation_status_id WHERE u.id=? AND u.is_suspended=FALSE AND v.code='APPROVED' AND LOWER(r.role_name)=?)",user,role)) throw forbidden("Accès réservé à un compte actif du rôle " + role + "."); }
+    private void requireEmployeeRole(Integer user) { if(!exists("SELECT EXISTS(SELECT 1 FROM user_roles ur JOIN roles r ON r.id=ur.role_id JOIN users u ON u.id=ur.user_id JOIN statuts_validation_compte v ON v.id=u.administrative_validation_status_id WHERE u.id=? AND u.is_suspended=FALSE AND v.code='APPROVED' AND LOWER(r.role_name) IN ('employe','manager'))",user)) throw forbidden("Accès réservé au salarié concerné."); }
     private static BigDecimal decimal(Object value) { return value instanceof BigDecimal b ? b : new BigDecimal(value.toString()); }
     private ResponseStatusException bad(String m) { return new ResponseStatusException(HttpStatus.BAD_REQUEST,m); }
     private ResponseStatusException forbidden(String m) { return new ResponseStatusException(HttpStatus.FORBIDDEN,m); }

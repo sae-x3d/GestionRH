@@ -210,7 +210,7 @@ public class CandidatureWorkflowService {
             SELECT EXISTS (SELECT 1 FROM users u JOIN statuts_validation_compte s ON s.id = u.administrative_validation_status_id
                 JOIN user_roles ur ON ur.user_id = u.id JOIN roles r ON r.id = ur.role_id
                 JOIN employes e ON e.user_id = u.id
-                WHERE u.id = ? AND u.is_suspended = FALSE AND s.code = 'APPROVED' AND LOWER(r.role_name) = 'employe')
+                WHERE u.id = ? AND u.is_suspended = FALSE AND s.code = 'APPROVED' AND LOWER(r.role_name) IN ('employe','manager'))
             """, Boolean.class, employeeId));
         if (!employee) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Un compte employé actif est requis.");
         return one("""

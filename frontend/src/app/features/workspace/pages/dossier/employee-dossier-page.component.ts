@@ -1,17 +1,18 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { RoleService } from '../../../../core/auth/role.service';
 import { NotificationService } from '../../../../core/notifications/notification.service';
 import { EmployeeDossierService } from '../../services/employee-dossier.service';
+import { ExitManagementService, ExitRequest } from '../../services/exit-management.service';
 
 type DossierTab = 'overview' | 'personal' | 'professional' | 'documents' | 'history' | 'requests';
-@Component({ selector: 'app-employee-dossier', standalone: true, imports: [DatePipe, DecimalPipe, FormsModule],
+@Component({ selector: 'app-employee-dossier', standalone: true, imports: [DatePipe, DecimalPipe, FormsModule, RouterLink],
   templateUrl: './employee-dossier-page.component.html', styleUrl: './employee-dossier-page.component.scss' })
 export class EmployeeDossierPageComponent implements OnInit {
-  private readonly route = inject(ActivatedRoute); private readonly service = inject(EmployeeDossierService);
+  private readonly route = inject(ActivatedRoute); private readonly service = inject(EmployeeDossierService); private readonly exitsService=inject(ExitManagementService);
   private readonly roleService = inject(RoleService); private readonly toast = inject(NotificationService);
   readonly role = this.roleService.currentRole;
   readonly tabs: { id: DossierTab; label: string }[] = [
@@ -41,6 +42,8 @@ export class EmployeeDossierPageComponent implements OnInit {
   statusDate = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   statusReason = '';
   savingStatus = false;
+  dismissalNotificationDate=this.today(); dismissalLastDay=''; dismissalComment=''; dismissalBusy=false;
+  dismissalCase:ExitRequest|null=null;
   get isRh(): boolean { return this.role() === 'rh'; }
   get editableRequests(): boolean { return this.self && (this.role() === 'employe' || this.role() === 'manager'); }
 
@@ -170,6 +173,21 @@ export class EmployeeDossierPageComponent implements OnInit {
     const transitions = allowed[current] ?? [];
     return ((this.dossier?.['statutsDisponibles'] ?? []) as Record<string, any>[]).filter((item) => transitions.includes(item['code']));
   }
+  initiateDismissal(): void {
+    const contract=this.dossier?.['contratActif'];
+    if(!this.isRh||!this.employeeId||!contract||contract['statutCode']!=='ACTIF'||this.dismissalBusy||this.dismissalCase)return;
+    if(!this.dismissalLastDay||this.dismissalLastDay<this.dismissalNotificationDate||!this.dismissalComment.trim()){
+      this.toast.error('Informations manquantes','Indiquez une date de notification, un dernier jour travaillé cohérent et les faits ou références de la décision.');return;
+    }
+    if(!window.confirm('Créer un dossier de licenciement pour ce salarié ? Le contrat et le compte resteront actifs jusqu’à la clôture du dossier RH.'))return;
+    this.dismissalBusy=true;
+    this.exitsService.dismiss({employeeId:this.employeeId,contractId:Number(contract['id']),motifCode:'LICENCIEMENT',
+      dateNotification:this.dismissalNotificationDate,dernierJourTravaille:this.dismissalLastDay,commentaire:this.dismissalComment.trim()})
+      .pipe(finalize(()=>this.dismissalBusy=false)).subscribe({
+        next:row=>{this.dismissalCase=row;this.dismissalComment='';this.toast.success('Dossier ouvert','Le dossier de sortie est disponible dans Ruptures et STC pour préparer le décompte.');},
+        error:(error)=>this.toast.error('Dossier non créé',error.error?.message??'Vérifiez le contrat actif et les dates de notification.')
+      });
+  }
   changeStatus(): void {
     if (!this.isRh || !this.employeeId || this.savingStatus) return;
     if (!this.statusCode || !this.statusDate || !this.statusReason.trim()) {
@@ -188,10 +206,12 @@ export class EmployeeDossierPageComponent implements OnInit {
   private load(): void {
     this.loading = true;
     this.service.dossier(this.employeeId ?? undefined).pipe(finalize(() => this.loading = false)).subscribe({
-      next: (data) => { this.dossier = data; this.employeeId = Number(data['id']); this.documents = data['documents'] ?? []; this.statusCode = ''; this.loadTypes(); },
+      next: (data) => { this.dossier = data; this.employeeId = Number(data['id']); this.documents = data['documents'] ?? []; this.statusCode = ''; this.loadTypes(); if(this.isRh)this.loadDismissalCase(); },
       error: () => { this.dossier = null; this.toast.error('Dossier indisponible', 'Aucun dossier salarié accessible n’a été trouvé pour votre compte.'); }
     });
   }
+  private loadDismissalCase():void{if(!this.employeeId)return;this.exitsService.employeeList(this.employeeId).subscribe({next:rows=>{this.dismissalCase=rows.find(row=>row.motifCode==='LICENCIEMENT'&&!['FINALISEE','ANNULEE'].includes(row.statutCode))??null;},error:()=>this.dismissalCase=null});}
+  private today():string{const now=new Date();return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;}
   private reloadDossier(): void {
     if (!this.employeeId) return;
     this.service.dossier(this.self ? undefined : this.employeeId).subscribe({

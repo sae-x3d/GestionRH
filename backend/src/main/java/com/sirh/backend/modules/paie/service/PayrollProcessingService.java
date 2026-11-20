@@ -7,7 +7,6 @@ import java.time.Period;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.WeekFields;
 import java.time.temporal.TemporalAdjusters;
@@ -331,7 +330,7 @@ public class PayrollProcessingService {
         addVariables(lines,periodId,employeeId,start,end);
         addConfiguredPremiums(lines,employeeId,start,end,contractSalary);
         addUnpaidAbsence(lines,employeeId,start,end,contractSalary);
-        addOvertime(lines,employeeId,start,end,hourRate);
+        addOvertime(lines,employeeId,start,end,hourRate,parameter("HEURES_MENSUELLES_REFERENCE",regimeId,start,end));
 
         BigDecimal gross=computeGross(lines);
         BigDecimal cnapsBase=gross.min(parameter("SME_MENSUEL",regimeId,start,end).multiply(parameter("CNAPS_PLAFOND_MULTIPLICATEUR",null,start,end)));
@@ -347,10 +346,13 @@ public class PayrollProcessingService {
         addLine(lines,"CNAPS_PATRONAL","CNaPS patronale","CHARGE_PATRONALE",cnapsEmployer,BigDecimal.ONE,cnapsBase,"Taux et plafond datés de la base",null,null,null,null);
         addLine(lines,"SANTE_PATRONAL","Cotisation santé patronale","CHARGE_PATRONALE",healthEmployer,BigDecimal.ONE,gross,"Taux daté de la base",null,null,null,null);
 
-        BigDecimal employeeDeductions=sum(lines,"RETENUE_SALARIALE");
+        BigDecimal employeeDeductions=sum(lines,"RETENUE_SALARIALE")
+            .subtract(sumCode(lines,"RETENUE_ABSENCE")).subtract(sumCode(lines,"RETENUE_MISE_A_PIED")).max(ZERO);
         BigDecimal employerCharges=sum(lines,"CHARGE_PATRONALE");
         BigDecimal net=computeNet(gross,lines);
         BigDecimal advances=deductAdvances(lines,employeeId,periodId);
+        BigDecimal baseDuMois=base.subtract(sumCode(lines,"RETENUE_ABSENCE"))
+            .subtract(sumCode(lines,"RETENUE_MISE_A_PIED")).max(ZERO);
         if (advances.compareTo(net)>0) throw conflict("Le montant des avances à déduire dépasse le net du salarié "+e.get("matricule")+". Ajustez la déduction avant le calcul.");
         BigDecimal netPayable=net.subtract(advances).max(ZERO);
         int bulletinId=jdbc.queryForObject("""
@@ -358,7 +360,7 @@ public class PayrollProcessingService {
               fonction_snapshot,salaire_base_contractuel,salaire_base_proratise,salaire_brut,revenu_imposable,
               total_retenues_salariales,salaire_net,total_charges_patronales,net_a_payer,statut_id,calcule_par_id)
             SELECT ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,id,? FROM statuts_bulletin_paie WHERE code='CALCULE' RETURNING id
-            """,Integer.class,periodId,employeeId,e.get("contratId"),e.get("matricule"),e.get("nom"),e.get("categorie"),e.get("fonction"),contractSalary,base,gross,taxable,employeeDeductions,net,employerCharges,netPayable,actorId);
+            """,Integer.class,periodId,employeeId,e.get("contratId"),e.get("matricule"),e.get("nom"),e.get("categorie"),e.get("fonction"),contractSalary,baseDuMois,gross,taxable,employeeDeductions,net,employerCharges,netPayable,actorId);
         for (int i=0;i<lines.size();i++) persistLine(bulletinId, i+1, lines.get(i));
     }
 
@@ -428,118 +430,129 @@ public class PayrollProcessingService {
     }
 
     private void addUnpaidAbsence(List<Map<String,Object>> lines,int employeeId,LocalDate start,LocalDate end,BigDecimal salary) {
-        Integer plannedDays=jdbc.queryForObject("""
-            SELECT COUNT(*) FROM generate_series(?::date,?::date,INTERVAL '1 day') AS days(calendar_day)
-            LEFT JOIN jours_planning_employe j ON j.employe_id=? AND j.date_travail=days.calendar_day::date
-            LEFT JOIN types_jour_planning t ON t.id=j.type_jour_id
-            WHERE COALESCE(t.code,CASE WHEN EXTRACT(ISODOW FROM days.calendar_day)<6 THEN 'TRAVAIL' ELSE 'REPOS' END) IN ('TRAVAIL','CONGE','ABSENCE')
-            """,Integer.class,start,end,employeeId);
-        if(plannedDays==null||plannedDays==0)return;
-        List<Map<String,Object>> absences=jdbc.queryForList("""
-            SELECT a.id,a.date_debut::date AS debut,a.date_fin::date AS fin,ta.libelle
+        Map<String,Object> absence=jdbc.queryForMap("""
+            SELECT COUNT(DISTINCT d.jour)::integer AS jours,
+                   COALESCE(string_agg(DISTINCT a.id::text, ', ' ORDER BY a.id::text), '') AS ids,
+                   COALESCE(string_agg(DISTINCT ta.libelle, ', ' ORDER BY ta.libelle), '') AS motifs
             FROM absences a JOIN types_absence ta ON ta.id=a.type_absence_id AND ta.retenue_paie=TRUE
+            CROSS JOIN LATERAL generate_series(GREATEST(a.date_debut::date,?::date),LEAST(a.date_fin::date,?::date),INTERVAL '1 day') d(jour)
+            LEFT JOIN jours_planning_employe j ON j.employe_id=a.employe_id AND j.date_travail=d.jour::date
+            LEFT JOIN types_jour_planning t ON t.id=j.type_jour_id
             WHERE a.employe_id=? AND a.date_debut < (? + INTERVAL '1 day') AND a.date_fin >= ?
-            ORDER BY a.date_debut,a.id
-            """,employeeId,end,start);
-        for(Map<String,Object> a:absences){
-            LocalDate from=max(start,localDate(a.get("debut"))),to=min(end,localDate(a.get("fin")));
-            Integer days=jdbc.queryForObject("""
-                SELECT COUNT(*) FROM generate_series(?::date,?::date,INTERVAL '1 day') AS days(calendar_day)
-                LEFT JOIN jours_planning_employe j ON j.employe_id=? AND j.date_travail=days.calendar_day::date
-                LEFT JOIN types_jour_planning t ON t.id=j.type_jour_id
-                WHERE COALESCE(t.code,CASE WHEN EXTRACT(ISODOW FROM days.calendar_day)<6 THEN 'TRAVAIL' ELSE 'REPOS' END) IN ('TRAVAIL','ABSENCE')
-                """,Integer.class,from,to,employeeId);
-            if(days==null||days==0)continue;
-            BigDecimal amount=salary.multiply(BigDecimal.valueOf(days)).divide(BigDecimal.valueOf(plannedDays),2,RoundingMode.HALF_UP);
-            addLine(lines,"RETENUE_ABSENCE","Retenue absence non rémunérée","RETENUE_SALARIALE",amount,BigDecimal.valueOf(days),salary.divide(BigDecimal.valueOf(plannedDays),2,RoundingMode.HALF_UP),"Absence #"+a.get("id")+" · "+a.get("libelle"),null,null,((Number)a.get("id")).intValue(),null);
-        }
+              AND COALESCE(t.code,CASE WHEN EXTRACT(ISODOW FROM d.jour)<6 THEN 'TRAVAIL' ELSE 'REPOS' END) IN ('TRAVAIL','ABSENCE')
+            """,start,end,employeeId,end,start);
+        int days=((Number)absence.get("jours")).intValue();
+        if(days<=0)return;
+        BigDecimal dailyRate=salary.divide(BigDecimal.valueOf(30),2,RoundingMode.HALF_UP);
+        BigDecimal amount=salary.multiply(BigDecimal.valueOf(days)).divide(BigDecimal.valueOf(30),0,RoundingMode.HALF_UP);
+        addLine(lines,"RETENUE_ABSENCE","Retenue absence non rémunérée","RETENUE_SALARIALE",amount,BigDecimal.valueOf(days),dailyRate,
+            "Absence(s) #"+absence.get("ids")+" · "+absence.get("motifs")+" · taux journalier salaire mensuel / 30",null,null,null,null);
     }
 
-    private void addOvertime(List<Map<String,Object>> lines,int employeeId,LocalDate start,LocalDate end,BigDecimal hourlyRate) {
+    private void addOvertime(List<Map<String,Object>> lines,int employeeId,LocalDate start,LocalDate end,
+            BigDecimal hourlyRate,BigDecimal monthlyReferenceHours) {
         LocalDate weekStart=start.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
-        LocalDate weekEnd=end.with(TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SUNDAY));
         List<Map<String,Object>> sessions=jdbc.queryForList("""
-            SELECT s.id,s.date_service,j.heure_debut,j.heure_fin,j.pause_debut,j.pause_fin,
-              MAX(e.horodatage) FILTER (WHERE t.code='FIN_SERVICE') AS fin_service,
+            SELECT s.id,
               MIN(e.horodatage) FILTER (WHERE t.code='ARRIVEE') AS arrivee,
+              MAX(e.horodatage) FILTER (WHERE t.code='FIN_SERVICE') AS fin_service,
               MIN(e.horodatage) FILTER (WHERE t.code='DEBUT_PAUSE') AS debut_pause,
               MAX(e.horodatage) FILTER (WHERE t.code='FIN_PAUSE') AS fin_pause
             FROM sessions_pointage s JOIN evenements_pointage e ON e.session_id=s.id
-            JOIN types_evenement_pointage t ON t.id=e.type_id LEFT JOIN jours_planning_employe j ON j.id=s.jour_planning_id
+            JOIN types_evenement_pointage t ON t.id=e.type_id
             WHERE s.employe_id=? AND s.date_service BETWEEN ? AND ?
-            GROUP BY s.id,s.date_service,j.heure_debut,j.heure_fin,j.pause_debut,j.pause_fin
+            GROUP BY s.id
             HAVING COUNT(*) FILTER (WHERE t.code='ARRIVEE')>0 AND COUNT(*) FILTER (WHERE t.code='FIN_SERVICE')>0
-            ORDER BY s.date_service,s.id
-            """,employeeId,weekStart,weekEnd);
-        List<OvertimeDay> overtimeDays=new ArrayList<>();Map<String,BigDecimal> plannedByWeek=new LinkedHashMap<>();
-        List<Map<String,Object>> schedules=jdbc.queryForList("""
-            SELECT date_trunc('week',j.date_travail)::date AS semaine,
-              SUM(EXTRACT(EPOCH FROM ((j.heure_fin-j.heure_debut)-COALESCE(j.pause_fin-j.pause_debut,INTERVAL '0')))/3600.0) AS heures
-            FROM jours_planning_employe j JOIN types_jour_planning t ON t.id=j.type_jour_id AND t.code='TRAVAIL'
-            WHERE j.employe_id=? AND j.date_travail BETWEEN ? AND ? GROUP BY date_trunc('week',j.date_travail)::date
-            """,employeeId,weekStart,weekEnd);
-        for(Map<String,Object> schedule:schedules)plannedByWeek.put(weekKey(localDate(schedule.get("semaine"))),decimal(schedule.get("heures")));
-        for(Map<String,Object> s:sessions){
-            if(s.get("heure_debut")==null||s.get("heure_fin")==null||s.get("arrivee")==null||s.get("fin_service")==null)continue;
-            double actual=hoursBetween(s.get("arrivee"),s.get("fin_service"));
-            if(s.get("debut_pause")!=null&&s.get("fin_pause")!=null)actual-=hoursBetween(s.get("debut_pause"),s.get("fin_pause"));
-            double planned=java.time.Duration.between(localTime(s.get("heure_debut")),localTime(s.get("heure_fin"))).toMinutes()/60d;
-            if(s.get("pause_debut")!=null&&s.get("pause_fin")!=null)planned-=java.time.Duration.between(localTime(s.get("pause_debut")),localTime(s.get("pause_fin"))).toMinutes()/60d;
-            double extra=actual-planned;if(extra<=0)continue;
-            LocalDate date=localDate(s.get("date_service"));
-            overtimeDays.add(new OvertimeDay(date,weekKey(date),((Number)s.get("id")).intValue(),extra,offsetDateTime(s.get("fin_service"))));
+            ORDER BY MIN(e.horodatage),s.id
+            """,employeeId,weekStart,end);
+        List<WorkInterval> intervals=new ArrayList<>();
+        for(Map<String,Object> session:sessions){
+            if(session.get("arrivee")==null||session.get("fin_service")==null)continue;
+            ZonedDateTime arrival=offsetDateTime(session.get("arrivee")).atZoneSameInstant(ZoneId.of("Indian/Antananarivo"));
+            ZonedDateTime finish=offsetDateTime(session.get("fin_service")).atZoneSameInstant(ZoneId.of("Indian/Antananarivo"));
+            if(!finish.isAfter(arrival))continue;
+            int sessionId=((Number)session.get("id")).intValue();
+            if(session.get("debut_pause")!=null&&session.get("fin_pause")!=null){
+                ZonedDateTime breakStart=offsetDateTime(session.get("debut_pause")).atZoneSameInstant(arrival.getZone());
+                ZonedDateTime breakEnd=offsetDateTime(session.get("fin_pause")).atZoneSameInstant(arrival.getZone());
+                if(breakStart.isAfter(arrival)&&breakEnd.isBefore(finish)&&breakEnd.isAfter(breakStart)){
+                    intervals.add(new WorkInterval(arrival,breakStart,sessionId));
+                    intervals.add(new WorkInterval(breakEnd,finish,sessionId));
+                    continue;
+                }
+            }
+            intervals.add(new WorkInterval(arrival,finish,sessionId));
         }
-        if(overtimeDays.isEmpty())return;
-        BigDecimal firstTier=parameter("HEURES_SUP_SEUIL_1",null,start,end),secondTier=parameter("HEURES_SUP_SEUIL_2",null,start,end);
-        BigDecimal maxWeekly=parameter("HEURES_MAX_SEMAINE",null,start,end);
+        if(intervals.isEmpty())return;
+        intervals.sort(java.util.Comparator.comparing(WorkInterval::start));
+        BigDecimal firstTier=parameter("HEURES_SUP_SEUIL_1",null,start,end);
+        BigDecimal overtimeLimit=parameter("HEURES_SUP_SEUIL_2",null,start,end);
+        BigDecimal maxWeekly=parameterOrDefault("HEURES_MAX_SEMAINE",null,start,end,BigDecimal.valueOf(60));
+        BigDecimal normalWeekly=monthlyReferenceHours.multiply(BigDecimal.valueOf(12))
+            .divide(BigDecimal.valueOf(52),2,RoundingMode.HALF_UP);
         BigDecimal rateOne=BigDecimal.ONE.add(parameter("MAJORATION_HEURES_SUP_1",null,start,end));
         BigDecimal rateTwo=BigDecimal.ONE.add(parameter("MAJORATION_HEURES_SUP_2",null,start,end));
         BigDecimal sundayMultiplier=BigDecimal.ONE.add(parameter("MAJORATION_DIMANCHE",null,start,end));
         BigDecimal nightMultiplier=BigDecimal.ONE.add(parameter("MAJORATION_NUIT",null,start,end));
-        int nightStart=parameter("HEURE_NUIT_DEBUT",null,start,end).intValue(),nightEnd=parameter("HEURE_NUIT_FIN",null,start,end).intValue();
-        Map<String,Double> usedByWeek=new LinkedHashMap<>();BigDecimal amount=ZERO,totalHours=ZERO;List<Integer> sourceSessions=new ArrayList<>();
-        for(OvertimeDay day:overtimeDays){
-            String week=day.week();double used=usedByWeek.getOrDefault(week,0d);
-            double capacity=Math.max(0,Math.min(secondTier.doubleValue(),maxWeekly.doubleValue()-plannedByWeek.getOrDefault(week,ZERO).doubleValue()));
-            double accepted=Math.min(day.hours(),Math.max(0,capacity-used));if(accepted<=0)continue;
-            double tierOne=Math.min(accepted,Math.max(0,firstTier.doubleValue()-used));
-            double tierTwo=Math.min(accepted-tierOne,Math.max(0,secondTier.doubleValue()-firstTier.doubleValue()-Math.max(0,used-firstTier.doubleValue())));
-            usedByWeek.put(week,used+tierOne+tierTwo);if(tierOne+tierTwo<=0)continue;
-            if(day.date().isBefore(start)||day.date().isAfter(end))continue;
-            boolean sunday=day.date().getDayOfWeek().getValue()==7;
-            ZonedDateTime segmentEnd=day.end().atZoneSameInstant(ZoneId.of("Indian/Antananarivo"));
-            ZonedDateTime segmentStart=segmentEnd.minusSeconds(Math.round(accepted*3600));
-            double tierOneNight=sunday?0:nightHours(segmentStart,segmentStart.plusSeconds(Math.round(tierOne*3600)),nightStart,nightEnd);
-            double tierTwoNight=sunday?0:nightHours(segmentStart.plusSeconds(Math.round(tierOne*3600)),segmentEnd,nightStart,nightEnd);
-            BigDecimal t1DayRate=sunday?rateOne.max(sundayMultiplier):rateOne;
-            BigDecimal t1NightRate=sunday?rateOne.max(sundayMultiplier):rateOne.max(nightMultiplier);
-            BigDecimal t2DayRate=sunday?rateTwo.max(sundayMultiplier):rateTwo;
-            BigDecimal t2NightRate=sunday?rateTwo.max(sundayMultiplier):rateTwo.max(nightMultiplier);
-            BigDecimal t1=BigDecimal.valueOf(tierOne),t2=BigDecimal.valueOf(tierTwo);
-            BigDecimal t1n=BigDecimal.valueOf(tierOneNight),t2n=BigDecimal.valueOf(tierTwoNight);
-            amount=amount.add(hourlyRate.multiply(t1.subtract(t1n)).multiply(t1DayRate))
-                .add(hourlyRate.multiply(t1n).multiply(t1NightRate))
-                .add(hourlyRate.multiply(t2.subtract(t2n)).multiply(t2DayRate))
-                .add(hourlyRate.multiply(t2n).multiply(t2NightRate));
-            totalHours=totalHours.add(t1).add(t2);sourceSessions.add(day.sessionId());
+        int nightStart=parameter("HEURE_NUIT_DEBUT",null,start,end).intValue();
+        int nightEnd=parameter("HEURE_NUIT_FIN",null,start,end).intValue();
+        Map<String,Double> workedByWeek=new LinkedHashMap<>(),overtimeByWeek=new LinkedHashMap<>();
+        BigDecimal overtimeAmount=ZERO,overtimeHours=ZERO,sundayAmount=ZERO,sundayHours=ZERO,nightAmount=ZERO,nightHours=ZERO;
+        java.util.Set<Integer> overtimeSources=new java.util.LinkedHashSet<>(),sundaySources=new java.util.LinkedHashSet<>(),nightSources=new java.util.LinkedHashSet<>();
+        for(WorkInterval interval:intervals){
+            for(ZonedDateTime cursor=interval.start();cursor.isBefore(interval.end());){
+                ZonedDateTime segmentEnd=cursor.plusMinutes(1);
+                if(segmentEnd.isAfter(interval.end()))segmentEnd=interval.end();
+                LocalDate workDate=cursor.toLocalDate();
+                double hours=java.time.Duration.between(cursor,segmentEnd).toSeconds()/3600d;
+                String week=weekKey(workDate);
+                double worked=workedByWeek.getOrDefault(week,0d);
+                double maxHours=maxWeekly.doubleValue();
+                double nextWorked=worked+hours;
+                if(nextWorked>maxHours+0.000001)throw conflict("Le pointage dépasse la limite de "+maxWeekly+" heures pour la semaine du "+workDate.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))+" (salarié "+employeeId+"). Corrigez les pointages avant le calcul.");
+                double regular=Math.min(hours,Math.max(0d,normalWeekly.doubleValue()-worked));
+                double overtime=hours-regular;
+                double alreadyOvertime=overtimeByWeek.getOrDefault(week,0d);
+                if(overtime>0&&alreadyOvertime+overtime>overtimeLimit.doubleValue()+0.000001)
+                    throw conflict("Les heures supplémentaires dépassent "+overtimeLimit+" heures pour la semaine du "+workDate.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))+" (salarié "+employeeId+").");
+                workedByWeek.put(week,nextWorked);
+                if(overtime>0)overtimeByWeek.put(week,alreadyOvertime+overtime);
+
+                if(!workDate.isBefore(start)&&!workDate.isAfter(end)){
+                    boolean sunday=workDate.getDayOfWeek()==java.time.DayOfWeek.SUNDAY;
+                    boolean night=cursor.getHour()>=nightStart||cursor.getHour()<nightEnd;
+                    BigDecimal exceptionalRate=sunday?sundayMultiplier:(night?nightMultiplier:BigDecimal.ONE);
+                    if(regular>0&&sunday){
+                        sundayAmount=sundayAmount.add(hourlyRate.multiply(BigDecimal.valueOf(regular)).multiply(sundayMultiplier));
+                        sundayHours=sundayHours.add(BigDecimal.valueOf(regular));sundaySources.add(interval.sessionId());
+                    }else if(regular>0&&night){
+                        nightAmount=nightAmount.add(hourlyRate.multiply(BigDecimal.valueOf(regular)).multiply(nightMultiplier));
+                        nightHours=nightHours.add(BigDecimal.valueOf(regular));nightSources.add(interval.sessionId());
+                    }
+                    if(overtime>0){
+                        double before=alreadyOvertime;
+                        double tierOne=Math.min(overtime,Math.max(0d,firstTier.doubleValue()-before));
+                        double tierTwo=overtime-tierOne;
+                        BigDecimal multiplierOne=rateOne.max(exceptionalRate);
+                        BigDecimal multiplierTwo=rateTwo.max(exceptionalRate);
+                        overtimeAmount=overtimeAmount.add(hourlyRate.multiply(BigDecimal.valueOf(tierOne)).multiply(multiplierOne))
+                            .add(hourlyRate.multiply(BigDecimal.valueOf(tierTwo)).multiply(multiplierTwo));
+                        overtimeHours=overtimeHours.add(BigDecimal.valueOf(overtime));overtimeSources.add(interval.sessionId());
+                    }
+                }
+                cursor=segmentEnd;
+            }
         }
-        amount=amount.setScale(0,RoundingMode.HALF_UP);
-        if(amount.signum()>0)addLine(lines,"HEURES_SUP","Heures supplémentaires","GAIN",amount,totalHours,hourlyRate,
-            "Pointages complets "+sourceSessions+"; seuils hebdomadaires et majorations jour/nuit paramétrés en base.",null,sourceSessions.get(0),null,null);
+        if(overtimeAmount.signum()>0)addLine(lines,"HEURES_SUP","Heures supplémentaires","GAIN",overtimeAmount.setScale(0,RoundingMode.HALF_UP),overtimeHours,hourlyRate,
+            "Pointages "+overtimeSources+" · au-delà de "+normalWeekly.stripTrailingZeros().toPlainString()+" h/semaine · tranches +30% puis +50% · plafond "+overtimeLimit+" h",null,overtimeSources.iterator().next(),null,null);
+        if(sundayAmount.signum()>0)addLine(lines,"TRAVAIL_DIMANCHE","Travail du dimanche","GAIN",sundayAmount.setScale(0,RoundingMode.HALF_UP),sundayHours,hourlyRate,
+            "Pointages "+sundaySources+" · travail du dimanche payé 2 fois le taux horaire; samedi non majoré",null,sundaySources.iterator().next(),null,null);
+        if(nightAmount.signum()>0)addLine(lines,"TRAVAIL_NUIT","Travail de nuit","GAIN",nightAmount.setScale(0,RoundingMode.HALF_UP),nightHours,hourlyRate,
+            "Pointages "+nightSources+" · heures entre "+nightStart+" h et "+nightEnd+" h payées 1,5 fois le taux horaire",null,nightSources.iterator().next(),null,null);
     }
 
+    private record WorkInterval(ZonedDateTime start,ZonedDateTime end,int sessionId) { }
     private static String weekKey(LocalDate date){return date.get(WeekFields.ISO.weekBasedYear())+"-"+date.get(WeekFields.ISO.weekOfWeekBasedYear());}
-    private static double nightHours(ZonedDateTime start,ZonedDateTime end,int nightStart,int nightEnd){
-        double minutes=0;LocalDate first=start.toLocalDate().minusDays(1),last=end.toLocalDate();
-        for(LocalDate d=first;!d.isAfter(last);d=d.plusDays(1)){
-            LocalDateTime windowStart=d.atTime(nightStart,0);
-            LocalDateTime windowEnd=(nightEnd<=nightStart?d.plusDays(1):d).atTime(nightEnd,0);
-            ZonedDateTime from=windowStart.atZone(start.getZone()),to=windowEnd.atZone(start.getZone());
-            ZonedDateTime overlapStart=start.isAfter(from)?start:from,overlapEnd=end.isBefore(to)?end:to;
-            if(overlapEnd.isAfter(overlapStart))minutes+=java.time.Duration.between(overlapStart,overlapEnd).toMinutes();
-        }
-        return minutes/60d;
-    }
     private record OvertimeDay(LocalDate date,String week,int sessionId,double hours,OffsetDateTime end) { }
 
     private BigDecimal deductAdvances(List<Map<String,Object>> lines,int employeeId,int periodId){
@@ -577,6 +590,14 @@ public class PayrollProcessingService {
             """,(rs,row)->rs.getBigDecimal(1),code,start,end,regimeId);
         if(values.isEmpty()) throw conflict("Paramètre de paie manquant à la date de calcul : "+code+".");
         return values.get(0);
+    }
+
+    private BigDecimal parameterOrDefault(String code,Integer regimeId,LocalDate start,LocalDate end,BigDecimal fallback){
+        List<BigDecimal> values=jdbc.query("""
+            SELECT valeur FROM parametres_paie WHERE code=? AND date_debut<=? AND (date_fin IS NULL OR date_fin>=?)
+              AND (regime_id=? OR regime_id IS NULL) ORDER BY (regime_id IS NULL),date_debut DESC,id DESC LIMIT 1
+            """,(rs,row)->rs.getBigDecimal(1),code,start,end,regimeId);
+        return values.isEmpty()?fallback:values.get(0);
     }
 
     private void addLine(List<Map<String,Object>> lines,String code,String label,String category,BigDecimal amount,BigDecimal quantity,BigDecimal base,String source,Integer variable,Integer session,Integer absence,Integer advance){

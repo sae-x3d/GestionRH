@@ -28,6 +28,24 @@
           </article>
         }
       </section>
+      @if (isRh && person['contratActif']; as contract) {
+        @if (contract['statutCode'] === 'ACTIF') {
+          <section class="panel dismissal-panel"><p class="eyebrow">PROCÉDURE DE SORTIE</p><h2>Licenciement</h2>
+            @if (dismissalCase) {
+              <p>Un dossier existe déjà : <strong>{{ dismissalCase.statut }}</strong> · dernier jour travaillé {{ dismissalCase.dernierJourTravaille | date:'dd/MM/yyyy' }}.</p>
+              <a routerLink="/espace/rh/sorties">Ouvrir le suivi des ruptures et STC</a>
+            } @else {
+              <p>Ouvre un dossier RH de sortie. Le contrat et le compte ne seront clôturés qu’à la dernière étape, après contrôle du STC, paiement et remise des documents.</p>
+              <form class="dismissal-form" (submit)="$event.preventDefault(); initiateDismissal()">
+                <label>Date de notification<input name="dismissalNotification" type="date" [(ngModel)]="dismissalNotificationDate" required /></label>
+                <label>Dernier jour travaillé<input name="dismissalLastDay" type="date" [min]="dismissalNotificationDate" [(ngModel)]="dismissalLastDay" required /></label>
+                <label class="wide">Motif factuel et références<textarea name="dismissalComment" rows="3" maxlength="2000" [(ngModel)]="dismissalComment" required placeholder="Éléments documentés justifiant l’ouverture du dossier"></textarea></label>
+                <button type="submit" [disabled]="dismissalBusy">{{ dismissalBusy ? 'Ouverture…' : 'Ouvrir le dossier de licenciement' }}</button>
+              </form>
+            }
+          </section>
+        }
+      }
     } @else if (tab === 'personal') {
       <section class="panel"><p class="eyebrow">COORDONNÉES ET CONTACTS</p><h2>Informations personnelles</h2>
         @if (person['informationsPersonnelles']; as info) { <dl><div><dt>Téléphone</dt><dd>{{ info['phoneNumber'] || 'Non renseigné' }}</dd></div><div><dt>Région</dt><dd>{{ info['region'] || 'Non renseignée' }}</dd></div><div><dt>Adresse</dt><dd>{{ info['adresse'] || 'Non renseignée' }}</dd></div><div><dt>Ville / code postal</dt><dd>{{ info['ville'] || '—' }} {{ info['codePostal'] || '' }}</dd></div><div><dt>Pays</dt><dd>{{ info['pays'] || 'Non renseigné' }}</dd></div><div><dt>Contact d’urgence</dt><dd>{{ info['contactUrgenceNom'] || 'Non renseigné' }} · {{ info['contactUrgenceTelephone'] || '' }}</dd></div></dl> }

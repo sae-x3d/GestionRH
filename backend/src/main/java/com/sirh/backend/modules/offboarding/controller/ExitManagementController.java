@@ -2,6 +2,7 @@ package com.sirh.backend.modules.offboarding.controller;
 
 import com.sirh.backend.modules.auth.entity.AuthUserPrincipal;
 import com.sirh.backend.modules.offboarding.dto.CreateExitRequest;
+import com.sirh.backend.modules.offboarding.dto.CreateEmployeeResignationRequest;
 import com.sirh.backend.modules.offboarding.service.ExitManagementService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -23,6 +24,28 @@ public class ExitManagementController {
     @GetMapping("/api/rh/sorties")
     public List<Map<String,Object>> list(@AuthenticationPrincipal AuthUserPrincipal actor) {
         return service.list(actor.getId(), false);
+    }
+
+    @GetMapping("/api/rh/employes/{employeeId}/sorties")
+    public List<Map<String,Object>> employeeExits(@AuthenticationPrincipal AuthUserPrincipal actor,@PathVariable Integer employeeId) {
+        return service.employeeList(actor.getId(),employeeId);
+    }
+
+    @GetMapping("/api/employe/sorties")
+    public List<Map<String,Object>> ownExits(@AuthenticationPrincipal AuthUserPrincipal actor) {
+        return service.ownList(actor.getId());
+    }
+
+    @PostMapping("/api/employe/sorties/demission")
+    public Map<String,Object> resign(@AuthenticationPrincipal AuthUserPrincipal actor,
+            @Valid @RequestBody CreateEmployeeResignationRequest request) {
+        return service.employeeResignation(actor.getId(),request);
+    }
+
+    @PostMapping("/api/rh/sorties/licenciement")
+    public Map<String,Object> dismiss(@AuthenticationPrincipal AuthUserPrincipal actor,
+            @Valid @RequestBody CreateExitRequest request) {
+        return service.employerDismissal(actor.getId(),request);
     }
 
     @GetMapping("/api/manager/sorties")

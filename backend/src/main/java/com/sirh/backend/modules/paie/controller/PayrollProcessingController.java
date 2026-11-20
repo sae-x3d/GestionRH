@@ -2,6 +2,7 @@ package com.sirh.backend.modules.paie.controller;
 
 import com.sirh.backend.modules.auth.entity.AuthUserPrincipal;
 import com.sirh.backend.modules.paie.service.PayrollProcessingService;
+import com.sirh.backend.modules.paie.service.PayrollPayslipService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotBlank;
@@ -17,12 +18,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 @RestController
 public class PayrollProcessingController {
     private final PayrollProcessingService service;
+    private final PayrollPayslipService payslipService;
 
-    public PayrollProcessingController(PayrollProcessingService service) { this.service = service; }
+    public PayrollProcessingController(PayrollProcessingService service, PayrollPayslipService payslipService) { this.service = service; this.payslipService=payslipService; }
 
     @GetMapping("/api/rh/paie/periodes")
     public List<Map<String,Object>> periods(@AuthenticationPrincipal AuthUserPrincipal user) {
@@ -59,6 +64,13 @@ public class PayrollProcessingController {
     @GetMapping("/api/rh/paie/periodes/{id}/bulletins")
     public List<Map<String,Object>> bulletins(@AuthenticationPrincipal AuthUserPrincipal user,@PathVariable Integer id) {
         return service.periodBulletins(user.getId(),id);
+    }
+
+    @GetMapping("/api/rh/paie/periodes/{id}/etat-excel")
+    public ResponseEntity<byte[]> payrollExcel(@AuthenticationPrincipal AuthUserPrincipal user,@PathVariable Integer id) {
+        byte[] file=payslipService.rhMonthlyPayrollExcel(user.getId(),id);
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"etat-de-paie-"+id+".xlsx\"")
+            .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")).body(file);
     }
 
     @GetMapping("/api/rh/paie/periodes/{id}/variables")

@@ -1,10 +1,12 @@
-# Jeu de donnees SIRH — 14/11/2026
+# Jeu de donnees SIRH — version consolidee
 
 ## Import
 
-1. Importer `datas/db/tables-14-11-26.sql` dans une base PostgreSQL vide.
-2. Importer `datas/db/data-14-11-26.sql` dans cette meme base.
-3. Les fichiers de demonstration sont generes avec `node datas/db/generate-14-11-26-documents.js` depuis la racine du projet. Le script doit etre lance apres l'import SQL pour que les identifiants des employes correspondent aux dossiers documentaires.
+1. Partir d’une base PostgreSQL vide.
+2. Importer `datas/db/tables-finales.sql`.
+3. Importer `datas/db/data-finales.sql`.
+
+Les rubriques de paie, le plafond hebdomadaire et les valeurs initiales sont inclus dans ces deux fichiers; aucun script SQL de migration séparé n’est nécessaire pour une nouvelle base.
 
 --
 # MOT DE PASSE : `DemoManager!2026#`.

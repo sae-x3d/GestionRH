@@ -19,5 +19,20 @@
       </div>
       <section class="premium-note"><strong>Document complet</strong><p>Le contrat PDF reprend les informations personnelles, le matricule, les conditions acceptées au questionnaire d’embauche et les clauses communes du modèle RH.</p></section>
     </article>
+    @if (activeExit; as request) {
+      <section class="contract-summary exit-request-state"><p class="eyebrow">DEMANDE DE DÉPART</p><h2>Votre demande est en cours</h2><p><strong>{{ request.motif }}</strong> · {{ request.statut }}</p><p>Dernier jour travaillé demandé : {{ request.dernierJourTravaille | date:'dd/MM/yyyy' }}</p><p>Les RH traiteront le décompte de sortie, le paiement et les documents. Le contrat reste actif jusqu’à la clôture du dossier.</p></section>
+    } @else if (contract['statut_code'] === 'ACTIF') {
+      <section class="contract-summary resignation-panel"><p class="eyebrow">DÉPART VOLONTAIRE</p><h2>Demander ma démission</h2><p>Votre demande sera transmise aux RH. Elles prépareront le décompte de sortie et suivront le paiement et la remise des documents.</p>
+        <form class="resignation-form" (submit)="$event.preventDefault(); submitResignation()">
+          <label>Date de notification<input type="date" name="dateNotification" [(ngModel)]="dateNotification" required /></label>
+          <label>Dernier jour travaillé demandé<input type="date" name="dernierJourTravaille" [(ngModel)]="dernierJourTravaille" [min]="dateNotification" required /></label>
+          <label class="wide">Commentaire (facultatif)<textarea name="commentaire" rows="3" maxlength="2000" [(ngModel)]="commentaire" placeholder="Précisions utiles pour les ressources humaines"></textarea></label>
+          <button type="submit" [disabled]="submittingResignation">{{ submittingResignation ? 'Transmission…' : 'Transmettre ma demande' }}</button>
+        </form>
+      </section>
+    }
+    @if (exits.length) {
+      <section class="contract-summary exit-history"><p class="eyebrow">SUIVI DES DÉPARTS</p><h2>Historique</h2>@for (exit of exits; track exit.id) { <article><strong>{{ exit.motif }} · {{ exit.statut }}</strong><span>Dernier jour travaillé : {{ exit.dernierJourTravaille | date:'dd/MM/yyyy' }}</span></article> }</section>
+    }
   }
 </main>

@@ -3,7 +3,6 @@
     <div><p class="eyebrow">RESSOURCES HUMAINES / PAIE</p><h1>Préparer la paie</h1><p class="page-intro">Créez une période mensuelle, calculez les bulletins à partir des contrats, pointages, absences déductibles et variables validées, puis suivez leur validation.</p></div>
     <div class="period-create"><label for="payroll-month">Mois de paie</label><input id="payroll-month" pInputText type="month" [(ngModel)]="month" [disabled]="busy"><p-button label="Créer la période" icon="pi pi-plus" [disabled]="busy || !month" [loading]="busy" (onClick)="create()" /></div>
   </header>
-  <section class="payroll-notice"><i class="pi pi-info-circle" aria-hidden="true"></i><p>Les taux et seuils sont lus dans les paramètres datés. Les règles issues du document de cadrage restent signalées « à vérifier » dans l’administration. La validation fige les bulletins et les rend accessibles aux salariés.</p></section>
   @if (loading) { <div class="state"><i class="pi pi-spin pi-spinner" aria-hidden="true"></i> Chargement des périodes…</div> }
   @else if (!periods.length) { <div class="state empty"><i class="pi pi-wallet" aria-hidden="true"></i><strong>Aucune période de paie</strong><span>Créez un mois pour commencer la préparation.</span></div> }
   @else {
@@ -20,6 +19,7 @@
     <section class="period-detail">
       <header class="detail-heading"><div><p class="eyebrow">PÉRIODE DU {{ selected.dateDebut | date:'dd/MM/yyyy' }} AU {{ selected.dateFin | date:'dd/MM/yyyy' }}</p><h2>{{ selected.dateDebut | date:'MMMM yyyy' }}</h2><span class="period-status">{{ selected.statut }}</span></div>
         <div class="actions">
+          <p-button label="Télécharger l’état Excel" icon="pi pi-file-excel" severity="secondary" [disabled]="busy || downloadingExcel" [loading]="downloadingExcel" (onClick)="downloadExcel()" />
           @if (selected.statutCode === 'BROUILLON' || selected.statutCode === 'CALCULEE') { <p-button label="Calculer / recalculer" icon="pi pi-calculator" [disabled]="busy" [loading]="busy" (onClick)="calculate()" /> }
           @if (selected.statutCode === 'CALCULEE') { <p-button label="Valider les bulletins" icon="pi pi-check" [disabled]="busy" (onClick)="validate()" /> }
           @if (selected.statutCode === 'VALIDEE') { <label class="payment-reference">Référence de paiement<input pInputText maxlength="80" [(ngModel)]="paymentReference" placeholder="Virement / ordre de paiement"></label><p-button label="Confirmer le paiement" icon="pi pi-credit-card" [disabled]="busy || paymentReference.trim().length < 3" (onClick)="markPaid()" /> }
