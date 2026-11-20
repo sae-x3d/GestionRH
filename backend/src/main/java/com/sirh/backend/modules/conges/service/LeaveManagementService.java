@@ -386,7 +386,7 @@ public class LeaveManagementService {
             JOIN users u ON u.id=e.user_id AND u.is_suspended=FALSE
             WHERE p.departement_id=? AND LOWER(r.role_name)='manager'
             """, Integer.class, departmentId);
-        for (Integer managerId : managers) notifications.notifyUser(managerId, "ABSENCE_PLANNING", "Absence ajoutée au planning",
+        for (Integer managerId : managers) notifications.notifyUser(managerId, "CONGE_STATUT", "Absence ajoutée au planning",
             "Une absence impactant la présence a été reportée sur le planning de votre département.", "/espace/manager/planning/equipe");
     }
 
