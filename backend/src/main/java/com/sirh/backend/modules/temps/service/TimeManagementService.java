@@ -40,7 +40,7 @@ public class TimeManagementService {
         result.put("semaineFin", monday.plusDays(6));
         result.put("horairesParDefaut", defaultSchedule());
         result.put("jours", jdbc.queryForList("""
-            SELECT COALESCE(j.id, -a.id) AS id, cal.date_travail::date AS date,
+            SELECT COALESCE(j.id, -a.id) AS id, TO_CHAR(cal.date_travail, 'YYYY-MM-DD') AS date,
                    CASE WHEN a.id IS NOT NULL THEN CASE WHEN a.demande_conge_id IS NOT NULL THEN 'CONGE' ELSE 'ABSENCE' END ELSE tj.code END AS type_code,
                    COALESCE(taffiche.libelle, tj.libelle) AS type_jour,
                    CASE WHEN a.id IS NULL THEN j.heure_debut END AS debut,
@@ -217,7 +217,7 @@ public class TimeManagementService {
             "SELECT numero_iso FROM jours_semaine WHERE actif=TRUE AND ouvrable_par_defaut=TRUE ORDER BY numero_iso"));
         Integer planningId = planning.isEmpty() ? null : ((Number) planning.getFirst().get("id")).intValue();
         result.put("jours", planningId == null ? List.of() : jdbc.queryForList("""
-            SELECT j.id, j.employe_id AS employeId, j.date_travail AS date, tj.code AS type_code,
+            SELECT j.id, j.employe_id AS employeId, TO_CHAR(j.date_travail, 'YYYY-MM-DD') AS date, tj.code AS type_code,
                    tj.libelle AS type_jour, j.heure_debut AS debut, j.heure_fin AS fin,
                    j.pause_debut AS pauseDebut, j.pause_fin AS pauseFin, j.observation,
                    (SELECT COUNT(*) FROM evenements_pointage ep
@@ -232,7 +232,7 @@ public class TimeManagementService {
         for (int day = 0; day < 7; day++) {
             LocalDate date = monday.plusDays(day);
             Map<String, Object> count = jdbc.queryForMap("""
-                SELECT ?::date AS date,
+                SELECT TO_CHAR(?::date, 'YYYY-MM-DD') AS date,
                     (SELECT COUNT(*) FROM employes e JOIN postes p ON p.id = e.poste_id
                      JOIN users u ON u.id = e.user_id JOIN statuts_validation_compte svc
                        ON svc.id = u.administrative_validation_status_id AND svc.code = 'APPROVED'
@@ -273,10 +273,17 @@ public class TimeManagementService {
         if (request.employeIds().size() > 100 || request.dates().size() > 7) {
             throw badRequest("Sélection trop grande : limite de 100 agents et 7 dates par opération.");
         }
-        LocalDate week = monday(request.dates().getFirst());
-        if (week.isBefore(monday(LocalDate.now(HR_ZONE)))) throw new ResponseStatusException(HttpStatus.CONFLICT, "Une semaine passée est consultable mais ne peut plus être modifiée.");
         Set<LocalDate> dates = new LinkedHashSet<>(request.dates());
-        if (dates.size() != request.dates().size() || dates.stream().anyMatch(date -> date.isBefore(week) || date.isAfter(week.plusDays(6)))) {
+        if (dates.size() != request.dates().size()) {
+            throw badRequest("Les dates doivent être uniques et appartenir à la même semaine.");
+        }
+        // Une affectation peut ne concerner qu'une partie de la semaine (ex. mar–ven).
+        // La première date choisie n'est donc pas forcément un lundi : on retrouve
+        // le lundi de sa semaine, puis on vérifie que toutes les dates y appartiennent.
+        LocalDate firstDate = dates.stream().min(LocalDate::compareTo).orElseThrow();
+        LocalDate week = firstDate.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+        if (week.isBefore(mondayOf(LocalDate.now(HR_ZONE)))) throw new ResponseStatusException(HttpStatus.CONFLICT, "Une semaine passée est consultable mais ne peut plus être modifiée.");
+        if (dates.stream().anyMatch(date -> date.isBefore(week) || date.isAfter(week.plusDays(6)))) {
             throw badRequest("Les dates doivent être uniques et appartenir à la même semaine.");
         }
         Set<Integer> employeeIds = new LinkedHashSet<>(request.employeIds());
@@ -382,8 +389,8 @@ public class TimeManagementService {
         Integer departmentId = managerDepartment(userId);
         Map<String, Object> planning = ownPlanning(planningId, departmentId);
         if (!"BROUILLON".equals(planning.get("statut_code"))) throw badRequest("Seul un brouillon peut être publié.");
-        LocalDate monday = (LocalDate) planning.get("semaine_debut");
-        if (monday.isBefore(monday(LocalDate.now(HR_ZONE)))) throw new ResponseStatusException(HttpStatus.CONFLICT, "Une semaine passée ne peut pas être publiée.");
+        LocalDate monday = localDate(planning.get("semaine_debut"));
+        if (monday.isBefore(mondayOf(LocalDate.now(HR_ZONE)))) throw new ResponseStatusException(HttpStatus.CONFLICT, "Une semaine passée ne peut pas être publiée.");
         Integer missing = jdbc.queryForObject("""
             SELECT COUNT(*) FROM employes e JOIN postes p ON p.id = e.poste_id
             JOIN users u ON u.id = e.user_id AND u.is_suspended = FALSE
@@ -413,12 +420,13 @@ public class TimeManagementService {
         Integer departmentId = managerDepartment(userId);
         Map<String, Object> planning = ownPlanning(planningId, departmentId);
         if (!"PUBLIE".equals(planning.get("statut_code"))) throw badRequest("Seul un planning publié peut être rouvert.");
-        if (((LocalDate) planning.get("semaine_debut")).isBefore(monday(LocalDate.now(HR_ZONE)))) throw new ResponseStatusException(HttpStatus.CONFLICT, "Un planning historique ne peut plus être rouvert.");
+        LocalDate monday = localDate(planning.get("semaine_debut"));
+        if (monday.isBefore(mondayOf(LocalDate.now(HR_ZONE)))) throw new ResponseStatusException(HttpStatus.CONFLICT, "Un planning historique ne peut plus être rouvert.");
         Integer oldStatusId = ((Number) planning.get("statut_id")).intValue();
         Integer draftId = jdbc.queryForObject("SELECT id FROM statuts_planning_equipe WHERE code = 'BROUILLON'", Integer.class);
         jdbc.update("UPDATE plannings_equipe SET statut_id = ?, publie_par_id = NULL, publie_at = NULL, version = version + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?", draftId, planningId);
         jdbc.update("INSERT INTO historique_statut_planning (planning_id, ancien_statut_id, nouveau_statut_id, acteur_id, motif) VALUES (?, ?, ?, ?, ?)", planningId, oldStatusId, draftId, userId, "Réouverture pour correction");
-        return managerWeek(userId, (LocalDate) planning.get("semaine_debut"));
+        return managerWeek(userId, monday);
     }
 
     @Transactional(readOnly = true)
@@ -486,12 +494,12 @@ public class TimeManagementService {
             WHERE j.employe_id = ? AND j.date_travail = ?
             """, employeeId, date);
         if (schedule.isEmpty() || !"TRAVAIL".equals(schedule.getFirst().get("code"))) {
-            if ("ARRIVEE".equals(action)) createAnomaly(sessionId, "HORS_PLANNING", "Arrivée enregistrée sans affectation de travail planifiée.");
+            if ("ARRIVEE".equals(action)) createAnomaly(sessionId, "POINTAGE_HORS_PLANNING", "Arrivée enregistrée sans affectation de travail planifiée.");
             return;
         }
         Map<String, Object> shift = schedule.getFirst();
         if ("ARRIVEE".equals(action) && shift.get("heure_debut") != null) {
-            LocalTime start = (LocalTime) shift.get("heure_debut");
+            LocalTime start = localTime(shift.get("heure_debut"));
             int tolerance = ruleMinutes("TOLERANCE_RETARD");
             if (now.toLocalTime().isAfter(start.plusMinutes(tolerance))) createAnomaly(sessionId, "RETARD", "Arrivée à " + now.toLocalTime().withSecond(0).withNano(0) + ", début prévu à " + start + ".");
         }
@@ -501,11 +509,11 @@ public class TimeManagementService {
                 WHERE ep.session_id = ? AND t.code = 'DEBUT_PAUSE'
                 """, OffsetDateTime.class, sessionId);
             long actual = java.time.Duration.between(pauseStart, now).toMinutes();
-            long planned = java.time.Duration.between((LocalTime) shift.get("pause_debut"), (LocalTime) shift.get("pause_fin")).toMinutes();
+            long planned = java.time.Duration.between(localTime(shift.get("pause_debut")), localTime(shift.get("pause_fin"))).toMinutes();
             if (actual > planned + ruleMinutes("TOLERANCE_PAUSE")) createAnomaly(sessionId, "PAUSE_DEPASSEE", "Pause de " + actual + " minutes, durée prévue " + planned + " minutes.");
         }
         if ("FIN_SERVICE".equals(action) && shift.get("heure_fin") != null) {
-            LocalTime end = (LocalTime) shift.get("heure_fin");
+            LocalTime end = localTime(shift.get("heure_fin"));
             int tolerance = ruleMinutes("TOLERANCE_DEPART");
             if (now.toLocalTime().isBefore(end.minusMinutes(tolerance))) createAnomaly(sessionId, "DEPART_ANTICIPE", "Départ à " + now.toLocalTime().withSecond(0).withNano(0) + ", fin prévue à " + end + ".");
         }
@@ -550,7 +558,7 @@ public class TimeManagementService {
 
     private static long workedMinutes(List<Map<String, Object>> events) {
         Map<String, OffsetDateTime> times = new LinkedHashMap<>();
-        events.forEach(event -> times.put((String) event.get("code"), (OffsetDateTime) event.get("horodatage")));
+        events.forEach(event -> times.put((String) event.get("code"), offsetDateTime(event.get("horodatage"))));
         OffsetDateTime arrival = times.get("ARRIVEE");
         if (arrival == null) return 0;
         OffsetDateTime pauseStart = times.get("DEBUT_PAUSE");
@@ -775,6 +783,29 @@ public class TimeManagementService {
     private static LocalDate monday(LocalDate date) {
         if (date == null || date.getDayOfWeek() != java.time.DayOfWeek.MONDAY) throw badRequest("La semaine doit commencer un lundi.");
         return date;
+    }
+
+    private static LocalDate mondayOf(LocalDate date) {
+        return date.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+    }
+
+    private static LocalDate localDate(Object value) {
+        if (value instanceof LocalDate date) return date;
+        if (value instanceof java.sql.Date date) return date.toLocalDate();
+        throw new IllegalArgumentException("Date de semaine invalide : " + value);
+    }
+
+    private static LocalTime localTime(Object value) {
+        if (value instanceof LocalTime time) return time;
+        if (value instanceof java.sql.Time time) return time.toLocalTime();
+        throw new IllegalArgumentException("Heure de planning invalide : " + value);
+    }
+
+    private static OffsetDateTime offsetDateTime(Object value) {
+        if (value instanceof OffsetDateTime datetime) return datetime;
+        if (value instanceof java.sql.Timestamp timestamp) return timestamp.toInstant().atZone(HR_ZONE).toOffsetDateTime();
+        if (value instanceof java.util.Date date) return date.toInstant().atZone(HR_ZONE).toOffsetDateTime();
+        throw new IllegalArgumentException("Horodatage de pointage invalide : " + value);
     }
 
     private static String cleanObservation(String observation) {

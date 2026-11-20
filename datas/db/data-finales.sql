@@ -88,7 +88,8 @@ INSERT INTO types_notifications (code, libelle) VALUES
  ('COMPTE_STATUT','Mise a jour du compte'),('INSCRIPTION_A_TRAITER','Nouvelle inscription a traiter'),
  ('DOSSIER_A_VALIDER','Demande de dossier a traiter'),('DOSSIER_STATUT','Mise a jour du dossier salarie'),
  ('CONGE_A_VALIDER','Demande de conge a valider'),('CONGE_STATUT','Mise a jour de demande de conge'),
- ('EFFECTIF_SOUS_MINIMUM','Alerte de sous-effectif'),('BULLETIN_PAIE','Bulletin de paie disponible');
+ ('EFFECTIF_SOUS_MINIMUM','Alerte de sous-effectif'),('BULLETIN_PAIE','Bulletin de paie disponible'),
+ ('PLANNING_MODIFIE','Planning modifie'),('PLANNING_PUBLIE','Planning publie');
 
 INSERT INTO statuts_candidature (code, libelle) VALUES
  ('ENVOYEE_RH','Transmise aux RH'),('PRESELECTIONNEE','Preselectionnee'),('ENTRETIEN_PROPOSE','Entretien propose'),
